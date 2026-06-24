@@ -36,6 +36,7 @@ PROFILE_TOOLS=(
 	# AI coding
 	opencode
 	claude_code
+	pi-coding-agent
 
 	# Shell prompt (alternative)
 	oh_my_posh

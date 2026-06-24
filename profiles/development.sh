@@ -34,4 +34,5 @@ PROFILE_TOOLS=(
 	# AI coding
 	opencode
 	claude_code
+	pi-coding-agent
 )
