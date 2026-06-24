@@ -1,7 +1,15 @@
 {
   "apiKeyHelper": "$HOME/.claude/anthropic_key.sh",
-  "model": "opus[1m]",
   "enabledPlugins": {
     "swift-lsp@claude-plugins-official": true
-  }
+  },
+  "env": {
+    "CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "mcp__pencil"
+    ]
+  },
+  "theme": "dark"
 }
