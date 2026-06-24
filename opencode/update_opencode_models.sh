@@ -26,7 +26,7 @@ for cmd in curl jq; do
 done
 
 # ── Environment values ──────────────────────────────────────────────
-API_KEY="${API_KEY:-$(pass large_llanguage_model/opencode_key)}"
+API_KEY="${API_KEY:-$(pass large_llanguage_model/opencode_key | head -n 1)}"
 
 # ── Arguments & defaults ────────────────────────────────────────────
 PROVIDER_DISPLAY_NAME="${1:-$(pass large_llanguage_model/opencode_key | sed -n 's/.*provider_name:[[:space:]]*//p')}"
