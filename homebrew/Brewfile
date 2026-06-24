@@ -71,7 +71,7 @@ brew "hyperfine" # Command-line benchmarking tool
 mas "Windows App", id: 1295203466
 
 ### Networking ###
-brew "julien-cpsn/atac/atac" # A simple API client (postman like) in your terminal
+brew "julien-cpsn/atac/atac", trusted: true # A simple API client (postman like) in your terminal
 brew "curlie" # Power of curl, ease of use of httpie
 brew "drill" # HTTP load testing application written in Rust
 cask "hoppscotch" # Open source API development ecosystem
@@ -107,7 +107,7 @@ cask "keka" # File archiver
 # PREFIX='/opt/homebrew/opt/browserpass' make hosts-firefox-user -f '/opt/homebrew/opt/browserpass/lib/browserpass/Makefile'
 # Browserpass setup for Helium:
 # PREFIX='/opt/homebrew/opt/browserpass' make hosts-chromium-user -f '/opt/homebrew/opt/browserpass/lib/browserpass/Makefile'
-brew "amar1729/homebrew-formulae/browserpass" # Host application for browser extension providing access to your password store
+brew "amar1729/homebrew-formulae/browserpass", trusted: true # Host application for browser extension providing access to your password store
 mas "Consent-O-Matic", id: 1606897889
 mas "DuckDuckGo", id: 663592361
 # cask "firefox" # Web browser
@@ -207,7 +207,7 @@ cask "obsidian" # Knowledge base that works on top of a local folder of plain te
 mas "reMarkable", id: 1276493162 # View, Screen Share, organize, import, and download files to a reMarkable device
 
 ### Windows management ###
-# cask "nikitabobko/tap/aerospace" # AeroSpace is an i3-like tiling window manager for macOS
+# cask "nikitabobko/tap/aerospace", trusted: true # AeroSpace is an i3-like tiling window manager for macOS
 cask "amethyst" # Automatic tiling window manager similar to xmonad
 # cask "flashspace" # Virtual workspace manager
 # cask "rectangle" # Move and resize windows using keyboard shortcuts or snap areas
@@ -267,7 +267,8 @@ brew "kdoctor" # Environment diagnostics for Kotlin Multiplatform Mobile app dev
 brew "apfel" # Apple Intelligence from the command-line, with OpenAi-compatible API server
 # cask "claude-code" # Terminal-based AI coding assistant
 # cask "copilot-cli" # Brings the power of Copilot coding agent directly to your terminal
-brew "anomalyco/tap/opencode" # AI coding agent, built for the terminal
+brew "fabric-ai" # Open-source framework for augmenting humans using AI
+brew "anomalyco/tap/opencode", trusted: true # AI coding agent, built for the terminal
 brew "pi-coding-agent" # AI agent toolkit
 
 ### iOS development ###
@@ -286,8 +287,8 @@ brew "swift-protobuf" # Plugin and runtime library for using protobuf with Swift
 mas "TestFlight", id: 899247664
 # mas "Xcode", id: 497799835 # <- Xcode being installed using xcodes
 brew "xcode-kotlin" # Kotlin Native Xcode Plugin
-brew "xcodesorg/made/xcodes" # Best command-line tool to install and switch between multiple versions of Xcode
-# cask "xcodesorg/made/xcodes" # Install and switch between multiple versions of Xcode -> App version of xcodes command-line tool
+brew "xcodesorg/made/xcodes", trusted: true # Best command-line tool to install and switch between multiple versions of Xcode
+# cask "xcodesorg/made/xcodes", trusted: true # Install and switch between multiple versions of Xcode -> App version of xcodes command-line tool
 brew "vapor" if system(%q[mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'" | grep -q .]) # Command-line tool for Vapor (Server-side Swift web framework) -> requires Xcode
 
 ### Machine learning ###
