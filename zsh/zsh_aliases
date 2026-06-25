@@ -43,6 +43,20 @@ alias downloads="cd $HOME/Downloads/"
 # Ncspot
 (( $+commands[spotify_player] )) && alias spotify="spotify_player"
 
+# Zellij (session-only persistence layer; see zellij/keybindings.md)
+if (( $+commands[zellij] )); then
+	# Attach to a session, creating it if it does not exist
+	alias za="zellij attach -c"
+	# List active sessions
+	alias zl="zellij list-sessions"
+	# Detach from the current session (run inside Zellij)
+	alias zd="zellij action detach"
+	# Kill a named session
+	alias zk="zellij kill-session"
+	# Kill every session
+	alias zka="zellij kill-all-sessions"
+fi
+
 # Xcode
 alias derived_data="cd $HOME/Library/Developer/Xcode/DerivedData/"
 

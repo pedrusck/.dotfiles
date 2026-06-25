@@ -29,18 +29,6 @@ shell-integration = zsh
 shell-integration-features = true
 
 # Keybindings
-keybind = cmd+s>\=new_split:right
-keybind = cmd+s>-=new_split:down
-
-keybind = cmd+s>j=goto_split:bottom
-keybind = cmd+s>k=goto_split:top
-keybind = cmd+s>h=goto_split:left
-keybind = cmd+s>l=goto_split:right
-
-keybind = cmd+s>z=toggle_split_zoom
-
-keybind = cmd+s>e=equalize_splits
-
 keybind = shift+enter=text:\x1b\r
 
 # Required configuration for pi the coding agent (see https://pi.dev/docs/latest/terminal-setup)

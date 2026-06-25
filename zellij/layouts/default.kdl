@@ -1,0 +1,14 @@
+// Default layout: a single bordered pane plus a slim one-row compact-bar.
+//
+// The compact-bar (bottom, 1 row, borderless) displays the session name — in
+// Zellij the session name is rendered by a bar plugin, not by the pane frame,
+// so this is the minimal chrome required to keep the session name visible.
+//
+// The pane frame (green, rounded, configured in config.kdl) remains the focus
+// indicator. Splits are handled by Ghostty, not Zellij.
+layout {
+    pane
+    pane size=1 borderless=true {
+        plugin location="compact-bar"
+    }
+}

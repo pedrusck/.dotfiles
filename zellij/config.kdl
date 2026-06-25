@@ -1,209 +1,227 @@
 // Zellij Configuration
 // ====================
 //
-// Vim-philosophy keybindings designed for:
-//   - EurKEY keyboard layout (all Alt/Opt combos reserved for European chars)
-//   - Amethyst window manager (Opt+Cmd / Opt+Cmd+Shift reserved)
-//   - macOS system shortcuts (Ctrl+Arrow, Ctrl+Space reserved)
+// Zellij is a session-persistence layer (detach / reattach so processes survive
+// closing the Ghostty window) with a single, conflict-free modal gateway for
+// managing co-persisting panes the Vim way.
 //
-// See keybindings.md for the full reference and design rationale.
-// See migration_guide.md for transitioning from Zellij defaults.
+//   - The ONLY key bound in Locked mode is Ctrl+g, which enters "Zellij mode".
+//     Every other Ctrl+key chord passes straight through to Neovim / shell.
+//   - Ctrl+g is free across macOS, EurKEY, the shell and Neovim.
+//   - Inside Zellij mode, bare Vim keys act once and return to Locked (one-shot).
+//   - Panes created here are real Zellij panes -> they co-persist in the session.
+//   - Ghostty still handles non-persistent terminal splits (Cmd-based built-ins).
+//   - OS window/space management is handled by Amethyst (Opt+Cmd).
+//   - Session control also available via shell aliases: za / zl / zd / zk / zka.
+//
+// Zellij mode (Ctrl+g), all one-shot:
+//   s split-down   v split-right   n new-pane
+//   h/j/k/l focus   H/J/K/L move    + grow   - shrink
+//   x close-pane    t new-tab       X close-tab   [ prev-tab   ] next-tab
+//   w session-manager               Esc / Ctrl+g  exit
+//
+// Visual indicators:
+//   - Session name: shown in a slim 1-row compact-bar (see layouts/default.kdl).
+//     In Zellij the session name is rendered by a bar plugin, not the frame.
+//   - Rounded pane frame color marks focus and mode:
+//       green  (#98971a) = focused pane
+//       gray   (#928374) = other panes
+//       orange (#d65d0e) = shown while Zellij mode is active
+//
+// See keybindings.md for the full reference and CLI workflow.
 
 keybinds clear-defaults=true {
     locked {
-        bind "Ctrl g" { SwitchToMode "normal"; }
+        // The single gateway: enter Zellij mode. Everything else passes through.
+        bind "Ctrl g" { SwitchToMode "pane"; }
     }
+    // Zellij mode: Vim-philosophy pane management. Every action is one-shot
+    // (performs the action then returns to Locked).
     pane {
-        bind "left" { MoveFocus "left"; }
-        bind "down" { MoveFocus "down"; }
-        bind "up" { MoveFocus "up"; }
-        bind "right" { MoveFocus "right"; }
-        bind "space" { NextSwapLayout; }
-        bind "G" { ToggleGroupMarking; }
-        bind "H" { MoveFocusOrTab "left"; }
-        bind "L" { MoveFocusOrTab "right"; }
-        bind "S" { NewPane "stacked"; SwitchToMode "normal"; }
-        bind "c" { SwitchToMode "renamepane"; PaneNameInput 0; }
-        bind "e" { TogglePaneEmbedOrFloating; SwitchToMode "normal"; }
-        bind "f" { ToggleFocusFullscreen; SwitchToMode "normal"; }
-        bind "g" { TogglePaneInGroup; }
-        bind "h" { MoveFocus "left"; }
-        bind "i" { TogglePanePinned; SwitchToMode "normal"; }
-        bind "j" { MoveFocus "down"; }
-        bind "k" { MoveFocus "up"; }
-        bind "l" { MoveFocus "right"; }
-        bind "n" { NewPane; SwitchToMode "normal"; }
-        bind "p" { SwitchFocus; }
-        bind "Ctrl p" { SwitchToMode "normal"; }
-        bind "s" { NewPane "down"; SwitchToMode "normal"; }
-        bind "v" { NewPane "right"; SwitchToMode "normal"; }
-        bind "w" { ToggleFloatingPanes; SwitchToMode "normal"; }
-        bind "x" { CloseFocus; SwitchToMode "normal"; }
-        bind "z" { TogglePaneFrames; SwitchToMode "normal"; }
-    }
-    tab {
-        bind "left" { GoToPreviousTab; }
-        bind "down" { GoToNextTab; }
-        bind "up" { GoToPreviousTab; }
-        bind "right" { GoToNextTab; }
-        bind "1" { GoToTab 1; SwitchToMode "normal"; }
-        bind "2" { GoToTab 2; SwitchToMode "normal"; }
-        bind "3" { GoToTab 3; SwitchToMode "normal"; }
-        bind "4" { GoToTab 4; SwitchToMode "normal"; }
-        bind "5" { GoToTab 5; SwitchToMode "normal"; }
-        bind "6" { GoToTab 6; SwitchToMode "normal"; }
-        bind "7" { GoToTab 7; SwitchToMode "normal"; }
-        bind "8" { GoToTab 8; SwitchToMode "normal"; }
-        bind "9" { GoToTab 9; SwitchToMode "normal"; }
-        bind "<" { MoveTab "left"; }
-        bind ">" { MoveTab "right"; }
-        bind "[" { BreakPaneLeft; SwitchToMode "normal"; }
-        bind "]" { BreakPaneRight; SwitchToMode "normal"; }
-        bind "b" { BreakPane; SwitchToMode "normal"; }
-        bind "h" { GoToPreviousTab; }
-        bind "j" { GoToNextTab; }
-        bind "k" { GoToPreviousTab; }
-        bind "l" { GoToNextTab; }
-        bind "n" { NewTab; SwitchToMode "normal"; }
-        bind "r" { SwitchToMode "renametab"; TabNameInput 0; }
-        bind "s" { ToggleActiveSyncTab; SwitchToMode "normal"; }
-        bind "Ctrl t" { SwitchToMode "normal"; }
-        bind "x" { CloseTab; SwitchToMode "normal"; }
-        bind "tab" { ToggleTab; }
-    }
-    resize {
-        bind "left" { Resize "Increase left"; }
-        bind "down" { Resize "Increase down"; }
-        bind "up" { Resize "Increase up"; }
-        bind "right" { Resize "Increase right"; }
-        bind "+" { Resize "Increase"; }
-        bind "-" { Resize "Decrease"; }
-        bind "=" { Resize "Increase"; }
-        bind "H" { Resize "Decrease left"; }
-        bind "J" { Resize "Decrease down"; }
-        bind "K" { Resize "Decrease up"; }
-        bind "L" { Resize "Decrease right"; }
-        bind "h" { Resize "Increase left"; }
-        bind "j" { Resize "Increase down"; }
-        bind "k" { Resize "Increase up"; }
-        bind "l" { Resize "Increase right"; }
-        bind "Ctrl r" { SwitchToMode "normal"; }
-    }
-    move {
-        bind "left" { MovePane "left"; }
-        bind "down" { MovePane "down"; }
-        bind "up" { MovePane "up"; }
-        bind "right" { MovePane "right"; }
-        bind "h" { MovePane "left"; }
-        bind "j" { MovePane "down"; }
-        bind "k" { MovePane "up"; }
-        bind "l" { MovePane "right"; }
-        bind "n" { MovePane; }
-        bind "p" { MovePaneBackwards; }
-        bind "Ctrl w" { SwitchToMode "normal"; }
-        bind "tab" { MovePane; }
-    }
-    scroll {
-        bind "/" { SwitchToMode "entersearch"; SearchInput 0; }
-        bind "G" { ScrollToBottom; }
-        bind "e" { EditScrollback; SwitchToMode "normal"; }
-        bind "g" { ScrollToTop; }
-        bind "s" { SwitchToMode "entersearch"; SearchInput 0; }
-    }
-    search {
-        bind "N" { Search "up"; }
-        bind "c" { SearchToggleOption "CaseSensitivity"; }
-        bind "n" { Search "down"; }
-        bind "o" { SearchToggleOption "WholeWord"; }
-        bind "w" { SearchToggleOption "Wrap"; }
-    }
-    session {
-        bind "c" {
-            LaunchOrFocusPlugin "configuration" {
-                floating true
-                move_to_focused_tab true
-            }
-            SwitchToMode "normal"
-        }
-        bind "d" { Detach; }
-        bind "l" {
-            LaunchOrFocusPlugin "zellij:layout-manager" {
-                floating true
-                move_to_focused_tab true
-            }
-            SwitchToMode "normal"
-        }
-        bind "m" { ToggleMouseMode; }
-        bind "Ctrl o" { SwitchToMode "normal"; }
-        bind "p" {
-            LaunchOrFocusPlugin "plugin-manager" {
-                floating true
-                move_to_focused_tab true
-            }
-            SwitchToMode "normal"
-        }
+        // Splits / new pane
+        bind "s" { NewPane "down"; SwitchToMode "locked"; }
+        bind "v" { NewPane "right"; SwitchToMode "locked"; }
+        bind "n" { NewPane; SwitchToMode "locked"; }
+        // Focus (Vim h/j/k/l)
+        bind "h" { MoveFocus "left"; SwitchToMode "locked"; }
+        bind "j" { MoveFocus "down"; SwitchToMode "locked"; }
+        bind "k" { MoveFocus "up"; SwitchToMode "locked"; }
+        bind "l" { MoveFocus "right"; SwitchToMode "locked"; }
+        // Move / swap pane (Vim Ctrl+w H/J/K/L)
+        bind "H" { MovePane "left"; SwitchToMode "locked"; }
+        bind "J" { MovePane "down"; SwitchToMode "locked"; }
+        bind "K" { MovePane "up"; SwitchToMode "locked"; }
+        bind "L" { MovePane "right"; SwitchToMode "locked"; }
+        // Resize (one-shot; repeat Ctrl+g + / Ctrl+g - to keep adjusting)
+        bind "+" { Resize "Increase"; SwitchToMode "locked"; }
+        bind "=" { Resize "Increase"; SwitchToMode "locked"; }
+        bind "-" { Resize "Decrease"; SwitchToMode "locked"; }
+        // Close pane
+        bind "x" { CloseFocus; SwitchToMode "locked"; }
+        // Tabs (one-shot)
+        bind "t" { NewTab; SwitchToMode "locked"; }
+        bind "X" { CloseTab; SwitchToMode "locked"; }
+        bind "]" { GoToNextTab; SwitchToMode "locked"; }
+        bind "[" { GoToPreviousTab; SwitchToMode "locked"; }
+        // Session manager (switch / create / kill sessions)
         bind "w" {
             LaunchOrFocusPlugin "session-manager" {
                 floating true
                 move_to_focused_tab true
             }
-            SwitchToMode "normal"
+            SwitchToMode "locked"
         }
-    }
-    shared_except "locked" {
+        // Exit the mode
+        bind "esc" { SwitchToMode "locked"; }
         bind "Ctrl g" { SwitchToMode "locked"; }
-        bind "Ctrl q" { Quit; }
     }
-    shared_except "locked" "move" {
-        bind "Ctrl w" { SwitchToMode "move"; }
+}
+
+// Use rounded pane-frame corners. (hide_session_name affects the bar, not the
+// frame; the session name is shown by the compact-bar in layouts/default.kdl.)
+ui {
+    pane_frames {
+        rounded_corners true
+        hide_session_name false
     }
-    shared_except "locked" "session" {
-        bind "Ctrl o" { SwitchToMode "session"; }
-    }
-    shared_except "locked" "scroll" "entersearch" "search" {
-        bind "Ctrl s" { SwitchToMode "scroll"; }
-    }
-    shared_except "locked" "tab" {
-        bind "Ctrl t" { SwitchToMode "tab"; }
-    }
-    shared_except "locked" "pane" {
-        bind "Ctrl p" { SwitchToMode "pane"; }
-    }
-    shared_except "locked" "resize" {
-        bind "Ctrl r" { SwitchToMode "resize"; }
-    }
-    shared_except "normal" "locked" "entersearch" "search" "renametab" "renamepane" {
-        bind "esc" { SwitchToMode "normal"; }
-        bind "enter" { SwitchToMode "normal"; }
-    }
-    shared_among "scroll" "search" {
-        bind "PageDown" { PageScrollDown; }
-        bind "PageUp" { PageScrollUp; }
-        bind "down" { ScrollDown; }
-        bind "up" { ScrollUp; }
-        bind "b" { PageScrollUp; }
-        bind "d" { HalfPageScrollDown; }
-        bind "f" { PageScrollDown; }
-        bind "j" { ScrollDown; }
-        bind "k" { ScrollUp; }
-        bind "Ctrl s" { SwitchToMode "normal"; }
-        bind "u" { HalfPageScrollUp; }
-    }
-    entersearch {
-        bind "Ctrl c" { SwitchToMode "scroll"; }
-        bind "enter" { SwitchToMode "search"; }
-    }
-    shared_among "entersearch" "search" {
-        bind "esc" { SwitchToMode "scroll"; }
-    }
-    renametab {
-        bind "esc" { UndoRenameTab; SwitchToMode "tab"; }
-    }
-    shared_among "renametab" "renamepane" {
-        bind "Ctrl c" { SwitchToMode "normal"; }
-    }
-    renamepane {
-        bind "esc" { UndoRenamePane; SwitchToMode "pane"; }
+}
+
+// Minimal layout: one pane + a slim compact-bar (session name). See layouts/default.kdl.
+default_layout "default"
+
+// gruvbox-dark with all frame states set to gruvbox green (#98971a = 152 151 26).
+// This is the verbatim upstream gruvbox-dark theme; only the frame_* components
+// are modified (frame_selected was already green upstream).
+themes {
+    gruvbox-dark {
+        text_unselected {
+            base 251 241 199
+            background 60 56 54
+            emphasis_0 214 93 14
+            emphasis_1 104 157 106
+            emphasis_2 152 151 26
+            emphasis_3 177 98 134
+        }
+        text_selected {
+            base 251 241 199
+            background 80 73 69
+            emphasis_0 214 93 14
+            emphasis_1 104 157 106
+            emphasis_2 152 151 26
+            emphasis_3 177 98 134
+        }
+        ribbon_selected {
+            base 60 56 54
+            background 152 151 26
+            emphasis_0 204 36 29
+            emphasis_1 214 93 14
+            emphasis_2 177 98 134
+            emphasis_3 69 133 136
+        }
+        ribbon_unselected {
+            base 60 56 54
+            background 235 219 178
+            emphasis_0 204 36 29
+            emphasis_1 251 241 199
+            emphasis_2 69 133 136
+            emphasis_3 177 98 134
+        }
+        table_title {
+            base 152 151 26
+            background 0
+            emphasis_0 214 93 14
+            emphasis_1 104 157 106
+            emphasis_2 152 151 26
+            emphasis_3 177 98 134
+        }
+        table_cell_selected {
+            base 251 241 199
+            background 80 73 69
+            emphasis_0 214 93 14
+            emphasis_1 104 157 106
+            emphasis_2 152 151 26
+            emphasis_3 177 98 134
+        }
+        table_cell_unselected {
+            base 251 241 199
+            background 60 56 54
+            emphasis_0 214 93 14
+            emphasis_1 104 157 106
+            emphasis_2 152 151 26
+            emphasis_3 177 98 134
+        }
+        list_selected {
+            base 251 241 199
+            background 80 73 69
+            emphasis_0 214 93 14
+            emphasis_1 104 157 106
+            emphasis_2 152 151 26
+            emphasis_3 177 98 134
+        }
+        list_unselected {
+            base 251 241 199
+            background 60 56 54
+            emphasis_0 214 93 14
+            emphasis_1 104 157 106
+            emphasis_2 152 151 26
+            emphasis_3 177 98 134
+        }
+        // --- frame components ---
+        // focused pane: gruvbox green (#98971a)
+        frame_selected {
+            base 152 151 26
+            background 0
+            emphasis_0 214 93 14
+            emphasis_1 104 157 106
+            emphasis_2 177 98 134
+            emphasis_3 0
+        }
+        // other panes: gruvbox light gray (#928374)
+        frame_unselected {
+            base 146 131 116
+            background 0
+            emphasis_0 214 93 14
+            emphasis_1 104 157 106
+            emphasis_2 177 98 134
+            emphasis_3 0
+        }
+        // shown while Zellij mode is active: gruvbox orange (#d65d0e)
+        frame_highlight {
+            base 214 93 14
+            background 0
+            emphasis_0 177 98 134
+            emphasis_1 214 93 14
+            emphasis_2 214 93 14
+            emphasis_3 214 93 14
+        }
+        exit_code_success {
+            base 152 151 26
+            background 0
+            emphasis_0 104 157 106
+            emphasis_1 60 56 54
+            emphasis_2 177 98 134
+            emphasis_3 69 133 136
+        }
+        exit_code_error {
+            base 204 36 29
+            background 0
+            emphasis_0 215 153 33
+            emphasis_1 0
+            emphasis_2 0
+            emphasis_3 0
+        }
+        multiplayer_user_colors {
+            player_1 177 98 134
+            player_2 69 133 136
+            player_3 0
+            player_4 215 153 33
+            player_5 104 157 106
+            player_6 0
+            player_7 204 36 29
+            player_8 0
+            player_9 0
+            player_10 0
+        }
     }
 }
 
