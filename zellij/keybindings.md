@@ -83,6 +83,7 @@ Shell aliases defined in `zsh/zsh_aliases`:
 | Alias | Command | What it does |
 |-------|---------|--------------|
 | `za <name>` | `zellij attach -c <name>` | Attach to a session, creating it if missing |
+| `zai` | `zellij_attach_interactive` | Interactively pick an existing session to attach to |
 | `zl` | `zellij list-sessions` | List active sessions |
 | `zd` | `zellij action detach` | Detach from the current session |
 | `zk <name>` | `zellij kill-session <name>` | Kill a named session |
@@ -101,6 +102,12 @@ Ctrl+g w             # any time: fuzzy switch / create / kill sessions
 ```
 
 Sessions are started explicitly with `za` (no auto-attach on shell start).
+
+`zai` is the out-of-session counterpart to the in-session `Ctrl+g w` gateway: run
+it from a plain shell to fuzzy-pick (skim, falling back to a builtin `select`
+menu) one of the existing sessions and attach. It only *selects* — create
+sessions with `za <name>`. It refuses to run inside a session (detach with `zd`
+first) and prints a hint when no sessions exist yet.
 
 ## Configuration files
 

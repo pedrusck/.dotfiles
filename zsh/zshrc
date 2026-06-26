@@ -127,6 +127,7 @@ fi
 		teams_clean_cache
 		xcode_projects_list
 		xcode_remove_derived_data
+		zellij_attach_interactive
 	)
 
 	local custom_function
