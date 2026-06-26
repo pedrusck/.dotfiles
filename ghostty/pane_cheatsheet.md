@@ -43,7 +43,7 @@ These are the ones to learn first.
 | `Ctrl + Shift + Tab` | Previous tab |
 | `Cmd + Shift + [` | Previous tab |
 | `Cmd + Shift + ]` | Next tab |
-| `Cmd + Opt + W` | Close the current tab |
+| `Cmd + W` | Close the current split; closes the tab when it's the last split |
 
 ## Windows
 
@@ -53,7 +53,6 @@ These are the ones to learn first.
 | `Cmd + Enter` | Toggle fullscreen |
 | `Cmd + Ctrl + F` | Toggle fullscreen (alt binding) |
 | `Cmd + Shift + W` | Close the window (all tabs/splits in it) |
-| `Cmd + Opt + Shift + W` | Close all windows |
 
 ## Ghostty splits vs. Zellij panes
 
@@ -74,12 +73,22 @@ as a Zellij pane (`Ctrl+g v`); otherwise a Ghostty split is fine. See
 
 - **`Cmd + S` is free** — it keeps its native **Save** meaning (the old custom
   split leader was removed).
-- **`Cmd + Opt + W`** (close tab) shares a chord with Amethyst's `focus-screen-1`
-  (`Opt + Cmd + W`). Amethyst intercepts global hotkeys, so prefer closing tabs
-  with `Cmd + W` on a single-tab surface, or via the menu, to avoid surprises.
+- **`Cmd + Opt + W`** is **intentionally disabled** in Ghostty
+  (`keybind = cmd+opt+w=ignore` in `ghostty/config`). By default Ghostty binds
+  it to `close_tab:this`, which collided with Amethyst's `focus-screen-1`
+  (`Opt + Cmd + W`). The override frees the chord so Amethyst always wins; close
+  tabs with `Cmd + W` (on the last split) or via the menu.
+- **`Cmd + Opt + Shift + W`** is **intentionally disabled** in Ghostty
+  (`keybind = cmd+opt+shift+w=ignore`). By default it was `close_all_windows` (a
+  destructive action) which collided with Amethyst's `throw-screen-1`
+  (`Opt + Cmd + Shift + W`). The override frees the chord for Amethyst.
+- **`Cmd + Opt + Shift + J`** is **intentionally disabled** in Ghostty
+  (`keybind = cmd+opt+shift+j=ignore`). By default it was `write_screen_file`
+  which collided with Amethyst's `swap-cw` (`Opt + Cmd + Shift + J`). The override
+  frees the chord for Amethyst.
 - **`Cmd + Opt + arrows`** (directional split focus) uses the same modifier family
-  as Amethyst (`Opt + Cmd`), but Amethyst binds only letters/space/enter — never
-  arrows — so there is no collision.
+  as Amethyst (`Opt + Cmd`), but Amethyst binds only letters/digits/punctuation/space/enter
+  — never arrows — so there is no collision.
 - Splits live **inside a single Ghostty window**, which Amethyst treats as one
   tiled window. Use Amethyst (`Opt + Cmd + …`) to move/manage the window itself.
 - To see every default binding for your installed version:

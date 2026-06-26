@@ -34,6 +34,15 @@ keybind = shift+enter=text:\x1b\r
 # Required configuration for pi the coding agent (see https://pi.dev/docs/latest/terminal-setup)
 keybind = alt+backspace=text:\x1b\x7f
 
+# Disable Ghostty defaults that collide with Amethyst chords.
+# (Ghostty config supports full-line comments only, not trailing comments.)
+# cmd+opt+w       was close_tab:this    -> Amethyst focus-screen-1
+# cmd+opt+shift+j was write_screen_file -> Amethyst swap-cw
+# cmd+opt+shift+w was close_all_windows -> Amethyst throw-screen-1
+keybind = cmd+opt+w=ignore
+keybind = cmd+opt+shift+j=ignore
+keybind = cmd+opt+shift+w=ignore
+
 # # Vim-mode keybindings for Ghostty.
 # #
 # # Note: We're missing a number of actions to produce a better vim experience.

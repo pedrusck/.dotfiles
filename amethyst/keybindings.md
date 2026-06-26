@@ -37,7 +37,6 @@ xmonad-style keybindings for [Amethyst](https://github.com/ianyh/Amethyst) on ma
 | `mod1 + D`     | Select fullscreen layout   | --              |
 | `mod1 + C`     | Select column layout       | --              |
 | `mod1 + B`     | Select BSP layout          | --              |
-| `mod1 + I`     | Display current layout HUD | --              |
 
 ### Window Focus
 
@@ -186,7 +185,6 @@ The following application-level shortcuts share a modifier+key combination with 
 | `mod1 + N` (re-evaluate windows)  | Finder: New Smart Folder (`Opt+Cmd+N`) |
 | `mod1 + S` (select wide layout)   | Finder: Toggle Sidebar (`Opt+Cmd+S`)   |
 | `mod1 + T` (toggle float)         | Finder: Toggle Toolbar (`Opt+Cmd+T`)   |
-| `mod1 + I` (display layout HUD)   | Finder: Inspector (`Opt+Cmd+I`)        |
 | `mod1 + C` (select column layout) | Copy Style (`Opt+Cmd+C`) in some apps  |
 
 ## Design Decisions

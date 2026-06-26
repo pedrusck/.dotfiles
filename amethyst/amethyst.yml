@@ -270,11 +270,6 @@ toggle-tiling:
 
 # --- System commands ---
 
-# Display the layout HUD with the current layout on each screen.
-display-current-layout:
-  mod: mod1
-  key: i
-
 # Rerun the current layout's algorithm (xmonad: mod-n for resize/refresh).
 reevaluate-windows:
   mod: mod1
