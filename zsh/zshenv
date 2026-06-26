@@ -4,7 +4,3 @@
 
 # Set Zsh config directory
 export ZDOTDIR="$HOME/.config/zsh"
-
-# editor
-export EDITOR="nvim"
-export VISUAL="nvim"

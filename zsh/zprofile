@@ -3,6 +3,10 @@
 # Set default locale for the system
 export LANG=en_US.UTF-8
 
+# Editor
+export EDITOR="nvim"
+export VISUAL="nvim"
+
 # Homebrew initialization
 [[ -f "/opt/homebrew/bin/brew" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
 
