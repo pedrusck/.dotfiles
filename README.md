@@ -25,7 +25,7 @@ git-crypt unlock
 
 Run the initialization [script](./bootstrap.sh) with `./bootstrap.sh`.
 
-And later on follow the steps in the [list](./macOS_configuration_steps.md)
+And later on follow the steps in the [list](./macOS_setup_steps.md)
 
 ## Encrypted files
 

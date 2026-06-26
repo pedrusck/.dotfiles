@@ -129,7 +129,7 @@ The following layouts are enabled (cycled through with `mod1 + Space`):
 
 ## Required macOS Settings
 
-These settings must be changed in macOS for all keybindings to work correctly. See `macOS_configuration_steps.md` for bilingual (English/German) navigation paths.
+These settings must be changed in macOS for all keybindings to work correctly. See `macOS_setup_steps.md` for bilingual (English/German) navigation paths.
 
 ### 1. Disable "Hide Others" shortcut (Opt+Cmd+H) -- required
 

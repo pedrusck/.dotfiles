@@ -14,13 +14,13 @@
 #   - Matches xmonad's two-modifier pattern: mod1 for actions, mod2 (mod1+Shift)
 #     for the "move/shift" variant.
 #
-# Required macOS settings (see macOS_configuration_steps.md):
+# Required macOS settings (see macOS_setup_steps.md):
 #   Five system shortcuts must be disabled to avoid conflicts:
 #   1. Opt+Cmd+H  (Hide Others)       — conflicts with shrink-main
 #   2. Opt+Cmd+M  (Minimize All)      — conflicts with focus-main
 #   3. Opt+Cmd+W  (Close All Windows) — conflicts with focus-screen-1
 #   4. Opt+Cmd+D  (Toggle Dock)       — conflicts with select-fullscreen-layout
-#   5. Opt+Cmd+Space (Input Sources)  — conflicts with cycle-layout
+#   5. Opt+Cmd+Space (Show Finder search window) — conflicts with cycle-layout
 #
 # Note due to issue 1419 (https://github.com/ianyh/Amethyst/issues/1419) some
 # config values may conflict and not work if they are the same as the default

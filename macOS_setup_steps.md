@@ -107,10 +107,11 @@
 >
 > in English go to System Settings > Keyboard > Keyboard Shortcuts > Launchpad & Dock > uncheck "Turn Dock Hiding On/Off"
 
-- [ ] Disable Input Sources shortcut (Opt+Cmd+Space) to free Amethyst cycle-layout
-> in German go to Systemeinstellungen > Tastatur > Tastaturkurzbefehle > Eingabequellen > "Vorherige Eingabequelle auswählen" deaktivieren
+- [ ] Disable Spotlight shortcut (Opt+Cmd+Space) to free Amethyst cycle-layout
+> Disable "Show Finder search window" so Amethyst can use Opt+Cmd+Space.
+> in German go to Systemeinstellungen > Tastatur > Tastaturkurzbefehle > Spotlight > "Finder-Suchfenster einblenden" deaktivieren
 >
-> in English go to System Settings > Keyboard > Keyboard Shortcuts > Input Sources > uncheck "Select the previous input source"
+> in English go to System Settings > Keyboard > Keyboard Shortcuts > Spotlight > uncheck "Show Finder search window"
 
 - [ ] Activate Touch ID
 

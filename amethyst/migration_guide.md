@@ -26,7 +26,7 @@ Do these first so the new keybindings work immediately once Amethyst picks up th
 **Disable 2 system shortcuts**:
 
 4. **Dock toggle** -- System Settings > Keyboard > Keyboard Shortcuts > Launchpad & Dock > uncheck "Turn Dock Hiding On/Off" (frees `Opt+Cmd+D`)
-5. **Input Sources** -- System Settings > Keyboard > Keyboard Shortcuts > Input Sources > uncheck "Select the previous input source" (frees `Opt+Cmd+Space`)
+5. **Spotlight** -- System Settings > Keyboard > Keyboard Shortcuts > Spotlight > uncheck "Show Finder search window" (frees `Opt+Cmd+Space`)
 
 **Enable workspace switching**:
 
