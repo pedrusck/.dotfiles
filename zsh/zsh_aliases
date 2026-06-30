@@ -46,23 +46,6 @@ alias downloads="cd $HOME/Downloads/"
 # Fabric
 (( $+commands[fabric-ai] )) && alias fabric='fabric-ai'
 
-# Zellij (session-only persistence layer; see zellij/keybindings.md)
-if (( $+commands[zellij] )); then
-	# Attach to a session, creating it if it does not exist
-	alias za="zellij attach -c"
-	# Interactively select a session to attach to (using skim for the selection, falling back to a builtin select menu).
-	# Backed by the zellij_attach_interactive autoloaded function (see zshrc), which resolves lazily on first call.
-	alias zai="zellij_attach_interactive"
-	# List active sessions
-	alias zl="zellij list-sessions"
-	# Detach from the current session (run inside Zellij)
-	alias zd="zellij action detach"
-	# Kill a named session
-	alias zk="zellij kill-session"
-	# Kill every session
-	alias zka="zellij kill-all-sessions"
-fi
-
 # Herdr (agent-aware persistence layer; see herdr/keybindings.md)
 if (( $+commands[herdr] )); then
 	# Launch or attach to the default persistent session

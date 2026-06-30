@@ -118,7 +118,7 @@
 
         # Terminal tools
         cmatrix
-        zellij
+        herdr           # nixpkgs version may trail the Homebrew release
 
         # Password management
         pass

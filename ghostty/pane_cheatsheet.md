@@ -2,8 +2,8 @@
 
 A learning reference for managing **splits (panes)**, **tabs**, and **windows** in
 Ghostty using its built-in default keybindings. On this machine Ghostty owns all
-interactive terminal splitting (Zellij is session-persistence only, Amethyst
-handles OS windows).
+interactive terminal splitting (Herdr handles session-persistent, agent-aware
+panes; Amethyst handles OS windows).
 
 > `Cmd` = `⌘` (Ghostty calls it `super`). `Opt` = `⌥` (alt). `Ctrl` = `⌃`.
 
@@ -54,20 +54,21 @@ These are the ones to learn first.
 | `Cmd + Ctrl + F` | Toggle fullscreen (alt binding) |
 | `Cmd + Shift + W` | Close the window (all tabs/splits in it) |
 
-## Ghostty splits vs. Zellij panes
+## Ghostty splits vs. Herdr panes
 
 There are two ways to split the terminal, and they behave differently:
 
-| | **Ghostty splits** (this doc) | **Zellij panes** (`Ctrl+g` mode) |
+| | **Ghostty splits** (this doc) | **Herdr panes** (`ctrl+b` prefix) |
 |---|---|---|
-| Created with | `Cmd+D`, `Cmd+Shift+D`, … | `Ctrl+g s` / `v` / `n` |
-| Each pane is | an independent shell | part of the Zellij session |
-| Survives detach/reattach? | **No** | **Yes** (co-persists) |
-| Best for | quick, throwaway side-by-side views | panes you want to keep across window close / reboot |
+| Created with | `Cmd+D`, `Cmd+Shift+D`, … | `prefix+v` / `prefix+minus` |
+| Each pane is | an independent shell | part of the Herdr session |
+| Survives detach/reattach? | **No** | **Yes** (persists in the background) |
+| Best for | quick, throwaway side-by-side views | panes (and coding agents) you want to keep across window close / reboot |
 
-Rule of thumb: if you want the split to **persist with the session**, create it
-as a Zellij pane (`Ctrl+g v`); otherwise a Ghostty split is fine. See
-`zellij/keybindings.md` for the full Zellij pane-mode reference.
+Rule of thumb: if you want the split to **persist with the session** — or you are
+running a coding agent you want to keep alive — create it as a Herdr pane
+(`prefix+v`); otherwise a Ghostty split is fine. See `herdr/keybindings.md` for
+the full Herdr pane reference.
 
 ## Notes on conflicts / this setup
 

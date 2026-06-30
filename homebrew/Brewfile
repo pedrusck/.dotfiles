@@ -180,7 +180,7 @@ brew "television" # General purpose fuzzy finder TUI
 brew "cmatrix" # Console Matrix
 cask "ghostty" # Terminal emulator that uses platform-native UI and GPU acceleration
 brew "herdr" # Agent multiplexer that lives in your terminal
-brew "zellij" # Pluggable terminal workspace, with terminal multiplexer as the base feature
+# brew "zellij" # Pluggable terminal workspace, with terminal multiplexer as the base feature
 
 ### Time management ###
 # mas "Be Focused", id: 973134470

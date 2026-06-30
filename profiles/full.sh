@@ -42,7 +42,7 @@ PROFILE_TOOLS=(
 	oh_my_posh
 
 	# Terminal multiplexer
-	zellij
+	herdr
 
 	# Xcode
 	xcode

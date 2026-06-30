@@ -8,7 +8,7 @@
 # Profiles:
 #   core        - Minimal shell environment (zsh, git, vim, ssh, starship)
 #   development - Core + dev tools (neovim, ghostty, lazygit, amethyst, mise, AI tools, etc.)
-#   full        - Development + all optional tools (alacritty, zellij, xcode, etc.)
+#   full        - Development + all optional tools (alacritty, herdr, xcode, etc.)
 #
 # Package managers:
 #   homebrew    - Install CLI tools via Homebrew (default)
