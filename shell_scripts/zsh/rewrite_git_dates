@@ -1,0 +1,105 @@
+#!/usr/bin/env zsh
+
+setopt errexit nounset pipefail
+
+# ---- CONFIGURE THESE ----
+START_DATE="2026-06-24"		# first possible date (YYYY-MM-DD)
+END_DATE="2026-06-26"		# last possible date (YYYY-MM-DD)
+START_TIME="09:00:00"		# earliest time of day (HH:MM:SS, local time)
+END_TIME="18:00:00"			# latest time of day (HH:MM:SS, local time)
+TIME_ZONE_OFFSET="+0200"	# timezone offset to embed in commits
+SINCE_COMMIT_SHA="afedefa"	# optional commit SHA; only this commit and its descendants
+							# are rewritten — leave empty to rewrite the entire history
+# --------------------------
+
+# Validate SINCE_COMMIT_SHA if provided
+if [[ -n "$SINCE_COMMIT_SHA" ]]; then
+	git rev-parse --verify --quiet "${SINCE_COMMIT_SHA}^{commit}" > /dev/null || {
+		print -u2 "SINCE_COMMIT_SHA is not a valid commit: $SINCE_COMMIT_SHA"
+			exit 1
+	}
+fi
+
+# Convert dates to epoch (start of day)
+integer DATE_START_EPOCH=$(date -j -f "%Y-%m-%d %H:%M:%S" "${START_DATE} 00:00:00" +%s)
+
+# Convert times-of-day to seconds-since-midnight, then derive the window
+integer TIME_START_OFFSET=$(( $(date -j -f "%H:%M:%S" "${START_TIME}" +%s) - $(date -j -f "%H:%M:%S" "00:00:00" +%s) ))
+integer TIME_WINDOW=$(( $(date -j -f "%H:%M:%S" "${END_TIME}" +%s) - $(date -j -f "%H:%M:%S" "00:00:00" +%s) - TIME_START_OFFSET ))
+
+(( TIME_WINDOW > 0 )) || { print -u2 "END_TIME must be after START_TIME"; exit 1 }
+
+# Number of whole days in the range (inclusive); validate while we're at it
+integer SECS_PER_DAY=86400
+integer DATE_RANGE_DAYS=$(( ( $(date -j -f "%Y-%m-%d %H:%M:%S" "${END_DATE} 23:59:59" +%s) - DATE_START_EPOCH + SECS_PER_DAY ) / SECS_PER_DAY ))
+
+(( DATE_RANGE_DAYS > 0 )) || { print -u2 "END_DATE must be after START_DATE"; exit 1 }
+
+# Build a list of eligible (weekday-only) day epochs within the range.
+# DATE_START_EPOCH is midnight, so adding whole multiples of SECS_PER_DAY
+# always lands on midnight — no need to re-parse through a date string.
+typeset -a weekday_epochs
+for (( d = 0; d < DATE_RANGE_DAYS; d++ )); do
+	integer day_epoch=$(( DATE_START_EPOCH + d * SECS_PER_DAY ))
+	# %w: 0 = Sunday, 6 = Saturday
+	integer day_of_week=$(date -j -f "%s" "$day_epoch" +"%w")
+	(( day_of_week == 0 || day_of_week == 6 )) && continue
+	weekday_epochs+=($day_epoch)
+done
+
+integer WEEKDAY_COUNT=$#weekday_epochs
+(( WEEKDAY_COUNT > 0 )) || { print -u2 "No weekdays found in the given date range"; exit 1 }
+
+# Collect commits oldest-first, starting from SINCE_COMMIT_SHA when set.
+# git rev-list ^SHA excludes SHA and its ancestors, giving us SHA..HEAD inclusive.
+typeset -a commits
+if [[ -n "$SINCE_COMMIT_SHA" ]]; then
+	commits=("${(@f)$(git rev-list --reverse "${SINCE_COMMIT_SHA}..HEAD")}")
+	print "SINCE_COMMIT_SHA: ${SINCE_COMMIT_SHA} — skipping $(( $(git rev-list --count HEAD) - $#commits )) earlier commit(s)"
+else
+	commits=("${(@f)$(git rev-list --reverse HEAD)}")
+fi
+
+integer COMMIT_COUNT=$#commits
+print "Found $COMMIT_COUNT commit(s) to rewrite"
+print "Eligible weekdays in range: $WEEKDAY_COUNT (${START_DATE} → ${END_DATE}, weekdays only)"
+print "Time window per day: ${START_TIME} – ${END_TIME}"
+
+# One-shot unbiased random integer in [0, N)
+function random_integer { print $(( $(od -An -N4 -tu4 /dev/urandom | tr -d ' ') % $1 )) }
+
+# Collect unique sorted timestamps into an array
+typeset -A seen
+typeset -a timestamps
+
+for (( i = 1; i <= COMMIT_COUNT; i++ )); do
+	integer timestamp
+	while true; do
+		timestamp=$(( weekday_epochs[$(( $(random_integer $WEEKDAY_COUNT) + 1 ))] + TIME_START_OFFSET + $(random_integer $TIME_WINDOW) ))
+		(( ! ${+seen[$timestamp]} )) && { seen[$timestamp]=1; timestamps+=($timestamp); break }
+	done
+done
+unset seen
+
+# Sort numerically in-place using zsh's own sort flag
+timestamps=("${(@on)timestamps}")
+
+# Write the SHA→timestamp map and rewrite history
+print "Rewriting commit dates..."
+MAP_FILE=$(mktemp)
+trap 'rm -f "$MAP_FILE"' EXIT
+for (( i = 1; i <= $#commits; i++ )); do
+	print "${commits[$i]} ${timestamps[$i]}"
+done > "$MAP_FILE"
+
+git filter-branch -f --env-filter '
+NEW_EPOCH=$(awk -v sha="$GIT_COMMIT" '\''$1==sha {print $2}'\'' "'"$MAP_FILE"'")
+if [ -n "$NEW_EPOCH" ]; then
+	export GIT_AUTHOR_DATE="@${NEW_EPOCH} '"$TIME_ZONE_OFFSET"'"
+	export GIT_COMMITTER_DATE="@${NEW_EPOCH} '"$TIME_ZONE_OFFSET"'"
+fi
+' -- --all
+
+git for-each-ref --format="%(refname)" refs/original/ | xargs -r -I{} git update-ref -d {}
+
+print "Done. Verify with: git log --format='%h %ad %s' --date=iso"
