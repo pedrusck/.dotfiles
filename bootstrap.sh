@@ -15,7 +15,7 @@
 #   nix         - Install CLI tools via Nix (nix-darwin); casks and Mac App Store apps still use Homebrew
 #
 
-set -euo pipefail
+setopt errexit nounset pipefail
 
 ### Helpers ###
 

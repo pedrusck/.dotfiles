@@ -4,7 +4,7 @@
 # Restore: replace the target browser's Default/Bookmarks file with this one
 # (close the browser first), or import via chrome://bookmarks → ⋮ → Import.
 
-set -euo pipefail
+setopt errexit nounset pipefail
 
 OUTPUT_DIR="${1:-$PWD}"
 [[ -d "$OUTPUT_DIR" ]] || { print "Error: output directory not found: $OUTPUT_DIR"; exit 1 }

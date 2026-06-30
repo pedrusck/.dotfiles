@@ -3,7 +3,7 @@
 # to OUTPUT_DIR (default: ~/Desktop). Restore via: Bookmarks → Manage Bookmarks
 # → Import and Backup → Restore → Choose File…
 
-set -euo pipefail
+setopt errexit nounset pipefail
 
 OUTPUT_DIR="${1:-$PWD}"
 [[ -d "$OUTPUT_DIR" ]] || { print "Error: output directory not found: $OUTPUT_DIR"; exit 1 }

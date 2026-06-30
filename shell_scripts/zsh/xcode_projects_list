@@ -1,6 +1,7 @@
 #!/usr/bin/env zsh
 
-set -euo pipefail
+setopt errexit nounset pipefail
+
 declare -a PROJECTS=()
 
 function XcodeProjectsInCurrentDirectory() {

@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-set -euo pipefail
+setopt errexit nounset pipefail
 
 TOOL_DIR="${DOTFILES_PATH:=$PWD}/neovim"
 
