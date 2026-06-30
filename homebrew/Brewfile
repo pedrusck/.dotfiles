@@ -179,6 +179,7 @@ brew "television" # General purpose fuzzy finder TUI
 # cask "alacritty" # GPU-accelerated terminal emulator
 brew "cmatrix" # Console Matrix
 cask "ghostty" # Terminal emulator that uses platform-native UI and GPU acceleration
+brew "herdr" # Agent multiplexer that lives in your terminal
 brew "zellij" # Pluggable terminal workspace, with terminal multiplexer as the base feature
 
 ### Time management ###

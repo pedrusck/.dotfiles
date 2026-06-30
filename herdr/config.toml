@@ -1,0 +1,152 @@
+# Herdr Configuration
+# ====================
+#
+# Herdr is an agent-aware terminal workspace manager (a multiplexer like tmux):
+# a background server owns real terminal processes, clients attach to render
+# them, and panes keep running when you detach or close the terminal. It detects
+# coding agents (claude, opencode, pi, …) running inside panes and rolls their
+# state up per workspace in a sidebar.
+#
+# Where it sits in this setup (see herdr/keybindings.md for the full picture):
+#   - OS windows / spaces .................. Amethyst (Opt+Cmd)
+#   - Non-persistent terminal splits ....... Ghostty (Cmd-based built-ins)
+#   - Session-persistent, agent-aware panes  Herdr   (this file)
+#   - Editor (splits, buffers, files) ...... Neovim  (<leader> + Ctrl)
+#
+# Follows the conventions used across these dotfiles: gruvbox theme, Vim-style
+# h/j/k/l pane movement, and detach/reattach session persistence. Herdr is
+# prefix-first (tmux-style ctrl+b prefix), so the keymap below is kept at Herdr's
+# vetted defaults and only documented for clarity -- no keys are remapped, no
+# prefix is changed.
+#
+# Reference: https://herdr.dev/docs/configuration/  and  /docs/keyboard/
+# Print the full default config with:  herdr --default-config
+# Apply edits to the running server with:  herdr server reload-config
+
+# Already set up via this dotfiles repo; skip the first-run onboarding flow.
+onboarding = false
+
+# gruvbox theme, matching Alacritty / Lazygit across these dotfiles.
+# auto_switch follows the host terminal's light/dark appearance and swaps
+# between the gruvbox dark/light siblings.
+[theme]
+name = "gruvbox"
+auto_switch = true
+dark_name = "gruvbox"
+light_name = "gruvbox-light"
+
+# Override the accent on top of the base theme with gruvbox green (#98971a),
+# the same color Lazygit uses as its accent.
+[theme.custom]
+accent = "#98971a"
+
+# Terminal defaults for new interactive panes.
+[terminal]
+# "auto" starts login shells on macOS so login-only PATH setup runs in new
+# panes -- this is what makes Homebrew and Mise (version/tool activation)
+# available in freshly created Herdr panes. Default value, kept explicit to
+# document the dependency.
+shell_mode = "auto"
+
+# Keybindings.
+# ------------
+# These are Herdr's defaults, written out explicitly and commented so the
+# Vim-style mapping is visible at a glance. The prefix stays ctrl+b. Press
+# prefix+? at any time to see every active binding live. Herdr is mouse-first:
+# none of these are required.
+[keys]
+prefix = "ctrl+b"
+
+# Session / workspace
+detach = "prefix+q"               # detach; everything keeps running
+workspace_picker = "prefix+w"     # switch workspaces
+goto = "prefix+g"                 # goto picker
+new_workspace = "prefix+shift+n"
+rename_workspace = "prefix+shift+w"
+close_workspace = "prefix+shift+d"
+toggle_sidebar = "prefix+b"
+
+# Tabs (Vim parallel: gt / gT for next / prev)
+new_tab = "prefix+c"
+next_tab = "prefix+t"
+previous_tab = "prefix+shift+t"
+switch_tab = "prefix+1..9"
+rename_tab = "prefix+shift+r"
+close_tab = "prefix+shift+x"
+
+# Panes -- splits (Vim parallel: :split / :vsplit)
+split_horizontal = "prefix+s"     # split downwards
+split_vertical = "prefix+v"       # split to the right
+
+# Panes -- focus (Vim parallel: Ctrl+w h/j/k/l)
+focus_pane_left = "prefix+h"
+focus_pane_down = "prefix+j"
+focus_pane_up = "prefix+k"
+focus_pane_right = "prefix+l"
+
+# Panes -- swap (Vim parallel: Ctrl+w H/J/K/L)
+swap_pane_left = "prefix+shift+h"
+swap_pane_down = "prefix+shift+j"
+swap_pane_up = "prefix+shift+k"
+swap_pane_right = "prefix+shift+l"
+
+# Panes -- misc
+zoom = "prefix+z"                 # zoom / fullscreen the focused pane
+resize_mode = "prefix+r"
+close_pane = "prefix+x"
+copy_mode = "prefix+["            # then h/j/k/l, v/space select, y/enter copy
+
+# Navigate-mode movement uses bare Vim keys while the navigate surface is open.
+# (These must not carry a prefix; they are independent of focus_pane_* above.)
+navigate_pane_left = "h"
+navigate_pane_down = "j"
+navigate_pane_up = "k"
+navigate_pane_right = "l"
+
+# Settings
+settings = "prefix+shift+s"
+
+# Custom command: open lazygit in a temporary pane (matches the `lg` alias and
+# the lazygit/gitui tooling already in these dotfiles). The pane closes when
+# lazygit exits.
+[[keys.command]]
+key = "prefix+alt+g"
+type = "pane"
+command = "lazygit"
+description = "lazygit"
+
+# UI / sidebar -- left at Herdr defaults; the navigate-mode keys above already
+# follow the Vim h/j/k/l philosophy used throughout this setup.
+[ui]
+# accent is driven by [theme.custom] above; sidebar widths use sensible
+# defaults. Uncomment to customize.
+# sidebar_width = 26
+
+# Show detected/reported agent labels in split pane borders when no manual pane name is set.
+show_agent_labels_on_pane_borders = true
+
+# Background notifications: tell the outer terminal (Ghostty) to show a native
+# desktop notification when a background agent (claude / opencode / pi) finishes
+# or needs input. Ghostty is in Herdr's supported terminal-notification list and
+# this path also works over SSH. Popups are suppressed for the active tab.
+[ui.toast]
+delivery = "terminal"
+delay_seconds = 1                 # wait 1s so momentary state flips don't notify
+
+# Sound disabled -- rely on the sidebar + terminal notifications instead.
+# (afplay is available on macOS; flip enabled = true to turn audio back on, and
+# see [ui.sound.agents] in `herdr --default-config` for per-agent mute overrides.)
+[ui.sound]
+enabled = false
+
+# Git worktrees created from the sidebar are checked out under this directory as
+# <directory>/<repo>/<branch-slug>, opened as grouped workspaces. Complements
+# the git_clone_worktrees shell helper in these dotfiles.
+[worktrees]
+directory = "~/.herdr/worktrees"
+
+# Resume supported agent panes into their native conversation sessions after a
+# Herdr server restart. Covers Pi, OpenCode, and Claude Code (all used here).
+# Default value, kept explicit to document the behavior.
+[session]
+resume_agents_on_restore = true

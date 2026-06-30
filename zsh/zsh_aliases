@@ -63,6 +63,20 @@ if (( $+commands[zellij] )); then
 	alias zka="zellij kill-all-sessions"
 fi
 
+# Herdr (agent-aware persistence layer; see herdr/keybindings.md)
+if (( $+commands[herdr] )); then
+	# Launch or attach to the default persistent session
+	alias hh="herdr"
+	# Attach to a named session, creating it if it does not exist
+	alias ha="herdr session attach"
+	# List named sessions
+	alias hl="herdr session list"
+	# Show local client + running server status
+	alias hs="herdr status"
+	# Stop the running server (kills all panes)
+	alias hk="herdr server stop"
+fi
+
 # Xcode
 alias derived_data="cd $HOME/Library/Developer/Xcode/DerivedData/"
 
