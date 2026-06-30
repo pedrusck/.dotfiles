@@ -49,6 +49,7 @@ brew "gitleaks" # Audit git repos for secrets
 brew "gitui" # Blazing fast terminal-ui for git written in rust
 cask "gitup-app" # Git interface focused on visual interaction
 brew "hub" # Add GitHub support to git on the command-line
+brew "jnsahaj/lumen/lumen", trusted: true # AI-powered CLI tool for git commit summaries
 brew "lazygit" # Simple terminal UI for git commands
 brew "serie" # Rich git commit graph in your terminal
 
