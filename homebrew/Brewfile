@@ -272,6 +272,8 @@ brew "apfel" # Apple Intelligence from the command-line, with OpenAi-compatible 
 brew "fabric-ai" # Open-source framework for augmenting humans using AI
 brew "anomalyco/tap/opencode", trusted: true # AI coding agent, built for the terminal
 brew "pi-coding-agent" # AI agent toolkit
+brew "rtk" # CLI proxy to minimize LLM token consumption
+# rtk setup: rtk init -g --opencode && rtk init -g && rtk init -g --agent pi
 
 ### iOS development ###
 mas "Apple Configurator", id: 1037126344
