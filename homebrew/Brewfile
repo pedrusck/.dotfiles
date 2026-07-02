@@ -133,7 +133,6 @@ cask "mactex" # Full TeX Live distribution with GUI applications
 # mas "Microsoft PowerPoint", id: 462062816
 # mas "Microsoft Word", id: 462054704
 mas "Numbers", id: 361304891
-# mas "OneDrive", id: 823766827
 mas "Pages", id: 361309726
 brew "presenterm" # Terminal slideshow tool
 brew "typst" # Markup-based typesetting system
@@ -154,7 +153,6 @@ brew "bat" # Clone of cat(1) with syntax highlighting and Git integration
 #cask "exifcleaner" # Metadata cleaner -> NOT M1 COMPATIBLE
 brew "eza" # Modern, maintained replacement for ls
 brew "fx" # Terminal JSON viewer
-brew "glow" # Render markdown on the CLI
 brew "hexyl" # Command-line hex viewer
 brew "jq" # Lightweight and flexible command-line JSON processor
 brew "jql" # JSON query language CLI tool
@@ -232,7 +230,8 @@ cask "shortcat" # App that enables mouse-free UI interaction
 cask "anki" # Memory training application
 
 ### Cloud storage ###
-#cask "google-drive" # Client for the Google Drive storage service
+# cask "google-drive" # Client for the Google Drive storage service
+# mas "OneDrive", id: 823766827
 mas "OX Drive", id: 818195014 # Cloud client
 cask "syncthing-app" # Real time file synchronization software
 
