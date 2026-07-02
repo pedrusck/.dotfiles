@@ -79,6 +79,16 @@ xmonad-style keybindings for [Amethyst](https://github.com/ianyh/Amethyst) on ma
 | `mod2 + E` | Move window to screen 2 | mod-shift-e |
 | `mod2 + R` | Move window to screen 3 | mod-shift-r |
 
+### Switch to Space (macOS Native)
+
+Amethyst has no "switch to space" command, so the switch half of xmonad's
+`mod-[1..9]` / `mod-shift-[1..9]` pair is provided by macOS Mission Control,
+remapped onto mod1 (see [Required macOS Settings](#required-macos-settings)):
+
+| Shortcut      | Action              | xmonad     |
+|---------------|---------------------|------------|
+| `mod1 + 1..9` | Switch to space N   | mod-[1..9] |
+
 ### Throw Window to Space
 
 | Shortcut      | Action                            | xmonad           |
@@ -105,14 +115,16 @@ xmonad-style keybindings for [Amethyst](https://github.com/ianyh/Amethyst) on ma
 
 ## Space Switching (macOS Native)
 
-Amethyst cannot switch between spaces -- it can only throw windows to them. Space switching is handled natively by macOS:
+Amethyst cannot switch between spaces -- it can only throw windows to them. Space switching is handled natively by macOS, but the numbered-desktop shortcuts are remapped onto mod1 so they mirror xmonad's `mod-[1..9]`:
 
-| Shortcut            | Action                   |
-|---------------------|--------------------------|
-| `Ctrl + 1..9`       | Switch to Desktop N      |
-| `Ctrl + Left/Right` | Switch to adjacent space |
+| Shortcut            | Action                   | xmonad     |
+|---------------------|--------------------------|------------|
+| `mod1 + 1..9`       | Switch to Desktop N      | mod-[1..9] |
+| `Ctrl + Left/Right` | Switch to adjacent space | --         |
 
-This pairs naturally with the Amethyst throw commands: `mod2 + 3` throws a window to space 3, then `Ctrl + 3` follows it there.
+`mod1 + 1..9` is `Opt+Cmd + 1..9` -- the same modifier as the rest of mod1. Adjacent-space switching stays on `Ctrl + Left/Right` (the macOS default) because `Opt+Cmd + Left/Right` is "previous/next tab" in Chrome and Safari.
+
+This pairs naturally with the Amethyst throw commands: `mod2 + 3` throws a window to space 3, then `mod1 + 3` follows it there (or it auto-follows, since `follow-space-thrown-windows` is enabled).
 
 ## Enabled Layouts
 
@@ -161,11 +173,13 @@ macOS may bind `Opt+Cmd+Space` to "Show Finder search window", which conflicts w
 
 > System Settings > Keyboard > Keyboard Shortcuts > Spotlight > uncheck "Show Finder search window"
 
-### 6. Enable "Switch to Desktop N" shortcuts (required)
+### 6. Remap "Switch to Desktop N" shortcuts to Opt+Cmd (required)
 
-Enable `Ctrl+1` through `Ctrl+9` for xmonad-style workspace switching:
+Set `Opt+Cmd+1` through `Opt+Cmd+9` for xmonad-style workspace switching on mod1:
 
-> System Settings > Keyboard > Keyboard Shortcuts > Mission Control > enable "Switch to Desktop 1" through "Switch to Desktop 9"
+> System Settings > Keyboard > Keyboard Shortcuts > Mission Control > enable "Switch to Desktop 1" through "Switch to Desktop 9" and change each from the default `Ctrl+N` to `Opt+Cmd+N`
+
+Click the existing shortcut to edit it and press `Opt+Cmd+1` (etc.). This puts space switching on mod1, mirroring xmonad's `mod-[1..9]`, and keeps switch (`mod1+N`) and throw (`mod2+N`) in the same modifier family. `Opt+Cmd+1..9` has no macOS system default and Amethyst leaves those chords unbound, so they reach Mission Control cleanly (note: apps use bare `Cmd+1..9` for tabs, not `Opt+Cmd`).
 
 The desktops must exist first -- create them in Mission Control (`Ctrl+Up`, then click "+" in the top-right corner).
 
@@ -193,9 +207,9 @@ The following application-level shortcuts share a modifier+key combination with 
 
 Relaunch is a rare, potentially disruptive action. Placing it on a prominent key (`Q`) risks accidental triggers. It is mapped to `mod2+Z` instead -- a deliberate, hard-to-hit binding that requires Shift.
 
-### Why no mod1+[1..9] for switching spaces?
+### Why is space switching on mod1 handled by macOS?
 
-Amethyst has no "switch to space N" command. macOS handles space switching natively via `Ctrl+[1..9]` (configured in Mission Control keyboard shortcuts). This is actually closer to the xmonad experience, where the window manager and the display server cooperate on workspace management.
+Amethyst has no "switch to space N" command -- only "throw window to space N". To mirror xmonad's iconic `mod-[1..9]` (switch) / `mod-shift-[1..9]` (throw) pair, the switch half is delegated to macOS Mission Control but bound to mod1 (`Opt+Cmd+1..9`) instead of the macOS default `Ctrl+1..9`. This keeps switching on mod1 and throwing on mod2 within one consistent modifier family, exactly as xmonad does. It is also closer to the xmonad model, where the window manager and the display server cooperate on workspace management.
 
 ### Why are 5 macOS shortcuts overridden?
 

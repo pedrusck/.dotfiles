@@ -5,6 +5,14 @@
 #   mod1 = Option + Command         (xmonad's "mod")
 #   mod2 = Option + Command + Shift (xmonad's "mod + shift")
 #
+# Workspace (space) switching:
+#   Amethyst has NO "switch/focus space" command — it can only throw windows to
+#   spaces. To mirror xmonad's mod-[1..9] (switch) / mod-shift-[1..9] (throw)
+#   pair, space SWITCHING is handled at the macOS level and bound to mod1:
+#     mod1 + [1..9]  = switch to space N   (macOS "Switch to Desktop N", Opt+Cmd)
+#     mod2 + [1..9]  = throw window to N   (Amethyst throw-space-N, below)
+#   See keybindings.md for the required macOS Mission Control shortcut remap.
+#
 # Why Option+Command?
 #   - Ergonomic on MacBook: Opt and Cmd are adjacent under the thumb, leaving
 #     all fingers free for any key. Ctrl is in the far-left corner and makes
@@ -21,6 +29,10 @@
 #   3. Opt+Cmd+W  (Close All Windows) — conflicts with focus-screen-1
 #   4. Opt+Cmd+D  (Toggle Dock)       — conflicts with select-fullscreen-layout
 #   5. Opt+Cmd+Space (Show Finder search window) — conflicts with cycle-layout
+#   Additionally, remap Mission Control's "Switch to Desktop 1..9" from the
+#   default Ctrl+1..9 to Opt+Cmd+1..9 (= mod1) so space switching lands on mod1.
+#   Opt+Cmd+1..9 has no macOS system default and is left unbound by Amethyst,
+#   so those chords pass straight through to Mission Control.
 #
 # Note due to issue 1419 (https://github.com/ianyh/Amethyst/issues/1419) some
 # config values may conflict and not work if they are the same as the default
@@ -177,6 +189,11 @@ throw-screen-3:
   key: r
 
 # --- Throw to space (xmonad: mod-shift-[1..9]) ---
+#
+# NOTE: the SWITCH counterpart (xmonad's mod-[1..9]) is not an Amethyst command.
+# It is handled by macOS Mission Control, remapped to mod1 (Opt+Cmd+1..9). So:
+#   mod1 + N  = switch to space N   (macOS native)
+#   mod2 + N  = throw window to N   (the commands below)
 
 # Move the currently focused window to the space to the left.
 throw-space-left:

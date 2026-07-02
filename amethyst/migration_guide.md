@@ -30,7 +30,7 @@ Do these first so the new keybindings work immediately once Amethyst picks up th
 
 **Enable workspace switching**:
 
-6. **Desktop switching** -- System Settings > Keyboard > Keyboard Shortcuts > Mission Control > enable "Switch to Desktop 1" through "Switch to Desktop 9" (`Ctrl+1..9`)
+6. **Desktop switching** -- System Settings > Keyboard > Keyboard Shortcuts > Mission Control > enable "Switch to Desktop 1" through "Switch to Desktop 9" and change each from the default `Ctrl+N` to `Opt+Cmd+N` (mod1)
 7. **Create desktops** -- open Mission Control (`Ctrl+Up`), click "+" in the top-right to create desktops 1 through however many you need
 8. **Disable auto-rearrange** -- System Settings > Desktop & Dock > Mission Control > "Automatically rearrange Spaces based on most recent use" must be disabled
 
@@ -88,11 +88,11 @@ This replaces the old `mod1+N/P` cycling and `mod2+Left/Right` throwing. Direct 
 
 | Action | Shortcut |
 |--------|----------|
-| Switch to desktop N | `Ctrl + N` (macOS native) |
-| Throw window to space N | `Opt+Cmd+Shift + N` (1-9, 0 for space 10) |
-| Throw window to space left/right | `Opt+Cmd+Shift + H/L` |
+| Switch to desktop N | `Opt+Cmd + N` (mod1, macOS native) |
+| Throw window to space N | `Opt+Cmd+Shift + N` (mod2; 1-9, 0 for space 10) |
+| Throw window to space left/right | `Opt+Cmd+Shift + H/L` (mod2) |
 
-Typical workflow: `Opt+Cmd+Shift + 3` throws the focused window to space 3, then `Ctrl + 3` follows it there.
+Typical workflow: `Opt+Cmd+Shift + 3` throws the focused window to space 3, then `Opt+Cmd + 3` follows it there (switch and throw share the same modifier family, mirroring xmonad's `mod-N` / `mod-shift-N`).
 
 ## Removed Bindings
 
@@ -117,10 +117,12 @@ Opt+Cmd + ...                     Opt+Cmd+Shift + ...
   W/E/R   focus screen 1/2/3        T       toggle tiling
   ,/.     inc/dec main count        X       toggle focus-follows-mouse
   T       toggle float              Z       relaunch Amethyst
+  1..9    switch to desktop N (macOS native, Mission Control)
   A/S/D/C/B select layout
   I       show layout HUD
   N       re-evaluate windows
 
 macOS native:
-  Ctrl + 1..9   switch to desktop N
+  Opt+Cmd + 1..9   switch to desktop N
+  Ctrl + Left/Right  switch to adjacent space
 ```
