@@ -350,8 +350,14 @@ if (( $+commands[starship] )) && [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
 	eval "$(starship init zsh)"
 fi
 
-# Secretive initialization
-export SSH_AUTH_SOCK="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
+# Secretive initialization (only when its agent socket exists; otherwise fall
+# back to the default/native ssh-agent). Mirrors the `Match Exec` guard in
+# ssh/configuration so the shell and ssh_config agree on which agent is
+# authoritative — an unconditional export breaks SSH on machines/profiles
+# without Secretive (e.g. the `core` profile).
+_secretive_sock="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
+[[ -S "$_secretive_sock" ]] && export SSH_AUTH_SOCK="$_secretive_sock"
+unset _secretive_sock
 
 # Swiftly initialization
 # . "$HOME/.swiftly/env.sh"
