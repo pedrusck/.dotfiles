@@ -7,8 +7,10 @@ To my future self,
 In the machine to be set upped, first install command line tools with `xcode-select --install`.
 
 Set the machine name in the settings and restart.
-- in German go to Systemeinstellungen > Freigaben > Gerätename
-- in English go to System Preferences > Sharing > Computer Name
+- in German go to Systemeinstellungen > Allgemein > Info > Name
+- in English go to System Settings > General > About > Name
+
+(The local hostname is set separately under Systemeinstellungen > Allgemein > Freigaben / System Settings > General > Sharing.)
 
 Sign in App Store (to allow app installation with `mas` in Homebrew).
 
