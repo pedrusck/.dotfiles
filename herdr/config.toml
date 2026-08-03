@@ -16,7 +16,8 @@
 # persistence. Prefix stays ctrl+b; [keys] is a deliberate custom remap.
 #
 # Updates: channel defaults to "stable" with background version/manifest checks;
-# run `herdr update` (alias `hu`) to upgrade. Left at defaults (no [update] block).
+# run `herdr update` to upgrade, or `herdr channel set <stable|preview>` to switch
+# channels. Left at defaults (no [update] block).
 #
 # Reference:  https://herdr.dev/docs/configuration/  and  /docs/config-reference/
 # Full default:  herdr --default-config      Reload running server:  herdr server reload-config
@@ -36,11 +37,10 @@ light_name = "gruvbox-light"
 [theme.custom]
 accent = "#98971a"
 
-# "auto" starts login shells on macOS so login-only PATH setup (Homebrew, Mise)
-# runs in new panes. new_cwd defaults to "follow" (new panes/tabs/workspaces
-# inherit the source pane's cwd) -- left at the default.
-[terminal]
-shell_mode = "auto"
+# [terminal] is left entirely at Herdr's defaults:
+#   shell_mode = "auto" -- already the default; uses login shells on macOS so
+#     login-only PATH setup (Homebrew, Mise) runs in new panes. No pin needed.
+#   new_cwd = "follow"  -- new panes/tabs/workspaces inherit the source cwd.
 
 # Resume Pi / OpenCode / Claude Code panes into their native sessions after a
 # server restart.

@@ -1,4 +1,4 @@
-# Herdr Configuration
+# Herdr Keybindings
 
 Herdr is an **agent-aware terminal workspace manager** (a multiplexer like
 tmux): a background server owns real terminal processes, clients attach to
@@ -47,6 +47,23 @@ Inside a pane, Herdr does shadow a few low-value defaults, each easily replaced:
   blink.cmp doc-scroll-up (minor; docs `auto_show = false`)
 - **lazygit** — nothing (binds no `<c-b>`)
 
+## Direct `ctrl+alt` chords vs. full-screen TUIs
+
+The prefix-free `ctrl+alt+*` direct chords are intercepted by Herdr *before* they
+reach the focused pane. That is exactly what you want in a shell pane, but it
+means a full-screen TUI running in the pane (Neovim, OpenCode, …) never sees
+them:
+
+- **No collision with Neovim window motion** — Neovim uses *bare* `Ctrl+h/j/k/l`
+  (window focus), not `ctrl+alt`, so those pass straight through to nvim.
+- **But some direct chords shadow TUI actions** — e.g. `ctrl+alt+e`
+  (`edit_scrollback`), `ctrl+alt+t/s/v` can mask a chord the TUI or a coding
+  agent wants.
+
+Rule of thumb: **inside a full-screen TUI, drive Herdr with the `prefix` form**
+(`prefix+e`, `prefix+s`, …). The `ctrl+alt` direct chords are a convenience for
+plain shell panes. (Herdr is mouse-first, so none of these are required.)
+
 ## Learn these five first
 
 | Action                           | Key                     |
@@ -64,17 +81,16 @@ prefix-free direct chord is also bound, it is shown in the last column.
 
 ### Panes
 
-| Key                          | Direct chord             | Action                                                                 | Vim parallel      |
-|------------------------------|--------------------------|------------------------------------------------------------------------|-------------------|
-| `prefix+s`                   | `ctrl+alt+s`             | Split down                                                             | `:split`          |
-| `prefix+v`                   | `ctrl+alt+v`             | Split right                                                            | `:vsplit`         |
-| `prefix+h` / `j` / `k` / `l` | `ctrl+alt+h/j/k/l`       | Focus pane left / down / up / right                                    | `Ctrl+w h/j/k/l`  |
-| `prefix+H` / `J` / `K` / `L` | `ctrl+alt+shift+h/j/k/l` | Swap pane left / down / up / right                                     | `Ctrl+w H/J/K/L`  |
-| `prefix+z`                   | `ctrl+alt+z`             | Zoom (fullscreen) the focused pane                                     | —                 |
-| `prefix+w`                   | `ctrl+alt+w`             | Resize mode                                                            | `Ctrl+w` + resize |
-| `prefix+d`                   | `ctrl+alt+d`             | Close focused pane                                                     | `:close`          |
-| `prefix+e`                   | `ctrl+alt+e`             | Open pane scrollback in `$EDITOR` (nvim)                               | —                 |
-| `prefix+[`                   | —                        | Copy mode (`h/j/k/l`, `v`/space select, `y`/enter copy, `q`/esc leave) | Visual / yank     |
+| Key                          | Direct chord             | Action                                   | Vim parallel      |
+|------------------------------|--------------------------|------------------------------------------|-------------------|
+| `prefix+s`                   | `ctrl+alt+s`             | Split down                               | `:split`          |
+| `prefix+v`                   | `ctrl+alt+v`             | Split right                              | `:vsplit`         |
+| `prefix+h` / `j` / `k` / `l` | `ctrl+alt+h/j/k/l`       | Focus pane left / down / up / right      | `Ctrl+w h/j/k/l`  |
+| `prefix+H` / `J` / `K` / `L` | `ctrl+alt+shift+h/j/k/l` | Swap pane left / down / up / right       | `Ctrl+w H/J/K/L`  |
+| `prefix+z`                   | `ctrl+alt+z`             | Zoom (fullscreen) the focused pane       | —                 |
+| `prefix+w`                   | `ctrl+alt+w`             | Resize mode                              | `Ctrl+w` + resize |
+| `prefix+d`                   | `ctrl+alt+d`             | Close focused pane                       | `:close`          |
+| `prefix+e`                   | `ctrl+alt+e`             | Open pane scrollback in `$EDITOR` (nvim) | —                 |
 
 ### Tabs
 
@@ -101,10 +117,10 @@ prefix-free direct chord is also bound, it is shown in the last column.
 
 ### Agents (agent-aware navigation)
 
-| Key                             | Direct chord                      | Action                       |
-|---------------------------------|-----------------------------------|------------------------------|
-| `prefix+a` / `prefix+shift+a`   | `ctrl+alt+a` / `ctrl+alt+shift+a` | Focus next / previous agent  |
-| `prefix+alt+1..9`               | —                                 | Focus agent 1–9 by index     |
+| Key                           | Direct chord                      | Action                      |
+|-------------------------------|-----------------------------------|-----------------------------|
+| `prefix+a` / `prefix+shift+a` | `ctrl+alt+a` / `ctrl+alt+shift+a` | Focus next / previous agent |
+| `prefix+alt+1..9`             | —                                 | Focus agent 1–9 by index    |
 
 Herdr detects coding agents in panes and tracks their state; these jump focus
 straight to a `working` / `blocked` / `done` agent across workspaces. The agent
@@ -154,13 +170,13 @@ down / up — keeping the Vim feel for quick hops.
 
 ## Architecture (who owns what)
 
-| Layer                                     | Owner     | Mechanism                                            |
-|-------------------------------------------|-----------|------------------------------------------------------|
-| OS windows / spaces                       | Amethyst  | `Opt+Cmd` / `Opt+Cmd+Shift`                          |
-| Non-persistent terminal splits            | Ghostty   | `Cmd`-based built-ins (`ghostty/pane_cheatsheet.md`) |
-| **Session-persistent, agent-aware panes** | **Herdr** | `ctrl+b` prefix + `herdr` CLI                        |
-| Editor (splits, buffers, files)           | Neovim    | `<leader>` + `Ctrl`                                  |
-| European characters                       | EurKEY    | `Opt+key`                                            |
+| Layer                                     | Owner     | Mechanism                                        |
+|-------------------------------------------|-----------|--------------------------------------------------|
+| OS windows / spaces                       | Amethyst  | `Opt+Cmd` / `Opt+Cmd+Shift`                      |
+| Non-persistent terminal splits            | Ghostty   | `Cmd`-based built-ins (`ghostty/keybindings.md`) |
+| **Session-persistent, agent-aware panes** | **Herdr** | `ctrl+b` prefix + `herdr` CLI                    |
+| Editor (splits, buffers, files)           | Neovim    | `<leader>` + `Ctrl`                              |
+| European characters                       | EurKEY    | `Opt+key`                                        |
 
 Reach for **Herdr panes** (`prefix+v`) when you want a split to persist across
 detach/reboot or you are running a coding agent worth keeping alive; use quick
@@ -199,8 +215,10 @@ installed):
 | `hl`        | `herdr session list`          | List named sessions                                |
 | `hs`        | `herdr status`                | Show client + server status                        |
 | `hk`        | `herdr server stop`           | Stop the running server (kills all panes)          |
-| `hu`        | `herdr update`                | Update Herdr to the latest version                 |
-| `hrc`       | `herdr server reload-config`  | Reload `config.toml` in the running server         |
+
+Updates and config reloads have no shell alias — run the commands directly:
+`herdr update` (or `herdr channel set <stable|preview>`) and
+`herdr server reload-config`.
 
 Detaching is done from **inside** Herdr with `prefix+q` (or by closing the
 terminal); there is no detach subcommand — everything keeps running in the
@@ -232,8 +250,9 @@ hk                   # when you actually want to stop everything
 - This `keybindings.md` is repo documentation only; it is **not** symlinked.
 - Validate the config with `herdr config check`; print the full upstream default
   with `herdr --default-config`; apply edits to a running server with
-  `herdr server reload-config` (alias `hrc`).
+  `herdr server reload-config`.
 - **Left at Herdr defaults** (no config entry): new panes/tabs/workspaces
-  inherit the source pane's cwd (`[terminal] new_cwd = "follow"`), and the
-  update channel is `stable` with background version/manifest checks
-  (`herdr update`, alias `hu`).
+  inherit the source pane's cwd (`[terminal] new_cwd = "follow"`); new-pane
+  shells start in `shell_mode = "auto"` (login shells on macOS, already the
+  default); and the update channel is `stable` with background version/manifest
+  checks (`herdr update`, switch with `herdr channel set <stable|preview>`).
