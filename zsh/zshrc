@@ -213,6 +213,15 @@ function zvm_after_init() {
 	bindkey "^y" autosuggest-accept
 	bindkey "^k" history-search-backward
 	bindkey "^j" history-search-forward
+
+	# fzf's cd-widget is bound to Alt-C (\ec) upstream, but on the EurKEY layout
+	# Option is a character-compose layer (Opt+c => composed char), so Alt-C never
+	# fires. Rebind to Ctrl-G ("go to dir") so it works while leaving Option free
+	# for EurKEY character input. Guarded so it only binds when fzf's key-bindings
+	# were sourced (the widget exists). Ctrl-R / Ctrl-T are already EurKEY-safe.
+	if (( ${+widgets[fzf-cd-widget]} )); then
+		bindkey "^g" fzf-cd-widget
+	fi
 }
 
 # Set color for Zsh autosuggestions
