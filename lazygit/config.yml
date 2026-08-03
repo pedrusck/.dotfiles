@@ -14,102 +14,73 @@ customCommands:
     description: 'Show commit graph'
     output: terminal
   - key: 'x'
-    context: 'files'
-    description: 'Opens selected file in Xcode'
-    loadingText: 'Opening in Xcode'
-    output: popup
-    command: >-
-      case "{{.SelectedFile.Name}}" in
-        *.xcodeproj|*.xcworkspace)
-          xed --background {{.SelectedFile.Name | quote}} ;;
-        *)
-          echo "Selected file is not an Xcode project or workspace" ;;
-      esac
-  - key: 'x'
     context: 'global'
-    description: 'Opens Xcode on current project'
+    description: 'Opens current project in Xcode (dialog if multiple)'
     loadingText: 'Opening Xcode on current project'
+    output: popup
     prompts:
+      # Only prompt when there is more than one project/workspace. With a
+      # single match the prompt is skipped and the command opens it directly.
       - type: 'menuFromCommand'
         title: 'Select a project or workspace to open in Xcode:'
         key: 'XcodeProject'
+        # `condition` is evaluated as a Go template, so shell logic must be wrapped
+        # in `runCommand`. runCommand tokenizes with str.ToArgv (no shell) and
+        # errors on backslashes, hence `sh -c` plus two `find` calls instead of
+        # `find \( ... \)`. Resolves to "true" only when there is more than one
+        # project/workspace, so a single match skips the prompt (auto-open).
+        condition: '{{ runCommand "sh -c \"c=$({ find . -name ''*.xcodeproj'' -not -path ''*.xcodeproj/*''; find . -name ''*.xcworkspace'' -not -path ''*.xcodeproj/*''; } | grep -v ''.build/'' | grep -v DerivedData | grep -c .); [ $c -gt 1 ] && echo true\"" }}'
         command: "find . \\( -name '*.xcodeproj' -o -name '*.xcworkspace' \\) -not -path '*.xcodeproj/*' | grep -v '\\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2-"
         filter: './(?P<project>.*)'
         valueFormat: '{{ .project }}'
         labelFormat: '{{ .project | green }}'
-    command: "xed --background {{.Form.XcodeProject | quote}}"
-  - key: 'X'
-    context: 'files'
-    description: 'Closes selected project in Xcode'
-    loadingText: 'Closing project in Xcode'
-    output: popup
     command: >-
-      case "{{.SelectedFile.Name}}" in
-        *.xcodeproj|*.xcworkspace)
-          BASENAME=$(basename "{{.SelectedFile.Name | quote}}") &&
-          osascript -e "
-            if application id \"com.apple.dt.Xcode\" is running then
-              tell application id \"com.apple.dt.Xcode\"
-                close workspace document \"$BASENAME\" saving ask
-              end tell
-            end if" &&
-          PROJ_NAME=$(echo "$BASENAME" | sed 's/\.\(xcodeproj\|xcworkspace\)$//') &&
-          find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name "${PROJ_NAME}-*" -exec rm -rf {} + &&
-          echo "Closed $BASENAME and cleaned DerivedData" ;;
-        *)
-          echo "Selected file is not an Xcode project or workspace" ;;
-      esac
+      SELECTED="{{.Form.XcodeProject}}";
+      if [ -z "$SELECTED" ]; then
+        SELECTED=$(find . \( -name '*.xcodeproj' -o -name '*.xcworkspace' \) -not -path '*.xcodeproj/*' | grep -v '\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2- | sed 's#^\./##');
+      fi;
+      if [ -z "$SELECTED" ]; then
+        echo "No Xcode project or workspace found";
+      else
+        xed --background "$SELECTED" && echo "Opened $SELECTED in Xcode";
+      fi
   - key: 'X'
     context: 'global'
-    description: 'Closes Xcode'
-    loadingText: 'Closing Xcode'
+    description: 'Quits Xcode (closes all open projects)'
+    loadingText: 'Quitting Xcode'
+    output: popup
+    command: >-
+      osascript -e '
+        if application id "com.apple.dt.Xcode" is running then
+          tell application id "com.apple.dt.Xcode" to quit saving yes
+        end if' &&
+      echo "Xcode has been quit"
+  - key: '<c-x>'
+    context: 'global'
+    description: 'Cleans DerivedData for current project (dialog if multiple)'
+    loadingText: 'Cleaning DerivedData'
     output: popup
     prompts:
-      - type: 'menu'
-        title: 'How to close Xcode?'
-        key: 'CloseMethod'
-        options:
-          - name: 'Close a specific project'
-            value: 'specific'
-          - name: 'Quit Xcode entirely'
-            value: 'quit'
       - type: 'menuFromCommand'
-        title: 'Select a project or workspace to close:'
+        title: "Select a project or workspace whose DerivedData to clean:"
         key: 'XcodeProject'
-        condition: '{{ eq .Form.CloseMethod "specific" }}'
-        command: "results=$(find . \\( -name '*.xcodeproj' -o -name '*.xcworkspace' \\) -not -path '*.xcodeproj/*' | grep -v '\\.build/' | grep -v 'DerivedData'); if [ -n \"$results\" ]; then echo \"$results\" | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2-; else echo 'No Xcode projects found'; fi"
+        # See the `x` command above for why this condition is wrapped in runCommand.
+        condition: '{{ runCommand "sh -c \"c=$({ find . -name ''*.xcodeproj'' -not -path ''*.xcodeproj/*''; find . -name ''*.xcworkspace'' -not -path ''*.xcodeproj/*''; } | grep -v ''.build/'' | grep -v DerivedData | grep -c .); [ $c -gt 1 ] && echo true\"" }}'
+        command: "find . \\( -name '*.xcodeproj' -o -name '*.xcworkspace' \\) -not -path '*.xcodeproj/*' | grep -v '\\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2-"
         filter: './(?P<project>.*)'
         valueFormat: '{{ .project }}'
         labelFormat: '{{ .project | green }}'
-      - type: 'menu'
-        title: 'Save changes before closing?'
-        key: 'SaveOption'
-        condition: '{{ eq .Form.CloseMethod "specific" }}'
-        options:
-          - name: 'Save'
-            value: 'yes'
-          - name: "Don't save"
-            value: 'no'
-          - name: 'Ask (macOS dialog)'
-            value: 'ask'
     command: >-
-      if [ "{{.Form.CloseMethod}}" = "specific" ]; then
-        BASENAME=$(basename "{{.Form.XcodeProject | quote}}") &&
-        osascript -e "
-          if application id \"com.apple.dt.Xcode\" is running then
-            tell application id \"com.apple.dt.Xcode\"
-              close workspace document \"$BASENAME\" saving {{.Form.SaveOption}}
-            end tell
-          end if" &&
-        PROJ_NAME=$(echo "$BASENAME" | sed 's/\.\(xcodeproj\|xcworkspace\)$//') &&
-        find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name "${PROJ_NAME}-*" -exec rm -rf {} + &&
-        echo "Closed $BASENAME and cleaned DerivedData";
+      SELECTED="{{.Form.XcodeProject}}";
+      if [ -z "$SELECTED" ]; then
+        SELECTED=$(find . \( -name '*.xcodeproj' -o -name '*.xcworkspace' \) -not -path '*.xcodeproj/*' | grep -v '\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2- | sed 's#^\./##');
+      fi;
+      if [ -z "$SELECTED" ]; then
+        echo "No Xcode project or workspace found";
       else
-        osascript -e '
-          if application id "com.apple.dt.Xcode" is running then
-            quit app "Xcode"
-          end if' &&
-        echo "Xcode has been quit";
+        PROJ_NAME=$(basename "$SELECTED" | sed -E 's/\.(xcodeproj|xcworkspace)$//');
+        find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name "${PROJ_NAME}-*" -exec rm -rf {} + &&
+        echo "Cleaned DerivedData for $PROJ_NAME";
       fi
   - key: '<c-d>'
     context: 'commits'
@@ -133,9 +104,14 @@ git:
   fetchAll: true # Pass --all flag when running git fetch. Set to false to fetch only origin (or the current branch's upstream remote if there is one)
   mainBranches: [master, main]
   pagers:
+    # Inherit the single delta config from ~/.config/git/configuration ([delta]
+    # block: dark, syntax-theme=gruvbox-dark, line-numbers, navigate,
+    # decorations, tabs=4) so the gruvbox diff theme has one source of truth and
+    # can't drift between lazygit and git. --paging=never stays because lazygit
+    # manages paging itself.
     - colorArg: always
-      pager: delta --dark --syntax-theme=gruvbox-dark --true-color=always --paging=never #--24-bit-color=never
-      useConfig: false
+      pager: delta --paging=never
+      useConfig: true
   # The main branches. We colour commits green if they belong to one of these branches,
   # so that you can easily see which commits are unique to your branch (coloured in yellow)
   parseEmoji: true
