@@ -597,8 +597,13 @@ when = "true"
 
 [custom.vpn]
 command = "echo 󰖂"
-description = "VPN connection indicator"
+description = "VPN connection indicator (GlobalProtect via its PanGPS tunnel daemon)"
 format = '[$output ]($style)'
 shell = ["bash", "--noprofile", "--norc"]
 style = "fg:color_green"
-when = "ifconfig | grep -q 'utun\\|tun\\|wg\\|ppp'"
+# Detect GlobalProtect specifically via its always-running tunnel daemon.
+# Cheaper than dumping every interface with `ifconfig` on each prompt, and
+# avoids false positives from non-VPN utun* interfaces (AirDrop/Handoff/etc.).
+# GlobalProtect is a NetworkExtension VPN that does not reliably appear in
+# `scutil --nc list`, so the daemon process is the reliable signal.
+when = "pgrep -x PanGPS >/dev/null"
