@@ -9,6 +9,9 @@ brew "mas" # Mac App Store command-line interface
 cask "font-commit-mono-nerd-font"
 
 ### Version managers ###
+# Language runtimes (node, deno, java, python, …) and Swift tooling are managed
+# by mise, not Homebrew — see mise/config.toml. Adding them here would shadow the
+# mise shims via PATH order.
 brew "mise" # Polyglot runtime manager (asdf rust clone)
 # brew "nvm" # Manage multiple Node.js versions
 # brew "pyenv" # Python version management
@@ -52,6 +55,7 @@ brew "hub" # Add GitHub support to git on the command-line
 brew "jnsahaj/lumen/lumen", trusted: true # AI-powered CLI tool for git commit summaries
 brew "lazygit" # Simple terminal UI for git commands
 brew "serie" # Rich git commit graph in your terminal
+brew "tuicr" # Terminal UI for Code Reviews - review AI-generated diffs like a GitHub PR
 
 ### File/Memory management ###
 brew "duf" # Disk Usage/Free Utility - a better 'df' alternative
@@ -112,9 +116,10 @@ brew "amar1729/homebrew-formulae/browserpass", trusted: true # Host application 
 mas "Consent-O-Matic", id: 1606897889
 mas "DuckDuckGo", id: 663592361
 # cask "firefox" # Web browser
+cask "floorp" # Privacy-focused Firefox-based browser
 cask "helium-browser" # Chromium-based web browser
 mas "uBlock Origin Lite", id: 6745342698
-cask "zen" # Gecko based web browser
+# cask "zen" # Gecko based web browser
 
 ### PDF inspection/manipulation ###
 brew "ghostscript" # Interpreter for PostScript and PDF
@@ -153,6 +158,7 @@ brew "bat" # Clone of cat(1) with syntax highlighting and Git integration
 #cask "exifcleaner" # Metadata cleaner -> NOT M1 COMPATIBLE
 brew "eza" # Modern, maintained replacement for ls
 brew "fx" # Terminal JSON viewer
+brew "glow" # Render markdown on the CLI
 brew "hexyl" # Command-line hex viewer
 brew "jq" # Lightweight and flexible command-line JSON processor
 brew "jql" # JSON query language CLI tool
