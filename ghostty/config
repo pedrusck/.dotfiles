@@ -1,34 +1,76 @@
+# Ghostty Configuration
+# =====================
+#
+# Ghostty is the GPU-accelerated terminal emulator used on this machine. This
+# config trusts Ghostty's built-in defaults and only sets what deviates from
+# them, documenting each deviation (and notable deliberate omissions) inline.
+#
+# Where it sits in this setup (full picture: ghostty/keybindings.md):
+#   OS windows / spaces .................. Amethyst (Opt+Cmd)
+#   Non-persistent terminal splits ....... Ghostty  (this file, Cmd built-ins)
+#   Session-persistent, agent-aware panes  Herdr    (ctrl+b prefix)
+#   Editor (splits, buffers, files) ...... Neovim   (<leader> + Ctrl)
+#
+# Conventions: gruvbox theme (shared across these dotfiles), defer to built-in
+# defaults, cede overlapping chords to the higher layer (Amethyst).
+#
+# Note: Ghostty config supports full-line comments only, not trailing comments.
+#
+# Reference:  https://ghostty.org/docs/config/keybind
+# Split/tab/window keys:  ghostty/keybindings.md
+# Full default keybinds:  ghostty +list-keybinds --default
+# Show effective config:  ghostty +show-config
+
 # Theming
+# gruvbox, matching Herdr / Alacritty / Lazygit and the rest of these dotfiles.
 theme = Gruvbox Dark Hard
 
 # Font
 font-family = CommitMono Nerd Font Mono
 
 # Appearance
+# Non-default: add 12% vertical breathing room between lines for readability.
 adjust-cell-height = 12%
+# Non-default: chromeless window (hidden titlebar) for a cleaner look.
 macos-titlebar-style = hidden
 
 # Window
+# display-p3 colorspace is considered but left disabled (kept in place as an
+# easy toggle); the default sRGB is used.
 #window-colorspace = display-p3
+# Non-default: symmetric 9px padding, balanced and colored as the background so
+# it blends into the theme rather than framing the content.
 window-padding-balance = true
 window-padding-x = 9
 window-padding-y = 9
 window-padding-color = background
 
 # Scrollback
-scrollback-limit = 50_000_000
+# Left at Ghostty's default. Persistent, per-pane scrollback is owned by Herdr
+# (which keeps its own buffer and reads it for `edit_scrollback`); an oversized
+# Ghostty buffer would multiply memory across many persistent panes for no gain.
 
 # Mouse
+# Non-default: hide the cursor while typing; it reappears on any mouse activity.
 mouse-hide-while-typing = true
 
 # Interface
+# Non-default: ephemeral by design -- start fresh each launch. Session
+# persistence (surviving detach/close/reboot) is delegated to Herdr, not Ghostty.
 window-save-state = never
 
 # Shell
-shell-integration = zsh
+# shell-integration is left at its default ("detect", which infers the shell
+# from the process name) -- no need to pin it in a single-shell environment.
+# Non-default: enable all shell-integration features (cursor, sudo, title, ...).
 shell-integration-features = true
 
 # Keybindings
+# Philosophy: defer to Ghostty's built-in defaults; only intervene here to make
+# apps work (escape sequences) or to cede chords that collide with Amethyst.
+# Full split/tab/window reference lives in ghostty/keybindings.md.
+
+# Send a real newline on Shift+Enter (for TUI chat / coding agents / editors).
 keybind = shift+enter=text:\x1b\r
 
 # Required configuration for pi the coding agent (see https://pi.dev/docs/latest/terminal-setup)
