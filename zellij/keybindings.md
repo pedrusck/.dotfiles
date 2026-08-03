@@ -67,7 +67,7 @@ compact-bar).
 | Layer | Owner | Mechanism |
 |-------|-------|-----------|
 | OS windows / spaces | Amethyst | `Opt+Cmd` / `Opt+Cmd+Shift` |
-| Non-persistent terminal splits | Ghostty | `Cmd`-based built-ins (see `ghostty/pane_cheatsheet.md`) |
+| Non-persistent terminal splits | Ghostty | `Cmd`-based built-ins (see `ghostty/keybindings.md`) |
 | **Co-persisting panes + session persistence** | **Zellij** | `Ctrl+g` mode + CLI aliases |
 | Editor (splits, buffers, files) | Neovim | `<leader>` + `Ctrl` |
 | European characters | EurKEY | `Opt+key` |

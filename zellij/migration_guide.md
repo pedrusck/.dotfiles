@@ -15,7 +15,7 @@ switches); that was removed in favor of a minimal, single-gateway design.
 | Scroll / search modes | bound | **removed** (not used here) |
 | Session control | `Ctrl+g` → `Ctrl+o` → `d` | `Ctrl+g w` (manager) + CLI aliases |
 | `stty -ixon` | required | not needed (no `Ctrl+s` binding) |
-| Non-persistent splits | Zellij | Ghostty built-ins (`ghostty/pane_cheatsheet.md`) |
+| Non-persistent splits | Zellij | Ghostty built-ins (`ghostty/keybindings.md`) |
 | Frame | n/a | rounded, green/gray/orange (focus + mode indicator) |
 | Session name | status-bar | slim 1-row compact-bar (only remaining chrome) |
 
