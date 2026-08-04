@@ -16,6 +16,7 @@
 #     and unlocks the git-crypt encrypted files
 #   - Symlinks the configuration of every tool in the selected profile
 #   - Creates the projects directory and updates TeX Live
+#   - Installs the EurKEY keyboard layout (git submodule) system-wide
 #   - Configures macOS keybindings so they do not collide with Amethyst/Neovim
 #
 # Every phase is idempotent: re-running the script is safe.
@@ -225,6 +226,31 @@ function update_texlive() {
 	sudo tlmgr update --self --all --reinstall-forcibly-removed || warn "TeX Live update failed"
 }
 
+### EurKEY keyboard layout (system-wide, from git submodule) ###
+
+function install_keyboard_layout() {
+	info "Installing the EurKEY keyboard layout (system-wide)"
+
+	# Ensure the submodule is checked out (idempotent).
+	git -C "$DOTFILES_PATH" submodule update --init --recursive eurkey
+
+	local src=$DOTFILES_PATH/eurkey/EurKEY.bundle
+	local dest="/Library/Keyboard Layouts/EurKEY.bundle"
+
+	[[ -d $src ]] || { warn "  EurKEY.bundle not found at $src, skipping"; return 0 }
+
+	# Idempotent: only touch /Library (sudo) when the layout is missing or changed.
+	if [[ -d $dest ]] && diff -rq "$src" "$dest" &>/dev/null; then
+		info "  EurKEY already installed and up to date"
+		return 0
+	fi
+
+	sudo mkdir -p "/Library/Keyboard Layouts"
+	sudo rm -rf "$dest"
+	sudo ditto "$src" "$dest"   # native macOS, bundle-safe copy
+	info "  EurKEY installed to $dest"
+}
+
 ### Keybinding collision avoidance ###
 
 function tool_in_profile() {
@@ -293,6 +319,14 @@ function print_manual_reminders() {
 	print -r -- "  Profile:          $PROFILE"
 	print -r -- "  Tools configured: $PROFILE_TOOLS"
 
+	print -r --
+	warn "MANUAL STEP — Enable the EurKEY input source"
+	print -r -- "  The EurKEY layout is installed, but macOS will not activate it automatically:"
+	print -r -- "  1. System Settings > Keyboard > Text Input > Input Sources > Edit... > '+'"
+	print -r -- "  2. Add 'EurKEY' (listed under Others / European) and remove unwanted layouts."
+	print -r -- "  A log out or restart may be required before EurKEY appears in the list."
+	print -r -- "  See macOS_setup_steps.md for details."
+
 	if (( SKIP_KEYBINDINGS )) || { ! tool_in_profile amethyst && ! tool_in_profile neovim }; then
 		return
 	fi
@@ -324,6 +358,7 @@ function main() {
 	install_packages
 	run_tool_setups
 	create_projects_dirs
+	install_keyboard_layout
 	update_texlive
 	apply_keybindings
 	print_manual_reminders

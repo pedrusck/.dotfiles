@@ -21,6 +21,9 @@ Do these three manual steps first:
    cd .dotfiles
    ```
 
+   (`bootstrap.zsh` also initializes submodules automatically, so an existing
+   clone without `--recurse-submodules` is fine too.)
+
 Then insert the pendrive holding your GPG keys and run the initialization
 [script](./bootstrap.zsh):
 
@@ -30,13 +33,14 @@ Then insert the pendrive holding your GPG keys and run the initialization
 
 `bootstrap.zsh` installs Homebrew and the Brewfile packages, imports the GPG
 keypair from `--key-dir` and marks it ultimately trusted, unlocks the git-crypt
-encrypted files, configures every tool in the `development` profile, and sets the
-macOS keybindings that would otherwise collide with Amethyst/Neovim. The script
-is idempotent, so it is safe to re-run.
+encrypted files, configures every tool in the `development` profile, installs the
+EurKEY keyboard layout (git submodule) system-wide, and sets the macOS keybindings
+that would otherwise collide with Amethyst/Neovim. The script is idempotent, so it
+is safe to re-run.
 
-When it finishes it prints the one remaining manual keybinding step
-(Switch to Desktop 1–9 for Amethyst). Afterwards, follow the rest of the steps in
-the [list](./macOS_setup_steps.md).
+When it finishes it prints the remaining manual steps (enable the EurKEY input
+source, and Switch to Desktop 1–9 for Amethyst). Afterwards, follow the rest of the
+steps in the [list](./macOS_setup_steps.md).
 
 > The GPG import and `git-crypt unlock` are done automatically by `bootstrap.zsh`.
 > To do them by hand instead:
