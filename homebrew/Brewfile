@@ -10,8 +10,9 @@ cask "font-commit-mono-nerd-font"
 
 ### Version managers ###
 # Language runtimes (node, deno, java, python, …) and Swift tooling are managed
-# by mise, not Homebrew — see mise/config.toml. Adding them here would shadow the
-# mise shims via PATH order.
+# by mise, not Homebrew — see mise/config.toml. PATH ordering already makes mise
+# win (its shims are prepended after `brew shellenv`), so keeping these out of
+# the Brewfile is defense-in-depth against accidental duplicate installs.
 brew "mise" # Polyglot runtime manager (asdf rust clone)
 # brew "nvm" # Manage multiple Node.js versions
 # brew "pyenv" # Python version management
