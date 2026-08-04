@@ -4,30 +4,48 @@ To my future self,
 
 ## for macOS
 
-In the machine to be set upped, first install command line tools with `xcode-select --install`.
+Do these three manual steps first:
 
-Set the machine name in the settings and restart.
-- in German go to Systemeinstellungen > Allgemein > Info > Name
-- in English go to System Settings > General > About > Name
+1. **Install the Xcode command line tools** (provides `git` for cloning):
 
-(The local hostname is set separately under Systemeinstellungen > Allgemein > Freigaben / System Settings > General > Sharing.)
+   ```
+   xcode-select --install
+   ```
 
-Sign in App Store (to allow app installation with `mas` in Homebrew).
+2. **Sign in to the App Store** so Homebrew can install the `mas` apps in the Brewfile.
 
-Clone this repository with
-`git clone https://gitlab.com/pereBohigas/.dotfiles.git`
+3. **Clone this repository and enter it:**
 
-Import your GPG key and unlock encrypted files before running bootstrap:
+   ```
+   git clone https://codeberg.org/petrusck/.dotfiles.git
+   cd .dotfiles
+   ```
+
+Then insert the pendrive holding your GPG keys and run the initialization
+[script](./bootstrap.zsh):
 
 ```
-gpg --import <your-private-key>
-brew install git-crypt
-git-crypt unlock
+./bootstrap.zsh --key-dir /Volumes/<PENDRIVE>
 ```
 
-Run the initialization [script](./bootstrap.sh) with `./bootstrap.sh`.
+`bootstrap.zsh` installs Homebrew and the Brewfile packages, imports the GPG
+keypair from `--key-dir` and marks it ultimately trusted, unlocks the git-crypt
+encrypted files, configures every tool in the `development` profile, and sets the
+macOS keybindings that would otherwise collide with Amethyst/Neovim. The script
+is idempotent, so it is safe to re-run.
 
-And later on follow the steps in the [list](./macOS_setup_steps.md)
+When it finishes it prints the one remaining manual keybinding step
+(Switch to Desktop 1–9 for Amethyst). Afterwards, follow the rest of the steps in
+the [list](./macOS_setup_steps.md).
+
+> The GPG import and `git-crypt unlock` are done automatically by `bootstrap.zsh`.
+> To do them by hand instead:
+>
+> ```
+> gpg --import <your-private-key>
+> brew install git-crypt
+> git-crypt unlock
+> ```
 
 ## Encrypted files
 
@@ -38,7 +56,7 @@ On a new machine:
 2. Install git-crypt: `brew install git-crypt`
 3. Unlock the repo: `git-crypt unlock`
 
-The bootstrap script will also attempt to unlock automatically after installing Homebrew packages.
+`bootstrap.zsh` does this automatically when given `--key-dir`: it imports the keys, marks them trusted, and unlocks the repository before installing the Brewfile packages.
 
 Greetings from the past
 
@@ -47,6 +65,6 @@ Greetings from the past
 - Install git `sudo apt install git -y`
 
 - Clone this repository with
-`git clone https://gitlab.com/pereBohigas/.dotfiles.git`
+`git clone https://codeberg.org/petrusck/.dotfiles.git`
 
 - Run the initialization [script](./bootstrap_raspotify.sh) with `./bootstrap_raspotify.sh`.

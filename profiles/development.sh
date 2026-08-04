@@ -1,7 +1,7 @@
 #!/usr/bin/env zsh
 
-# Development profile - core + dev tools
-# Usage: ./bootstrap.sh --profile development
+# Development profile — the tools configured by bootstrap.zsh
+# Usage: ./bootstrap.zsh --profile development --key-dir <path>
 
 PROFILE_TOOLS=(
 	# Core
@@ -11,7 +11,7 @@ PROFILE_TOOLS=(
 	ssh
 	starship
 
-	# Editors
+	# Editor
 	neovim
 
 	# Terminal
@@ -19,20 +19,14 @@ PROFILE_TOOLS=(
 
 	# Git tools
 	lazygit
-	gitui
+	tuicr
 
 	# Window management
 	amethyst
 
+	# Terminal multiplexer
+	herdr
+
 	# Dev tools
 	mise
-	television
-
-	# Productivity
-	leader_key
-
-	# AI coding
-	opencode
-	claude_code
-	pi-coding-agent
 )
