@@ -14,10 +14,10 @@ Do these three manual steps first:
 
 2. **Sign in to the App Store** so Homebrew can install the `mas` apps in the Brewfile.
 
-3. **Clone this repository and enter it:**
+3. **Clone this repository (with submodules) and enter it:**
 
    ```
-   git clone https://codeberg.org/petrusck/.dotfiles.git
+   git clone --recurse-submodules https://codeberg.org/petrusck/.dotfiles.git
    cd .dotfiles
    ```
 

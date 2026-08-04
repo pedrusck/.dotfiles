@@ -1,0 +1,3 @@
+[submodule "eurkey"]
+	path = eurkey
+	url = https://github.com/sonicdoe/EurKEY.git
