@@ -1,7 +1,9 @@
 #!/usr/bin/env zsh
 # Copies the most recent bookmark backup (.jsonlz4) from Firefox, Zen, or Floorp
-# to OUTPUT_DIR (default: ~/Desktop). Restore via: Bookmarks → Manage Bookmarks
-# → Import and Backup → Restore → Choose File…
+# to OUTPUT_DIR (default: ~/Desktop).
+# Restore: use restore_gecko_based_browser_bookmarks.zsh to stage the snapshot
+# into Floorp's bookmarkbackups folder, then finish manually via Bookmarks →
+# Manage Bookmarks → Import and Backup → Restore → Choose File…
 
 setopt errexit nounset pipefail
 
