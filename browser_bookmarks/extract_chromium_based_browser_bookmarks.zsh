@@ -1,8 +1,9 @@
 #!/usr/bin/env zsh
 # Copies the most recent Bookmarks file from Chrome, Helium, or Brave on macOS
 # to OUTPUT_DIR (default: ~/Desktop).
-# Restore: replace the target browser's Default/Bookmarks file with this one
-# (close the browser first), or import via chrome://bookmarks → ⋮ → Import.
+# Restore: use restore_chromium_based_browser_bookmarks.zsh, which replaces the
+# target browser's Default/Bookmarks file with this one (quitting/relaunching
+# the browser as needed).
 
 setopt errexit nounset pipefail
 
