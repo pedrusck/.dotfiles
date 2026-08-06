@@ -109,10 +109,13 @@ cask "keka" # File archiver
 
 ### Internet browser ###
 # cask "brave-browser" # Web browser focusing on privacy
+# INFO:
 # Browserpass setup for Firefox:
 # PREFIX='/opt/homebrew/opt/browserpass' make hosts-firefox-user -f '/opt/homebrew/opt/browserpass/lib/browserpass/Makefile'
 # Browserpass setup for Helium:
-# PREFIX='/opt/homebrew/opt/browserpass' make hosts-chromium-user -f '/opt/homebrew/opt/browserpass/lib/browserpass/Makefile'
+# mkdir -p "$HOME/Library/Application Support/net.imput.helium/NativeMessagingHosts/"
+# ln -sfv "/opt/homebrew/opt/browserpass/lib/browserpass/hosts/chromium/com.github.browserpass.native.json" \
+  "$HOME/Library/Application Support/net.imput.helium/NativeMessagingHosts/com.github.browserpass.native.json"
 brew "amar1729/homebrew-formulae/browserpass", trusted: true # Host application for browser extension providing access to your password store
 mas "Consent-O-Matic", id: 1606897889
 mas "DuckDuckGo", id: 663592361
