@@ -300,8 +300,7 @@ brew "swift-protobuf" # Plugin and runtime library for using protobuf with Swift
 mas "TestFlight", id: 899247664
 # mas "Xcode", id: 497799835 # <- Xcode being installed using xcodes
 brew "xcode-kotlin" # Kotlin Native Xcode Plugin
-brew "xcodesorg/made/xcodes", trusted: true # Best command-line tool to install and switch between multiple versions of Xcode
-# cask "xcodesorg/made/xcodes", trusted: true # Install and switch between multiple versions of Xcode -> App version of xcodes command-line tool
+brew "xcodes" # Command-line tool to install and switch between multiple versions of Xcode
 brew "vapor" if system(%q[mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'" | grep -q .]) # Command-line tool for Vapor (Server-side Swift web framework) -> requires Xcode
 
 ### Machine learning ###
