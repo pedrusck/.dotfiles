@@ -14,6 +14,8 @@
 #   - Installs Homebrew and the packages listed in homebrew/Brewfile
 #   - Imports the GPG keypair from --key-dir, marks it ultimately trusted,
 #     and unlocks the git-crypt encrypted files
+#   - Registers Browserpass native-messaging hosts for Firefox/Helium (if installed)
+#   - Restores browser bookmarks for Helium/Floorp from browser_bookmarks/ (if present)
 #   - Symlinks the configuration of every tool in the selected profile
 #   - Creates the projects directory and updates TeX Live
 #   - Installs the EurKEY keyboard layout (git submodule) system-wide
@@ -30,6 +32,7 @@ typeset -g SCRIPT_NAME=${0:t}
 typeset -g PROFILE=""
 typeset -g KEY_DIR=""
 typeset -g SKIP_KEYBINDINGS=0
+typeset -g GECKO_BOOKMARKS_STAGED=0
 typeset -ga PROFILE_TOOLS
 
 typeset -g C_GREEN=$'\e[0;32m'
@@ -186,10 +189,90 @@ function unlock_git_crypt() {
 ### Homebrew packages ###
 
 function install_packages() {
-	info "Updating Homebrew"
-	brew update --force --quiet
-	info "Installing Homebrew packages from Brewfile (this may take a while)"
-	caffeinate -i brew bundle --file="$DOTFILES_PATH/homebrew/Brewfile"
+	#info "Updating Homebrew"
+	#brew update --force --quiet
+	#info "Installing Homebrew packages from Brewfile (this may take a while)"
+	#caffeinate -i brew bundle --file="$DOTFILES_PATH/homebrew/Brewfile"
+}
+
+### Browserpass native messaging hosts ###
+
+function configure_browserpass() {
+	local prefix
+	prefix=$(brew --prefix browserpass 2>/dev/null) || { info "browserpass not installed, skipping native messaging host setup"; return 0 }
+	[[ -d $prefix ]] || { info "browserpass not installed, skipping native messaging host setup"; return 0 }
+
+	info "Configuring Browserpass native messaging hosts"
+
+	# Firefox
+	if [[ -d "/Applications/Firefox.app" ]]; then
+		local firefox_host="$HOME/Library/Application Support/Mozilla/NativeMessagingHosts/com.github.browserpass.native.json"
+		if [[ -f $firefox_host ]]; then
+			info "  Browserpass Firefox host already registered"
+		else
+			info "  Registering Browserpass host for Firefox"
+			PREFIX="$prefix" make hosts-firefox-user -f "$prefix/lib/browserpass/Makefile" \
+				|| warn "  Failed to register Browserpass host for Firefox"
+		fi
+	else
+		info "  Firefox not installed, skipping Browserpass Firefox host"
+	fi
+
+	# Helium
+	if [[ -d "/Applications/Helium.app" ]]; then
+		local helium_dir="$HOME/Library/Application Support/net.imput.helium/NativeMessagingHosts"
+		local helium_host="$helium_dir/com.github.browserpass.native.json"
+		local helium_src="$prefix/lib/browserpass/hosts/chromium/com.github.browserpass.native.json"
+		if [[ -L $helium_host && "$(readlink "$helium_host")" == "$helium_src" ]]; then
+			info "  Browserpass Helium host already registered"
+		else
+			info "  Registering Browserpass host for Helium"
+			mkdir -p "$helium_dir" \
+				&& ln -sfv "$helium_src" "$helium_host" \
+				|| warn "  Failed to register Browserpass host for Helium"
+		fi
+	else
+		info "  Helium not installed, skipping Browserpass Helium host"
+	fi
+}
+
+### Browser bookmarks restore ###
+
+function restore_browser_bookmarks() {
+	local bookmarks_dir=$DOTFILES_PATH/browser_bookmarks
+	[[ -d $bookmarks_dir ]] || { info "browser_bookmarks directory not found, skipping bookmarks restore"; return 0 }
+
+	# Chromium-based (Helium)
+	local chromium_script=$bookmarks_dir/restore_chromium_based_browser_bookmarks.zsh
+	local -a chromium_snapshots=($bookmarks_dir/chromium_based_browser_bookmarks_*.secret.json(N))
+	if [[ ! -f $chromium_script ]]; then
+		info "  restore_chromium_based_browser_bookmarks.zsh not found, skipping"
+	elif (( ! $#chromium_snapshots )); then
+		info "  No Chromium bookmarks snapshot found, skipping"
+	elif [[ ! -d "/Applications/Helium.app" ]]; then
+		info "  Helium not installed, skipping Chromium bookmarks restore"
+	else
+		info "  Restoring Chromium-based (Helium) bookmarks"
+		zsh "$chromium_script" "$bookmarks_dir" || warn "  Failed to restore Chromium-based bookmarks"
+	fi
+
+	# Gecko-based (Floorp)
+	local gecko_script=$bookmarks_dir/restore_gecko_based_browser_bookmarks.zsh
+	local -a gecko_snapshots=($bookmarks_dir/gecko_based_browser_bookmarks_*.secret.jsonlz4(N))
+	if [[ ! -f $gecko_script ]]; then
+		info "  restore_gecko_based_browser_bookmarks.zsh not found, skipping"
+	elif (( ! $#gecko_snapshots )); then
+		info "  No Gecko bookmarks snapshot found, skipping"
+	elif [[ ! -d "$HOME/Library/Application Support/Floorp" ]]; then
+		info "  Floorp not installed, skipping Gecko bookmarks restore"
+	else
+		info "  Staging Gecko-based (Floorp) bookmarks (manual step required to finish)"
+		if zsh "$gecko_script" "$bookmarks_dir"; then
+			GECKO_BOOKMARKS_STAGED=1
+		else
+			warn "  Failed to stage Gecko-based bookmarks"
+		fi
+	fi
 }
 
 ### Tool configuration ###
@@ -234,7 +317,7 @@ function install_keyboard_layout() {
 	# Ensure the submodule is checked out (idempotent).
 	git -C "$DOTFILES_PATH" submodule update --init --recursive eurkey
 
-	local src=$DOTFILES_PATH/eurkey/EurKEY.bundle
+	local src=$DOTFILES_PATH/
 	local dest="/Library/Keyboard Layouts/EurKEY.bundle"
 
 	[[ -d $src ]] || { warn "  EurKEY.bundle not found at $src, skipping"; return 0 }
@@ -245,8 +328,8 @@ function install_keyboard_layout() {
 		return 0
 	fi
 
-	sudo mkdir -p "/Library/Keyboard Layouts"
-	sudo rm -rf "$dest"
+	#sudo mkdir -p "/Library/Keyboard Layouts"
+	#sudo rm -rf "$dest"
 	sudo ditto "$src" "$dest"   # native macOS, bundle-safe copy
 	info "  EurKEY installed to $dest"
 }
@@ -323,24 +406,16 @@ function print_manual_reminders() {
 	warn "MANUAL STEP — Enable the EurKEY input source"
 	print -r -- "  The EurKEY layout is installed, but macOS will not activate it automatically:"
 	print -r -- "  1. System Settings > Keyboard > Text Input > Input Sources > Edit... > '+'"
-	print -r -- "  2. Add 'EurKEY' (listed under Others / European) and remove unwanted layouts."
+	print -r -- "  2. Add 'EurKEY' (listed under English / EurKEY) and remove unwanted layouts."
 	print -r -- "  A log out or restart may be required before EurKEY appears in the list."
 	print -r -- "  See macOS_setup_steps.md for details."
 
-	if (( SKIP_KEYBINDINGS )) || { ! tool_in_profile amethyst && ! tool_in_profile neovim }; then
-		return
+	if (( GECKO_BOOKMARKS_STAGED )); then
+		print -r --
+		warn "MANUAL STEP — Finish restoring Floorp bookmarks"
+		print -r -- "  A bookmarks snapshot was staged into Floorp's bookmarkbackups folder."
+		print -r -- "  Bookmarks > Manage Bookmarks > Import and Backup > Restore > pick today's date > confirm."
 	fi
-
-	print -r --
-	warn "MANUAL STEP REQUIRED — Amethyst workspace switching (Opt+Cmd+1..9)"
-	print -r -- "  macOS does not expose these shortcuts to scripting, so finish them by hand:"
-	print -r -- "  1. Open Mission Control and create Desktops 1-9 (Ctrl+Up, then '+')."
-	print -r -- "  2. System Settings > Keyboard > Keyboard Shortcuts > Mission Control:"
-	print -r -- "     enable 'Switch to Desktop 1' .. 'Switch to Desktop 9' and change each"
-	print -r -- "     from the default Ctrl+N to Opt+Cmd+N."
-	print -r -- "  See macOS_setup_steps.md and amethyst/keybindings.md for details."
-	print -r --
-	print -r -- "  Log out and back in so the keybinding changes take full effect."
 }
 
 ### Entry point ###
@@ -356,6 +431,8 @@ function main() {
 	import_gpg_keys
 	unlock_git_crypt
 	install_packages
+	configure_browserpass
+	restore_browser_bookmarks
 	run_tool_setups
 	create_projects_dirs
 	install_keyboard_layout
