@@ -6,7 +6,7 @@ TOOL_DIR="${DOTFILES_PATH:=$PWD}/zsh"
 
 ln -sf "$TOOL_DIR/zshenv" "$HOME/.zshenv"
 
-[ ! -d "$HOME/.config/zsh" ] && mkdir -p "$HOME/.config/zsh"
+mkdir -p "$HOME/.config/zsh"
 ln -sf "$TOOL_DIR/zprofile" "$HOME/.config/zsh/.zprofile"
 ln -sf "$TOOL_DIR/zshrc" "$HOME/.config/zsh/.zshrc"
 ln -sf "$TOOL_DIR/zsh_aliases" "$HOME/.config/zsh/zsh_aliases"
