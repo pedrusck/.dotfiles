@@ -121,6 +121,7 @@ fi
 		gpg_export_key
 		gpg_import_key
 		latex_update
+		opencode_update_provider_models
 		ssh_add_identities
 		ssh_copy_key
 		ssh_generate_key

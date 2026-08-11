@@ -1,0 +1,385 @@
+#!/usr/bin/env zsh
+
+setopt local_options errexit nounset pipefail extendedglob
+
+# Usage: API_KEY=<key> opencode-update-models [OPTIONS] <PROVIDER_NAME> <API_ENDPOINT> [CONFIG_FILE]
+#
+# Options:
+#	-v, --verbose	Enable detailed step-by-step logging.
+#	-h, --help		Show this help message and exit.
+#
+# Arguments:
+#	PROVIDER_NAME	Human-readable provider name (converted to snake_case for the key).
+#	API_ENDPOINT	OpenAI-compatible API endpoint.
+#	CONFIG_FILE		opencode config file path (default: opencode.json).
+#
+# Environment variables:
+#	API_KEY			API key for authentication (required).
+#
+# Behavior:
+#	Fetches models from the provider endpoint and updates the configuration file.
+#	Prefers the LiteLLM-style `<endpoint>/model/info` route (rich metadata: costs,
+#	limits, modalities, capability flags) mapped onto opencode's model schema, keeping
+#	chat models only. If unavailable, falls back to the plain `<endpoint>/models` route
+#	(names only).
+#
+#	The provider's models key is completely rewritten (no per-model update).
+#	If the config file doesn't exist, it will be created.
+#
+# Exit codes:
+#	0	Success
+#	1	Error (missing arguments, missing API_KEY, fetch failure, invalid response)
+#
+# Examples:
+#	API_KEY=sk-xxx opencode-update-models "OpenAI Compatible" https://api.example.com opencode.json
+#	API_KEY=sk-xxx opencode-update-models --verbose "OpenAI Compatible" https://api.example.com
+
+# ── Help ────────────────────────────────────────────────────────────
+local -r SCRIPT_NAME=${0:t}
+
+print_usage() {
+	print -ru2 -- "Usage: API_KEY=<key> $SCRIPT_NAME [OPTIONS] <PROVIDER_NAME> <API_ENDPOINT> [CONFIG_FILE]"
+	print -ru2 -- ""
+	print -ru2 -- "Options:"
+	print -ru2 -- "  -v, --verbose   Enable detailed step-by-step logging"
+	print -ru2 -- "  -h, --help      Show this help message and exit"
+	print -ru2 -- ""
+	print -ru2 -- "Arguments:"
+	print -ru2 -- "  PROVIDER_NAME   Human-readable provider name (converted to snake_case)"
+	print -ru2 -- "  API_ENDPOINT    OpenAI-compatible API endpoint (must use https://)"
+	print -ru2 -- "  CONFIG_FILE     Config file path (default: opencode.json)"
+	print -ru2 -- ""
+	print -ru2 -- "Environment:"
+	print -ru2 -- "  API_KEY         API key for authentication (required)"
+}
+
+# ── Option parsing ──────────────────────────────────────────────────
+integer verbose=0
+
+while (( $# > 0 )) && [[ $1 == -* ]]; do
+	case $1 in
+		-v|--verbose) verbose=1; shift ;;
+		-h|--help) print_usage; exit 0 ;;
+		--) shift; break ;;
+		-*) print -ru2 -- "Error: unknown option: $1"; print_usage; exit 1 ;;
+	esac
+done
+
+# ── Verbose logging helper ──────────────────────────────────────────
+vlog() {
+	(( verbose )) && print -ru2 -- "[VERBOSE] $*" || :
+}
+
+# ── Dependencies ────────────────────────────────────────────────────
+for cmd (curl jq); do
+	if (( ! $+commands[$cmd] )); then
+		print -ru2 -- "Error: $cmd is required but not installed"
+		exit 1
+	fi
+	vlog "Dependency check: $cmd found"
+done
+
+# ── Argument validation ─────────────────────────────────────────────
+if (( $# < 2 || $# > 3 )); then
+	print -ru2 -- "Error: expected 2-3 arguments, got $#"
+	print_usage
+	exit 1
+fi
+
+provider_name=$1
+api_endpoint=$2
+config_file=${3:-opencode.json}
+
+if [[ -z $provider_name ]]; then
+	print -ru2 -- "Error: PROVIDER_NAME cannot be empty"
+	exit 1
+fi
+
+if [[ -z $api_endpoint ]]; then
+	print -ru2 -- "Error: API_ENDPOINT cannot be empty"
+	exit 1
+fi
+
+if [[ $api_endpoint != https://* ]]; then
+	print -ru2 -- "Error: API_ENDPOINT must start with https://"
+	exit 1
+fi
+
+if [[ -z ${API_KEY:-} ]]; then
+	print -ru2 -- "Error: API_KEY environment variable is required"
+	exit 1
+fi
+
+vlog "Config: provider='$provider_name' endpoint='$api_endpoint' file='$config_file'"
+
+# ── Fetch a single route into a file, printing the HTTP status code ─
+fetch_route() {  # url out key
+	vlog "HTTP request: $1"
+	local http_code
+	http_code=$(curl -sL -o "$2" -w '%{http_code}' \
+		--max-time 10 --connect-timeout 3 \
+		-H "Authorization: Bearer $3" \
+		-H "Content-Type: application/json" \
+		"$1")
+	vlog "HTTP response: $http_code"
+	print -- "$http_code"
+}
+
+# ── jq definitions ──────────────────────────────────────────────────
+
+# Turn a raw model id into a human-friendly display name
+JQ_FORMAT_NAME='
+def format_name:
+	gsub("[/_]"; "-")
+	# Protect param sizes: 3-27b -> 3 27b (space, not dot)
+	| gsub("(?<d1>[0-9])-(?<d2>[0-9]+b)"; "\(.d1) \(.d2)")
+	# Merge remaining version digits: 3-3 -> 3.3
+	| gsub("(?<d1>[0-9])-(?<d2>[0-9])"; "\(.d1).\(.d2)")
+	| split("-")
+	| map((.[0:1] | ascii_upcase) + (.[1:] | ascii_downcase))
+	| join(" ")
+	# Uppercase known acronyms
+	| gsub("(?<pre>^| )Gpt(?<post> |$)"; "\(.pre)GPT\(.post)")
+	| gsub("(?<pre>^| )Oss(?<post> |$)"; "\(.pre)OSS\(.post)")
+	| gsub("(?<pre>^| )It(?<post> |$)"; "\(.pre)IT\(.post)")
+	# Lowercase version prefix
+	| gsub("(?<pre>^| )V(?<version>[0-9.]+)(?<post> |$)"; "\(.pre)v\(.version)\(.post)")
+	# Uppercase parameter sizes (7b -> 7B, 120b -> 120B)
+	| gsub("(?<pre>^| )(?<num>[0-9.]+)b(?<post> |$)"; "\(.pre)\(.num)B\(.post)");
+'
+
+# Transform API response to opencode model schema
+JQ_TRANSFORM_MODELS='
+def to_num: if type == "string" then (tonumber // 0) else (. // 0) end;
+def fmt: ((to_num * 1000000 * 10000 | floor) / 10000);
+
+def rich:
+	# Keep chat models only (null/missing mode treated as chat)
+	map(select((.model_info.mode // "chat") == "chat"))
+	| map(
+		.model_name as $name
+		| (.model_info // {}) as $info
+		|
+		(["text"]
+			+ (if $info.supports_vision then ["image"] else [] end)
+			+ (if $info.supports_audio_input then ["audio"] else [] end)
+			+ (if $info.supports_pdf_input then ["pdf"] else [] end)) as $input_mod
+		| (["text"] + (if $info.supports_audio_output then ["audio"] else [] end)) as $output_mod
+		|
+		({}
+			| (if $info.input_cost_per_token != null then .input = ($info.input_cost_per_token | fmt) else . end)
+			| (if $info.output_cost_per_token != null then .output = ($info.output_cost_per_token | fmt) else . end)
+			| (if $info.cache_read_input_token_cost != null then .cache_read = ($info.cache_read_input_token_cost | fmt) else . end)
+			| (if $info.cache_creation_input_token_cost != null then .cache_write = ($info.cache_creation_input_token_cost | fmt) else . end)
+		) as $cost
+		|
+		({}
+			| (if $info.max_input_tokens != null then .context = $info.max_input_tokens | .input = $info.max_input_tokens
+			   elif $info.max_tokens != null then .context = $info.max_tokens else . end)
+			| (if $info.max_output_tokens != null then .output = $info.max_output_tokens
+			   elif $info.max_tokens != null then .output = $info.max_tokens else . end)
+		) as $limit
+		|
+		(($info.supports_function_calling == true) or ($info.supports_tool_choice == true)) as $tool_call
+		| ($info.supports_reasoning == true) as $reasoning
+		| (($info.supports_vision == true) or ($info.supports_pdf_input == true) or ($info.supports_audio_input == true)) as $attachment
+		|
+		{
+			id: $name,
+			name: ($name | format_name),
+			modalities: {input: $input_mod, output: $output_mod},
+			tool_call: $tool_call,
+			reasoning: $reasoning,
+			attachment: $attachment
+		}
+		+ (if ($cost | length) > 0 then {cost: $cost} else {} end)
+		+ (if ($limit | length) > 0 then {limit: $limit} else {} end)
+		# temperature: only assert false when LiteLLM explicitly says so
+		+ (if $info.supports_temperature == false then {temperature: false} else {} end)
+		# reasoning models get low/high effort variants
+		+ (if $reasoning then {variants: {low: {reasoningEffort: "low"}, high: {reasoningEffort: "high"}}} else {} end)
+	);
+
+def basic: map({id: .id, name: (.id | format_name)});
+
+.data
+| (if $mode == "rich" then rich else basic end)
+| sort_by(.name)
+| map({(.id): (del(.id))})
+| add // {}
+'
+
+# ── Provider helper functions ───────────────────────────────────────
+
+# Convert display name to snake_case provider key
+slugify_provider() {  # display_name -> stdout
+	local slug=${(L)1}
+	slug=${slug//[^a-z0-9]/_}
+	slug=${slug//_##/_}
+	print -- ${${slug##_}%%_}
+}
+
+# Fetch models from API endpoint (tries rich metadata first, falls back to basic)
+# Outputs JSON: {"mode": "rich"|"basic", "response": <api_response>}
+fetch_models() {  # endpoint tmp_file api_key
+	local endpoint=$1 tmp=$2 key=$3
+	local http_code mode=basic response
+
+	print -ru2 -- "Fetching rich model metadata from: $endpoint/model/info"
+	http_code=$(fetch_route "$endpoint/model/info" "$tmp" "$key")
+
+	if [[ $http_code -ge 200 && $http_code -lt 300 ]] && jq -e '.data[0].model_info' "$tmp" &>/dev/null; then
+		mode=rich
+		print -ru2 -- "Using rich metadata (/model/info)"
+		vlog "Response size: $(wc -c < "$tmp" | tr -d ' ') bytes"
+	else
+		print -ru2 -- "Rich metadata unavailable (HTTP $http_code); falling back to: $endpoint/models"
+		http_code=$(fetch_route "$endpoint/models" "$tmp" "$key")
+		if [[ $http_code -lt 200 || $http_code -ge 300 ]]; then
+			print -ru2 -- "Error: endpoint returned HTTP $http_code"
+			print -ru2 -- "$(<$tmp)"
+			return 1
+		fi
+		vlog "Response size: $(wc -c < "$tmp" | tr -d ' ') bytes"
+	fi
+
+	response=$(<$tmp)
+	vlog "Selected metadata mode: $mode"
+
+	if ! jq -e '.data' <<<"$response" &>/dev/null; then
+		print -ru2 -- "Error: invalid response (not valid JSON or missing 'data' field)"
+		print -ru2 -- "Response: $response"
+		return 1
+	fi
+
+	vlog "Response validation: valid JSON with 'data' field"
+	jq -c --arg mode "$mode" '{mode: $mode, response: .}' <<<"$response"
+}
+
+# Update config file atomically with change detection
+# Returns: 0 if updated, 1 on error, 2 if no changes
+update_config() {  # config_file provider_key display_name base_url new_models
+	local config=$1 provider_key=$2 display_name=$3 base_url=$4 new_models=$5
+
+	vlog "Writing config to temporary file: $config.tmp"
+	if ! jq --tab \
+		--argjson new_models "$new_models" \
+		--arg provider "$provider_key" \
+		--arg display_name "$display_name" \
+		--arg base_url "$base_url" \
+		'.provider[$provider].models = $new_models |
+		 .provider[$provider].name = $display_name |
+		 .provider[$provider].npm = "@ai-sdk/openai-compatible" |
+		 .provider[$provider].options = ((.provider[$provider].options // {}) + {"baseURL": $base_url})' \
+		"$config" > "$config.tmp"; then
+		print -ru2 -- "Error: failed to write configuration"
+		rm -f "$config.tmp"
+		return 1
+	fi
+
+	vlog "Checking for changes against existing config..."
+	if cmp -s "$config.tmp" "$config"; then
+		vlog "No changes detected, removing temporary file"
+		rm -f "$config.tmp"
+		return 2
+	fi
+
+	vlog "Changes detected, updating config atomically"
+	mv "$config.tmp" "$config"
+	return 0
+}
+
+# Print formatted model summary to stderr
+print_model_summary() {  # config_file provider_key
+	jq -r --arg provider "$2" '
+		.provider[$provider].models | to_entries[]
+		| .value as $m
+		| ([ (if $m.tool_call then "tools" else empty end),
+			 (if $m.reasoning then "reasoning" else empty end),
+			 (if ($m.modalities.input // []) | index("image") then "vision" else empty end)
+		  ] | if length > 0 then " [" + join(",") + "]" else "" end) as $flags
+		| "\t\($m.name) (\(.key))\($flags)"
+	' "$1" >&2
+}
+
+# ── Main provider processing ────────────────────────────────────────
+process_provider() {
+	local display=$1 endpoint=$2 key=$3 config=$4
+	local provider_key fetch_result fetch_mode models_response new_models tmp
+	integer model_count
+
+	provider_key=$(slugify_provider "$display")
+	vlog "Generated provider key: '$provider_key' from '$display'"
+
+	tmp=$(mktemp "${TMPDIR:-/tmp}/opencode_models.XXXXXX")
+	vlog "Created temporary file: $tmp"
+
+{
+	# Fetch models from API
+	vlog "Starting model fetch from API..."
+	if ! fetch_result=$(fetch_models "$endpoint" "$tmp" "$key"); then
+		return 1
+	fi
+	fetch_mode=$(jq -r '.mode' <<<"$fetch_result")
+	models_response=$(jq -c '.response' <<<"$fetch_result")
+
+	# Transform to opencode schema
+	vlog "Transforming API response to opencode schema..."
+	if ! new_models=$(jq --arg mode "$fetch_mode" \
+		"${JQ_FORMAT_NAME}${JQ_TRANSFORM_MODELS}" <<<"$models_response"); then
+		print -ru2 -- "Error: failed to parse model data"
+		return 1
+	fi
+
+	model_count=$(jq 'length' <<<"$new_models")
+	vlog "Transformed $model_count models (mode: $fetch_mode)"
+	(( model_count == 0 )) && print -ru2 -- "Warning: no models found at endpoint"
+
+	# Update config atomically
+	vlog "Updating configuration file..."
+	local ret=0
+	update_config "$config" "$provider_key" "$display" "$endpoint" "$new_models" || ret=$?
+	case $ret in
+		0) ;;
+		2) print -ru2 -- "No changes detected for provider: $display"; return 0 ;;
+		*) return 1 ;;
+	esac
+
+	print -ru2 -- "Successfully updated provider: $display ($model_count models, $fetch_mode metadata)"
+
+	if (( model_count > 0 )); then
+		print -ru2 -- "Models:"
+		print_model_summary "$config" "$provider_key"
+	fi
+} always {
+	vlog "Cleanup: removing temporary file $tmp"
+	rm -f "$tmp"
+}
+}
+
+# ── Main ────────────────────────────────────────────────────────────
+
+# Bootstrap config file if it doesn't exist.
+vlog "Checking config file: $config_file"
+if [[ ! -f $config_file ]]; then
+	print -ru2 -- "Configuration file '$config_file' not found; creating it"
+	jq -n --tab '{
+		"$schema": "https://opencode.ai/config.json",
+		"autoupdate": true,
+		"provider": {}
+	}' > "$config_file"
+	vlog "Created new config file with default schema"
+else
+	vlog "Config file exists"
+fi
+
+if [[ ! -w $config_file ]]; then
+	print -ru2 -- "Error: configuration file '$config_file' is not writable"
+	exit 1
+fi
+vlog "Config file is writable"
+
+# Process the provider
+vlog "Starting provider processing..."
+process_provider "$provider_name" "$api_endpoint" "$API_KEY" "$config_file"
+vlog "Provider processing complete"
