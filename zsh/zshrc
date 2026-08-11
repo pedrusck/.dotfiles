@@ -183,11 +183,10 @@ fi
 	# defined by the preceding plugins; zsh-autosuggestions must come right before it.
 	local key
 	for key in vi_mode fzf_completion fzf_key_bindings autosuggestions syntax_highlighting; do
-		# fzf's shell scripts restore the 'zle' option on exit, which fails
-		# harmlessly ("can't change option: zle") in an interactive shell without a
-		# controlling tty (e.g. `zsh -i` spawned by an IDE/agent). Their widgets need
-		# a real line editor anyway, so skip them when stdin isn't a terminal.
-		[[ $key == fzf_* && ! -t 0 ]] && continue
+		# Plugins that use ZLE (Zsh Line Editor) or blocking `read -k` calls fail
+		# or hang in an interactive shell without a controlling tty (e.g. `zsh -i`
+		# spawned by mise/IDE/agent). Skip them when stdin isn't a terminal.
+		[[ ( $key == fzf_* || $key == vi_mode ) && ! -t 0 ]] && continue
 		[[ -f $plugins[$key] ]] && source "$plugins[$key]" \
 			|| echo "Plugin $key not loaded, file '$plugins[$key]' not found!"
 	done
