@@ -103,14 +103,14 @@ git:
   disableForcePushing: false
   fetchAll: true # Pass --all flag when running git fetch. Set to false to fetch only origin (or the current branch's upstream remote if there is one)
   mainBranches: [master, main]
-  pagers:
+  diffRenderers:
     # Inherit the single delta config from ~/.config/git/configuration ([delta]
     # block: dark, syntax-theme=gruvbox-dark, line-numbers, navigate,
     # decorations, tabs=4) so the gruvbox diff theme has one source of truth and
     # can't drift between lazygit and git. --paging=never stays because lazygit
     # manages paging itself.
     - colorArg: always
-      pager: delta --paging=never
+      command: delta --paging=never
       useConfig: true
   # The main branches. We colour commits green if they belong to one of these branches,
   # so that you can easily see which commits are unique to your branch (coloured in yellow)
