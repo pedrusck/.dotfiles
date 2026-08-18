@@ -1,0 +1,63 @@
+#!/usr/bin/env zsh
+
+# Exports a key pair in the layout expected by `gpg_import_key`, in ASCII armor
+# format. Existing files are overwritten.
+#
+# Usage: gpg_export_key <KEY_ID> <FILE_NAME>
+#	KEY_ID		Key ID, fingerprint or user ID; must match exactly one key.
+#	FILE_NAME	Base name; writes <FILE_NAME>_public.gpg and <FILE_NAME>_private.gpg.
+#
+# Both halves are resolved before anything is written: `gpg --export` reports
+# success even when it matches nothing, so a typo, or a key whose private half is
+# missing, would otherwise leave an empty or incomplete pair. An ambiguous KEY_ID
+# is rejected too, as exporting several keys into one file is rarely intended.
+#
+# Exporting the private key needs its passphrase, so gpg may open a pinentry
+# prompt. Gpg itself creates the private key file with `600` permissions.
+#
+# Autoloaded as a zsh function (see `custom_functions_to_load` in `zsh/zshrc`), so
+# it runs in the current shell: it must use `return`, never `exit`, and must not
+# set `errexit`/`nounset`, which would abort the interactive shell on failure.
+setopt local_options pipefail
+
+(( $+commands[gpg] )) || { print -ru2 -- "Error: gpg is required but not installed"; return 1 }
+
+(( $# == 2 )) || { print -ru2 -- "Usage: gpg_export_key <KEY_ID> <FILE_NAME>"; return 1 }
+
+local -r key_id=$1 file_name=$2
+[[ -n $key_id ]] || { print -ru2 -- "Error: KEY_ID cannot be empty"; return 1 }
+[[ -n $file_name ]] || { print -ru2 -- "Error: FILE_NAME cannot be empty"; return 1 }
+
+# `--` keeps a KEY_ID starting with a dash from being read as an option.
+local public_keys
+public_keys=$(gpg --list-keys --with-colons -- "$key_id" 2>/dev/null) \
+	|| { print -ru2 -- "Error: no public key found matching: $key_id"; return 1 }
+
+local -ir public_count=${#${(@M)${(f)public_keys}:#pub:*}}
+(( public_count == 1 )) || {
+	print -ru2 -- "Error: KEY_ID matches $public_count keys, pass a fingerprint: $key_id"
+	return 1
+}
+
+local secret_keys
+secret_keys=$(gpg --list-secret-keys --with-colons -- "$key_id" 2>/dev/null) \
+	|| { print -ru2 -- "Error: no private key found matching: $key_id"; return 1 }
+
+local -ir secret_count=${#${(@M)${(f)secret_keys}:#sec:*}}
+(( secret_count == 1 )) || {
+	print -ru2 -- "Error: KEY_ID matches $secret_count private keys, pass a fingerprint: $key_id"
+	return 1
+}
+
+local -r public_file="${file_name}_public.gpg" private_file="${file_name}_private.gpg"
+
+# `--yes` overwrites existing files: without it gpg asks on /dev/tty and fails
+# with "File exists" while still reporting success. No `--batch`, so that
+# pinentry can prompt for the key passphrase.
+gpg --yes --armor --output "$public_file" --export -- "$key_id" \
+	|| { print -ru2 -- "Error: failed to export public key to: $public_file"; return 1 }
+
+gpg --yes --armor --output "$private_file" --export-secret-key -- "$key_id" \
+	|| { print -ru2 -- "Error: failed to export private key to: $private_file"; return 1 }
+
+print -r -- "Exported key pair: $public_file, $private_file"

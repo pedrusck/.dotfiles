@@ -118,6 +118,7 @@ fi
 		git_change_timestamp
 		git_clone_worktrees
 		git_multiple_pull
+		gpg_copy_key
 		gpg_export_key
 		gpg_import_key
 		latex_update

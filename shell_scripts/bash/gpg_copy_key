@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-# Prints the GPG key ID, in ASCII armor format
-gpg --armor --export $1 | pbcopy

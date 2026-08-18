@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-fileName=$1
-
-gpg --import ${fileName}_public.gpg
-gpg --allow-secret-key-import --import ${fileName}_private.gpg
-
-# The imported key should be then trusted with `gpg --edit-key <KeyID>`

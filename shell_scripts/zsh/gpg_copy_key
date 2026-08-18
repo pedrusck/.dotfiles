@@ -1,0 +1,47 @@
+#!/usr/bin/env zsh
+
+# Copies a public key to the clipboard, in ASCII armor format.
+#
+# Usage: gpg_copy_key <KEY_ID>
+#	KEY_ID	Key ID, fingerprint or user ID; must match exactly one key.
+#
+# The key is resolved before exporting: `gpg --export` reports success even when
+# it matches nothing, so a typo would otherwise blank the clipboard. An ambiguous
+# KEY_ID is rejected too, as exporting several keys at once is rarely intended.
+#
+# Autoloaded as a zsh function (see `custom_functions_to_load` in `zsh/zshrc`), so
+# it runs in the current shell: it must use `return`, never `exit`, and must not
+# set `errexit`/`nounset`, which would abort the interactive shell on failure.
+setopt local_options pipefail
+
+local dependency
+for dependency in gpg pbcopy; do
+	(( $+commands[$dependency] )) || { print -ru2 -- "Error: $dependency is required but not installed"; return 1 }
+done
+
+(( $# == 1 )) || { print -ru2 -- "Usage: gpg_copy_key <KEY_ID>"; return 1 }
+
+local -r key_id=$1
+[[ -n $key_id ]] || { print -ru2 -- "Error: KEY_ID cannot be empty"; return 1 }
+
+# `--` keeps a KEY_ID starting with a dash from being read as an option.
+local public_keys
+public_keys=$(gpg --list-keys --with-colons -- "$key_id" 2>/dev/null) \
+	|| { print -ru2 -- "Error: no public key found matching: $key_id"; return 1 }
+
+local -ir match_count=${#${(@M)${(f)public_keys}:#pub:*}}
+(( match_count == 1 )) || {
+	print -ru2 -- "Error: KEY_ID matches $match_count keys, pass a fingerprint: $key_id"
+	return 1
+}
+
+local armored_key
+armored_key=$(gpg --armor --export -- "$key_id") \
+	|| { print -ru2 -- "Error: failed to export public key: $key_id"; return 1 }
+
+[[ -n $armored_key ]] || { print -ru2 -- "Error: exported key is empty, clipboard unchanged: $key_id"; return 1 }
+
+print -rn -- "$armored_key" | pbcopy \
+	|| { print -ru2 -- "Error: failed to copy the public key to the clipboard"; return 1 }
+
+print -r -- "Copied public key to the clipboard: $key_id"

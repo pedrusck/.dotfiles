@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-keyID=$1
-fileName=$2
-
-gpg --armor --output ${fileName}_public.gpg --export $keyID
-gpg --armor --output ${fileName}_private.gpg --export-secret-key $keyID
