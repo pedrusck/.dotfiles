@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-setopt local_options errexit nounset pipefail extendedglob
+setopt local_options pipefail extendedglob
 
 # Usage: API_KEY=<key> opencode-update-models [OPTIONS] <PROVIDER_NAME> <API_ENDPOINT> [CONFIG_FILE]
 #
@@ -59,9 +59,9 @@ integer verbose=0
 while (( $# > 0 )) && [[ $1 == -* ]]; do
 	case $1 in
 		-v|--verbose) verbose=1; shift ;;
-		-h|--help) print_usage; exit 0 ;;
+		-h|--help) print_usage; return 0 ;;
 		--) shift; break ;;
-		-*) print -ru2 -- "Error: unknown option: $1"; print_usage; exit 1 ;;
+		-*) print -ru2 -- "Error: unknown option: $1"; print_usage; return 1 ;;
 	esac
 done
 
@@ -74,7 +74,7 @@ vlog() {
 for cmd (curl jq); do
 	if (( ! $+commands[$cmd] )); then
 		print -ru2 -- "Error: $cmd is required but not installed"
-		exit 1
+		return 1
 	fi
 	vlog "Dependency check: $cmd found"
 done
@@ -83,7 +83,7 @@ done
 if (( $# < 2 || $# > 3 )); then
 	print -ru2 -- "Error: expected 2-3 arguments, got $#"
 	print_usage
-	exit 1
+	return 1
 fi
 
 provider_name=$1
@@ -92,22 +92,22 @@ config_file=${3:-opencode.json}
 
 if [[ -z $provider_name ]]; then
 	print -ru2 -- "Error: PROVIDER_NAME cannot be empty"
-	exit 1
+	return 1
 fi
 
 if [[ -z $api_endpoint ]]; then
 	print -ru2 -- "Error: API_ENDPOINT cannot be empty"
-	exit 1
+	return 1
 fi
 
 if [[ $api_endpoint != https://* ]]; then
 	print -ru2 -- "Error: API_ENDPOINT must start with https://"
-	exit 1
+	return 1
 fi
 
 if [[ -z ${API_KEY:-} ]]; then
 	print -ru2 -- "Error: API_KEY environment variable is required"
-	exit 1
+	return 1
 fi
 
 vlog "Config: provider='$provider_name' endpoint='$api_endpoint' file='$config_file'"
@@ -375,7 +375,7 @@ fi
 
 if [[ ! -w $config_file ]]; then
 	print -ru2 -- "Error: configuration file '$config_file' is not writable"
-	exit 1
+	return 1
 fi
 vlog "Config file is writable"
 
