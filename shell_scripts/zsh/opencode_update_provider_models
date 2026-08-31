@@ -166,19 +166,23 @@ def rich:
 			+ (if $info.supports_pdf_input then ["pdf"] else [] end)) as $input_mod
 		| (["text"] + (if $info.supports_audio_output then ["audio"] else [] end)) as $output_mod
 		|
-		({}
-			| (if $info.input_cost_per_token != null then .input = ($info.input_cost_per_token | fmt) else . end)
-			| (if $info.output_cost_per_token != null then .output = ($info.output_cost_per_token | fmt) else . end)
-			| (if $info.cache_read_input_token_cost != null then .cache_read = ($info.cache_read_input_token_cost | fmt) else . end)
-			| (if $info.cache_creation_input_token_cost != null then .cache_write = ($info.cache_creation_input_token_cost | fmt) else . end)
-		) as $cost
+		# opencode schema requires both `input` and `output` on `cost`;
+		# emit nothing rather than a partial object that fails validation.
+		(if ($info.input_cost_per_token != null and $info.output_cost_per_token != null)
+			then ({input: ($info.input_cost_per_token | fmt), output: ($info.output_cost_per_token | fmt)}
+				+ (if $info.cache_read_input_token_cost != null then {cache_read: ($info.cache_read_input_token_cost | fmt)} else {} end)
+				+ (if $info.cache_creation_input_token_cost != null then {cache_write: ($info.cache_creation_input_token_cost | fmt)} else {} end))
+			else {} end) as $cost
 		|
-		({}
-			| (if $info.max_input_tokens != null then .context = $info.max_input_tokens | .input = $info.max_input_tokens
-			   elif $info.max_tokens != null then .context = $info.max_tokens else . end)
-			| (if $info.max_output_tokens != null then .output = $info.max_output_tokens
-			   elif $info.max_tokens != null then .output = $info.max_tokens else . end)
-		) as $limit
+		# opencode schema requires both `context` and `output` on `limit`;
+		# emit nothing rather than a partial object that fails validation.
+		($info.max_input_tokens // $info.max_tokens) as $ctx
+		| ($info.max_output_tokens // $info.max_tokens) as $out
+		| (if ($ctx != null and $out != null)
+			then ({context: $ctx}
+				+ (if $info.max_input_tokens != null then {input: $info.max_input_tokens} else {} end)
+				+ {output: $out})
+			else {} end) as $limit
 		|
 		(($info.supports_function_calling == true) or ($info.supports_tool_choice == true)) as $tool_call
 		| ($info.supports_reasoning == true) as $reasoning
@@ -256,12 +260,88 @@ fetch_models() {  # endpoint tmp_file api_key
 	jq -c --arg mode "$mode" '{mode: $mode, response: .}' <<<"$response"
 }
 
+# ── Config validation ───────────────────────────────────────────────
+
+# Structural checks mirroring opencode's provider model schema constraints.
+# Reports one `provider.<p>.models.<m>...` path per violation.
+JQ_VALIDATE_CONFIG='
+def modality_enum: ["text", "audio", "image", "video", "pdf"];
+
+[ (.provider // {}) | to_entries[]
+	| .key as $p
+	| ((.value.models // {}) | to_entries[])
+	| .key as $m
+	| .value as $model
+	| "provider.\($p).models.\($m)" as $base
+	|
+	( (if ($model | has("limit")) then
+			(["context", "output"][] | select(($model.limit[.]) == null) | "Missing key \($base).limit.\(.)")
+		else empty end)
+	, (if ($model | has("cost")) then
+			(["input", "output"][] | select(($model.cost[.]) == null) | "Missing key \($base).cost.\(.)")
+		else empty end)
+	, (if ($model.cost | type) == "object" and ($model.cost | has("context_over_200k")) then
+			(["input", "output"][] | select(($model.cost.context_over_200k[.]) == null)
+				| "Missing key \($base).cost.context_over_200k.\(.)")
+		else empty end)
+	, (if ($model | has("modalities")) then
+			(["input", "output"][] as $dir
+				| ($model.modalities[$dir] // [])
+				| to_entries[]
+				| select((.value | IN(modality_enum[])) | not)
+				| "Invalid modality \(.value | tojson) at \($base).modalities.\($dir).\(.key)")
+		else empty end)
+	)
+]
+'
+
+# Validate a candidate config file before it replaces the live one.
+# Returns: 0 if valid, 1 if invalid
+validate_config() {  # candidate_file
+	local candidate=$1 problems
+
+	vlog "Validating structure of: $candidate"
+	if ! problems=$(jq -r "${JQ_VALIDATE_CONFIG} | .[]" "$candidate"); then
+		print -ru2 -- "Error: validation failed (candidate is not valid JSON)"
+		return 1
+	fi
+
+	if [[ -n $problems ]]; then
+		print -ru2 -- "Error: generated configuration is invalid; refusing to write"
+		local line
+		while IFS= read -r line; do
+			print -ru2 -- "  ↳ $line"
+		done <<<"$problems"
+		return 1
+	fi
+	vlog "Structural validation passed"
+
+	# Authoritative check: opencode itself parses the candidate. Only available
+	# when the binary is installed; the structural pass above is the fallback.
+	if (( $+commands[opencode] )); then
+		vlog "Validating with: opencode debug config"
+		local output
+		if ! output=$(OPENCODE_CONFIG="$candidate" opencode debug config --pure 2>&1 >/dev/null); then
+			print -ru2 -- "Error: opencode rejected the generated configuration; refusing to write"
+			print -ru2 -- "$output"
+			return 1
+		fi
+		vlog "opencode validation passed"
+	else
+		vlog "opencode not found in PATH; skipping authoritative validation"
+	fi
+
+	return 0
+}
+
 # Update config file atomically with change detection
 # Returns: 0 if updated, 1 on error, 2 if no changes
 update_config() {  # config_file provider_key display_name base_url new_models
 	local config=$1 provider_key=$2 display_name=$3 base_url=$4 new_models=$5
+	# Keep a .json suffix so validation sees the same extension as the real file.
+	local candidate="$config.tmp.json"
 
-	vlog "Writing config to temporary file: $config.tmp"
+	vlog "Writing config to temporary file: $candidate"
 	if ! jq --tab \
 		--argjson new_models "$new_models" \
 		--arg provider "$provider_key" \
@@ -271,21 +351,27 @@ update_config() {  # config_file provider_key display_name base_url new_models
 		 .provider[$provider].name = $display_name |
 		 .provider[$provider].npm = "@ai-sdk/openai-compatible" |
 		 .provider[$provider].options = ((.provider[$provider].options // {}) + {"baseURL": $base_url})' \
-		"$config" > "$config.tmp"; then
+		"$config" > "$candidate"; then
 		print -ru2 -- "Error: failed to write configuration"
-		rm -f "$config.tmp"
+		rm -f "$candidate"
+		return 1
+	fi
+
+	# Never replace a working config with an invalid one.
+	if ! validate_config "$candidate"; then
+		rm -f "$candidate"
 		return 1
 	fi
 
 	vlog "Checking for changes against existing config..."
-	if cmp -s "$config.tmp" "$config"; then
+	if cmp -s "$candidate" "$config"; then
 		vlog "No changes detected, removing temporary file"
-		rm -f "$config.tmp"
+		rm -f "$candidate"
 		return 2
 	fi
 
 	vlog "Changes detected, updating config atomically"
-	mv "$config.tmp" "$config"
+	mv "$candidate" "$config"
 	return 0
 }
 
