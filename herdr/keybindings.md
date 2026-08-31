@@ -113,7 +113,24 @@ prefix-free direct chord is also bound, it is shown in the last column.
 | `prefix+g`       | Goto picker                       |
 | `prefix+b`       | Toggle sidebar                    |
 | `prefix+shift+s` | Settings                          |
+| `prefix+shift+e` | Reload config                     |
 | `prefix+q`       | Detach (everything keeps running) |
+
+`rename_workspace` takes `prefix+shift+r`, which is Herdr's default for
+`reload_config`; the latter is remapped to `prefix+shift+e` so both stay
+reachable.
+
+### Left at Herdr's defaults
+
+Not remapped in `config.toml`, listed so they aren't accidentally re-bound:
+
+| Key                               | Action                        |
+|-----------------------------------|-------------------------------|
+| `prefix+?`                        | Keybinding help               |
+| `prefix+[`                        | Copy mode                     |
+| `prefix+shift+p`                  | Rename pane                   |
+| `prefix+tab` / `prefix+shift+tab` | Cycle to next / previous pane |
+| `prefix+o`                        | Focus notification target     |
 
 ### Agents (agent-aware navigation)
 
@@ -153,20 +170,23 @@ down / up — keeping the Vim feel for quick hops.
 
 ## Theme / visual indicators
 
-- **Theme:** `gruvbox`, matching Alacritty and Lazygit across these dotfiles.
-  `auto_switch` follows the host terminal's light/dark appearance and swaps
-  between the gruvbox dark/light siblings.
+- **Theme:** `gruvbox` (dark), matching Alacritty and Lazygit across these
+  dotfiles. `auto_switch = false`, so the theme stays pinned to dark and does
+  **not** follow the host terminal's light/dark appearance. `dark_name` and
+  `light_name` are kept in the config but only take effect if `auto_switch` is
+  turned back on.
 - **Accent:** gruvbox green `#98971a` (`[theme.custom] accent`) — the same color
-  Lazygit uses as its accent — for highlights, borders and navigation UI.
+  Lazygit uses.
 - **Sidebar:** agent state (`working` / `blocked` / `done` / `idle`) is rolled
   up per workspace; `agent_panel_sort = "priority"` orders the agent panel by
   state priority rather than by space. Worktree children appear **indented and
   packed as one Space group** under their parent workspace.
-- **Agent rows** (`[ui.sidebar.agents] rows`): the state text
-  (`working` / `blocked` / `done`) is shown inline next to the icon, alongside
-  workspace/tab, with the agent name on a second line. The **Space rows** show
-  the Git `branch` and ahead/behind `git_status` (handy for the worktree
-  workflow) at Herdr's defaults.
+- **Agent rows** (`[ui.sidebar.agents] rows`): a two-row layout of
+  `state_icon` + `workspace` + `state_text`, with the `agent` name on the second
+  row. This swaps Herdr's stock `tab` token for `state_text`, so the state
+  (`working` / `blocked` / `done`) reads inline next to the icon. The **Space
+  rows** are left at Herdr's defaults and show the Git `branch` with ahead/behind
+  `git_status` (handy for the worktree workflow).
 
 ## Architecture (who owns what)
 
@@ -216,9 +236,10 @@ installed):
 | `hs`        | `herdr status`                | Show client + server status                        |
 | `hk`        | `herdr server stop`           | Stop the running server (kills all panes)          |
 
-Updates and config reloads have no shell alias — run the commands directly:
-`herdr update` (or `herdr channel set <stable|preview>`) and
-`herdr server reload-config`.
+Updates have no shell alias — run the commands directly: `herdr update` (or
+`herdr channel set <stable|preview>`). Config reloads also have no alias, but
+can be triggered from inside Herdr with `prefix+shift+e` instead of
+`herdr server reload-config`. Validate the file first with `herdr config check`.
 
 Detaching is done from **inside** Herdr with `prefix+q` (or by closing the
 terminal); there is no detach subcommand — everything keeps running in the
@@ -243,16 +264,27 @@ hk                   # when you actually want to stop everything
 ## Configuration files
 
 - `herdr/config.toml` → `~/.config/herdr/config.toml` (symlinked by
-  `herdr/setup.sh`). Holds `onboarding = false`, the `gruvbox` theme with
-  `auto_switch` and the green accent, the custom prefix-first `[keys]` remap,
-  and the `[[keys.command]]` blocks (lazygit popup + file-viewer plugin
-  actions, bound via `type = "plugin_action"`).
+  `herdr/setup.sh`). Holds `onboarding = false`, the `gruvbox` theme and green
+  accent, the custom prefix-first `[keys]` remap, and the `[[keys.command]]`
+  blocks (lazygit popup + file-viewer plugin actions, bound via
+  `type = "plugin_action"`).
 - This `keybindings.md` is repo documentation only; it is **not** symlinked.
 - Validate the config with `herdr config check`; print the full upstream default
   with `herdr --default-config`; apply edits to a running server with
-  `herdr server reload-config`.
-- **Left at Herdr defaults** (no config entry): new panes/tabs/workspaces
-  inherit the source pane's cwd (`[terminal] new_cwd = "follow"`); new-pane
-  shells start in `shell_mode = "auto"` (login shells on macOS, already the
-  default); and the update channel is `stable` with background version/manifest
-  checks (`herdr update`, switch with `herdr channel set <stable|preview>`).
+  `herdr server reload-config` or `prefix+shift+e`.
+- The config tracks **Herdr 0.8.2**. After a Herdr upgrade, diff against
+  `herdr --default-config` to catch newly added keys or changed defaults — 0.8.2
+  itself changed the sidebar `row_gap` default from `1` to `0` and made Herdr
+  write the outer terminal title.
+- **Left at Herdr defaults** (no config entry):
+  - new panes/tabs/workspaces inherit the source pane's cwd
+    (`[terminal] new_cwd = "follow"`), and new-pane shells start in
+    `shell_mode = "auto"` (login shells on macOS, already the default);
+  - the update channel is `stable` with background version/manifest checks
+    (`herdr update`, switch with `herdr channel set <stable|preview>`);
+  - `[ui] accent`, the `[theme.custom]` row-highlight tokens (`active_row_bg`,
+    `selection_bg`, `sidebar_bg`) and the sidebar `row_gap` are all unset, so
+    the theme's own colors and Herdr's stock spacing apply;
+  - `[ui] window_title` is unset, so Herdr writes its default
+    `{hostname}: {workspace}` to the Ghostty tab/window label. Set it to `""` to
+    leave Ghostty's own titling alone.
