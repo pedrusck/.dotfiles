@@ -320,6 +320,9 @@ export GHCUP_USE_XDG_DIRS="true"
 # Add zoxide (after `compinit` is called to make completions to work and change the prefix of the `z` and `zi` command to `cd
 (( $+commands[zoxide] )) && eval "$(zoxide init zsh --cmd cd)" || echo "No zoxide installed"
 
+# Add rumdl completions
+(( $+commands[rumdl] )) && source <(rumdl completions zsh) || echo "No rumdl installed"
+
 # Add SourceKit-LSP (Swift LSP) from the active Xcode toolchain to PATH
 if (( $+commands[xcode-select] )); then
 	sourcekit_bin="$(xcode-select -p 2>/dev/null)/Toolchains/XcodeDefault.xctoolchain/usr/bin"
