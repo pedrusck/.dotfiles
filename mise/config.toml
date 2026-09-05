@@ -1,13 +1,4 @@
 [tools]
-### Web
-deno = 'latest'
-node = 'latest'
-
-### Programming languages
-java = 'latest'
-python = 'latest'
-ruby = 'latest'
-
 ### iOS development
 swiftformat = 'latest' # Formatting technology for Swift source code
 swiftgen = 'latest' # Swift code generator for assets, storyboards, Localizable.strings, …
@@ -15,3 +6,15 @@ swiftlint = 'latest' # Tool to enforce Swift style and conventions
 tuist = 'latest'
 xcbeautify = 'latest' # Little beautifier tool for xcodebuild
 xcodegen = 'latest' # Generate your Xcode project from a spec file and your folder structure
+
+### Markdown
+rumdl = 'latest'
+
+### Programming languages
+java = 'latest'
+python = 'latest'
+ruby = 'latest'
+
+### Web
+deno = 'latest'
+node = 'latest'
