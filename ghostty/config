@@ -73,6 +73,9 @@ shell-integration-features = true
 # Send a real newline on Shift+Enter (for TUI chat / coding agents / editors).
 keybind = shift+enter=text:\x1b\r
 
+# Rely fullscreen action to `Cmd+Ctrl+F` (the macOS default shortcut)
+keybind = super+enter=unbind
+
 # Required configuration for pi the coding agent (see https://pi.dev/docs/latest/terminal-setup)
 keybind = alt+backspace=text:\x1b\x7f
 
