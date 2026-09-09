@@ -21,7 +21,6 @@
 	ignorecase = false
 	fsmonitor = true
 	untrackedcache = true
-	hooksPath = ~/.config/git/global_hooks
 
 [credential]
 	helper = osxkeychain
@@ -65,6 +64,7 @@
 	autocorrect = prompt
 [init]
 	defaultBranch = main
+	templateDir = ~/.config/git/template
 
 [interactive]
 	diffFilter = delta --color-only
