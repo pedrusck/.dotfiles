@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook: scan staged changes for secrets with Gitleaks.
+# Installed into newly initialized and cloned repositories through
+# init.templateDir.
+#
+# git-crypt encrypted files (*.secret.*) are already encrypted in the
+# staging area via the clean filter, so gitleaks only sees binary blobs
+# for those files -- no special handling needed.
+#
+# To bypass: SKIP=gitleaks git commit -m "message"
+#
+
+if [[ "$SKIP" == *"gitleaks"* ]]; then
+	echo "gitleaks: skipped (SKIP=gitleaks)"
+elif ! command -v gitleaks &>/dev/null; then
+	echo ""
+	echo "WARNING: gitleaks is not installed."
+	echo ""
+	echo "  Gitleaks scans your code for hardcoded secrets (API keys,"
+	echo "  passwords, tokens, etc.) before they are committed."
+	echo ""
+	echo "  Install it with:"
+	echo "    brew install gitleaks"
+	echo ""
+	echo "  More info: https://github.com/gitleaks/gitleaks"
+	echo ""
+else
+	# Scan staged changes; abort the commit if any secret is found.
+	gitleaks git --staged --no-banner --redact -v || exit 1
+fi
+
+exit 0
