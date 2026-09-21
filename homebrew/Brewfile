@@ -27,20 +27,20 @@ brew "zsh-syntax-highlighting" # Fish shell like syntax highlighting for zsh
 brew "zsh-vi-mode" # Better and friendly vi(vim) mode plugin for ZSH
 
 ### Compilers ###
-brew "ghcup" # Installer for the general purpose language Haskell
-brew "pkl" # CLI for the Pkl programming language
-brew "rust" # Safe, concurrent, practical language
+# brew "ghcup" # Installer for the general purpose language Haskell
+# brew "pkl" # CLI for the Pkl programming language
+# brew "rust" # Safe, concurrent, practical language
 
 ### Builder ###
-brew "just" # Handy way to save and run project-specific commands
+# brew "just" # Handy way to save and run project-specific commands
 brew "make" # Utility for directing compilation
-brew "mask" # CLI task runner defined by a simple markdown file
+# brew "mask" # CLI task runner defined by a simple markdown file
 brew "parallel" # Shell command parallelization utility
 
 ### Editor ###
 brew "neovim" # Ambitious Vim-fork focused on extensibility and agility
 brew "tree-sitter-cli" # Parser generator tool
-cask "zed" # Multiplayer code editor
+# cask "zed" # Multiplayer code editor
 
 ### Version control ###
 # cask "fork" # GIT client
@@ -52,7 +52,7 @@ brew "git-lfs" # Git extension for versioning large files
 brew "gitleaks" # Audit git repos for secrets
 brew "gitui" # Blazing fast terminal-ui for git written in rust
 cask "gitup-app" # Git interface focused on visual interaction
-brew "hub" # Add GitHub support to git on the command-line
+# brew "hub" # Add GitHub support to git on the command-line
 brew "jnsahaj/lumen/lumen", trusted: true # AI-powered CLI tool for git commit summaries
 brew "lazygit" # Simple terminal UI for git commands
 brew "serie" # Rich git commit graph in your terminal
@@ -63,9 +63,9 @@ brew "duf" # Disk Usage/Free Utility - a better 'df' alternative
 brew "dust" # More intuitive version of du in rust
 # brew "kondo" # Save disk space by cleaning non-essential files from software projects
 brew "mole" # Deep clean and optimize your Mac
-brew "superfile" # Modern and pretty fancy file manager for the terminal
+# brew "superfile" # Modern and pretty fancy file manager for the terminal
 brew "tree" # Display directories as trees (with optional color/HTML output)
-brew "yazi" # Blazing fast terminal file manager written in Rust, based on async I/O
+# brew "yazi" # Blazing fast terminal file manager written in Rust, based on async I/O
 
 ### Process/System monitor ###
 brew "bottom" # Yet another cross-platform graphical process/system monitor
@@ -80,9 +80,9 @@ brew "hyperfine" # Command-line benchmarking tool
 brew "julien-cpsn/atac/atac", trusted: true # A simple API client (postman like) in your terminal
 brew "curlie" # Power of curl, ease of use of httpie
 brew "drill" # HTTP load testing application written in Rust
-cask "hoppscotch" # Open source API development ecosystem
+# cask "hoppscotch" # Open source API development ecosystem
 brew "hurl" # Run and Test HTTP Requests with plain text and curl
-cask "mitmproxy" # Intercept, modify, replay, save HTTP/S traffic
+# cask "mitmproxy" # Intercept, modify, replay, save HTTP/S traffic
 # cask "proxyman" # Modern and intuitive HTTP Debugging Proxy app
 brew "telnet" # User interface to the TELNET protocol
 brew "xh" # Friendly and fast tool for sending HTTP requests
@@ -92,13 +92,13 @@ brew "xh" # Friendly and fast tool for sending HTTP requests
 # cask "citrix-workspace" if system(%q[mdfind "kMDItemCFBundleIdentifier == 'com.checkpoint.eps.gui'" | grep -q .]) # Managed desktop virtualization solution -> TODO: confirm Endpoint Security VPN bundle id (run: mdls -name kMDItemCFBundleIdentifier "/Applications/Endpoint Security VPN.app")
 # brew "docker" # App to build and share containerized applications and microservices
 brew "podman" # Tool for managing OCI containers and pods
-cask "raspberry-pi-imager" # Imaging utility to install operating systems to a microSD card -> NOT M1 COMPATIBLE
+# cask "raspberry-pi-imager" # Imaging utility to install operating systems to a microSD card -> NOT M1 COMPATIBLE
 
 ### Image editing/manipulation ###
-cask "drawio" # Draw.io is free online diagram software
+# cask "drawio" # Draw.io is free online diagram software
 cask "figma" # Collaborative team software
 cask "gimp" # Free and open-source image editor -> NOT M1 COMPATIBLE
-brew "imagemagick" # Tools and libraries to manipulate images in many formats
+# brew "imagemagick" # Tools and libraries to manipulate images in many formats
 cask "imageoptim" # Tool to optimize images to a smaller size
 # cask "inkscape" # Vector graphics editor
 brew "viu" # Simple terminal image viewer written in Rust
@@ -126,7 +126,7 @@ mas "uBlock Origin Lite", id: 6745342698
 # cask "zen" # Gecko based web browser
 
 ### PDF inspection/manipulation ###
-brew "ghostscript" # Interpreter for PostScript and PDF
+# brew "ghostscript" # Interpreter for PostScript and PDF
 cask "skim" # PDF reader and note-taking application
 
 ### Writing ###
@@ -134,16 +134,16 @@ cask "deepl" # Trains AIs to understand and translate texts
 mas "LanguageTool", id: 1534275760
 
 ### Office tools ###
-mas "Keynote", id: 361285480
+# mas "Keynote", id: 361285480
 # cask "libreoffice" # Office suite
-cask "mactex" # Full TeX Live distribution with GUI applications
+# cask "mactex" # Full TeX Live distribution with GUI applications
 # mas "Microsoft Excel", id: 462058435
 # mas "Microsoft Outlook", id: 985367838
 # mas "Microsoft PowerPoint", id: 462062816
 # mas "Microsoft Word", id: 462054704
-mas "Numbers", id: 361304891
-mas "Pages", id: 361309726
-brew "presenterm" # Terminal slideshow tool
+# mas "Numbers", id: 361304891
+# mas "Pages", id: 361309726
+# brew "presenterm" # Terminal slideshow tool
 brew "typst" # Markup-based typesetting system
 # cask "zotero" # Collect, organize, cite, and share research sources -> NOT M1 COMPATIBLE
 
@@ -220,6 +220,7 @@ mas "reMarkable", id: 1276493162 # View, Screen Share, organize, import, and dow
 # cask "nikitabobko/tap/aerospace", trusted: true # AeroSpace is an i3-like tiling window manager for macOS
 cask "amethyst" # Automatic tiling window manager similar to xmonad
 # cask "flashspace" # Virtual workspace manager
+cask "omniwm" # Tiling window manager
 # cask "rectangle" # Move and resize windows using keyboard shortcuts or snap areas
 # brew "yabai" # A tiling window manager for macOS based on binary space partitioning
 
@@ -237,30 +238,30 @@ cask "shortcat" # App that enables mouse-free UI interaction
 # brew "skhd" # Simple hotkey-daemon for macOS
 
 ### Learning ###
-cask "anki" # Memory training application
+# cask "anki" # Memory training application
 
 ### Cloud storage ###
 # cask "google-drive" # Client for the Google Drive storage service
 # mas "OneDrive", id: 823766827
 mas "OX Drive", id: 818195014 # Cloud client
-cask "syncthing-app" # Real time file synchronization software
+# cask "syncthing-app" # Real time file synchronization software
 
 ### Messaging/Video call ###
 # cask "microsoft-teams" # Meet, chat, call, and collaborate in just one place
 # cask "mumble" # Open-source, low-latency, high quality voice chat software for gaming
 cask "signal" # Instant messaging application focusing on security
-mas "Slack", id: 803453959 # Team communication and collaboration software
+# mas "Slack", id: 803453959 # Team communication and collaboration software
 cask "studiolinkstandalone" # SIP application to create high quality Audio over IP (AoIP) connections
 cask "telegram" # Messaging app with a focus on speed and security
 mas "WhatsApp", id: 310633997
-cask "zoom" # Video communication and virtual meeting platform
+# cask "zoom" # Video communication and virtual meeting platform
 
 ### Video creation/playback ###
-brew "ffmpeg" # Play, record, convert, and stream audio and video
+# brew "ffmpeg" # Play, record, convert, and stream audio and video
 mas "Gifski", id: 1351639930
-cask "handbrake-app" # Open-source video transcoder
-mas "iMovie", id: 408981434
-cask "shotcut" # Video editor
+# cask "handbrake-app" # Open-source video transcoder
+# mas "iMovie", id: 408981434
+# cask "shotcut" # Video editor
 cask "vlc" # Multimedia player
 
 ### Music creation/playback ###
@@ -275,10 +276,10 @@ cask "jetbrains-toolbox" # JetBrains tools manager
 brew "kdoctor" # Environment diagnostics for Kotlin Multiplatform Mobile app development -> Kotlin Multiplatform
 
 ### Large language model ###
-brew "apfel" # Apple Intelligence from the command-line, with OpenAi-compatible API server
+# brew "apfel" # Apple Intelligence from the command-line, with OpenAi-compatible API server
 # cask "claude-code" # Terminal-based AI coding assistant
 # cask "copilot-cli" # Brings the power of Copilot coding agent directly to your terminal
-brew "fabric-ai" # Open-source framework for augmenting humans using AI
+# brew "fabric-ai" # Open-source framework for augmenting humans using AI
 brew "anomalyco/tap/opencode", trusted: true # AI coding agent, built for the terminal
 brew "pi-coding-agent" # AI agent toolkit
 brew "rtk" # CLI proxy to minimize LLM token consumption
@@ -302,7 +303,7 @@ brew "uv" # Extremely fast Python package installer and resolver, written in Rus
 # mas "Xcode", id: 497799835 # <- Xcode being installed using xcodes
 brew "xcode-kotlin" # Kotlin Native Xcode Plugin
 brew "xcodes" # Command-line tool to install and switch between multiple versions of Xcode
-brew "vapor" if system(%q[mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'" | grep -q .]) # Command-line tool for Vapor (Server-side Swift web framework) -> requires Xcode
+# brew "vapor" if system(%q[mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'" | grep -q .]) # Command-line tool for Vapor (Server-side Swift web framework) -> requires Xcode
 
 ### Machine learning ###
-brew "mlx" # Array framework for Apple silicon
+# brew "mlx" # Array framework for Apple silicon
