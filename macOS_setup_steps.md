@@ -31,7 +31,7 @@
 - [ ] Set links to projects directories in Finder
 > Add the project roots to the Finder sidebar Favorites so they are one click away.
 >
-> in Finder, open each project root (e.g. `~/Developer/personal_projects` and `~/Developer/adesso_projects`), then drag its folder into the sidebar under Favorites, or select it and press `Ctrl+Cmd+T` (File > Add to Sidebar).
+> in Finder, open each project root (e.g. `~/Developer/personal_projects`), then drag its folder into the sidebar under Favorites, or select it and press `Ctrl+Cmd+T` (File > Add to Sidebar).
 
 - [ ] Show file path in finder
 > in German in Finder App go to Darstellung > Pfadleiste ausblenden
@@ -54,7 +54,7 @@
 - [ ] Battery percentage
 > in German go to Systemeinstellungen > Kontrollzentrum > Batterie > Prozent anzeigen
 >
-> in English go to System Settings > Control Center > Battery > Show Percentage
+> in English go to System Settings > Menu Bar > Battery > Battery Options > Show Percentage
 
 - [ ] Reduce menu transparency??
 > in German go to Systemeinstellungen > Bedienungshilfen > Anzeige > Transparenz reduzieren
@@ -119,7 +119,7 @@
 - [ ] Disable Dock toggle shortcut (Opt+Cmd+D) to free Amethyst select-fullscreen-layout
 > in German go to Systemeinstellungen > Tastatur > Tastaturkurzbefehle > Launchpad & Dock > "Dock ein-/ausblenden" deaktivieren
 >
-> in English go to System Settings > Keyboard > Keyboard Shortcuts > Launchpad & Dock > uncheck "Turn Dock Hiding On/Off"
+> in English go to System Settings > Keyboard > Keyboard Shortcuts > Dock > uncheck "Turn Dock Hiding On/Off"
 
 - [ ] Disable Spotlight shortcut (Opt+Cmd+Space) to free Amethyst cycle-layout
 > Disable "Show Finder search window" so Amethyst can use Opt+Cmd+Space.
