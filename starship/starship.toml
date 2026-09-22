@@ -15,65 +15,28 @@ $git_status\
 $git_state\
 [](bg:color_blue fg:color_aqua)\
 $c\
-$cobol\
-$cpp\
-$crystal\
-$daml\
-$dart\
 $elixir\
-$elm\
-$erlang\
-$fennel\
-$fortran\
-$gleam\
 $golang\
 $gradle\
 $haskell\
-$haxe\
 $java\
-$julia\
 $kotlin\
 $lua\
-$mojo\
-$nim\
 $ocaml\
-$odin\
-$perl\
-$php\
-$purescript\
 $python\
-$raku\
-$red\
-$rlang\
 $ruby\
 $rust\
-$scala\
-$solidity\
 $swift\
 $typst\
-$vlang\
-$zig\
 [](bg:color_light_gray fg:color_blue)\
-$aws\
-$azure\
-$conda\
-$direnv\
 $docker_context\
-$gcloud\
-$kubernetes\
 $mise\
-$pixi\
-$terraform\
+$nix_shell\
 [](bg:color_dark_gray fg:color_light_gray)\
 $time\
 [ ](fg:color_dark_gray)\
 $line_break\
 $character"""
-
-## Languages?
-## $nodejs\
-## $nix_shell\
-## $package\
 
 right_format = """
 $jobs\
@@ -210,85 +173,85 @@ style = "bg:color_aqua fg:color_terminal_background"
 # ===========================================================
 # Segment 4: Languages & Packages (color_blue)
 # ===========================================================
-
 [c]
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [cpp]
 disabled = false
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [golang]
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [gradle]
 format = '[ $symbol( $version)]($style)'
+recursive = true # Read an ancestor's wrapper properties from nested Gradle projects.
 style = "bg:color_blue fg:color_terminal_background"
 symbol = ""
 
 [haskell]
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [java]
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [kotlin]
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [nix_shell]
 disabled = false
 format = '[ $symbol( $state)( \($name\))]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [nodejs]
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = "󰎙 "
+symbol = "󰎙"
 
 [package]
 disabled = false
 format = '[ $symbol$version]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = "󰏗 "
+symbol = "󰏗"
 
 [php]
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [python]
 format = '[ $symbol( $version)( \($virtualenv\)) ]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [ruby]
 disabled = false
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [rust]
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = "󱘗 "
+symbol = "󱘗"
 
 [swift]
 format = '[ $symbol( $version)]($style)'
 style = "bg:color_blue fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 # ===========================================================
 # Segment 5: Infrastructure & Cloud (color_light_gray)
@@ -297,18 +260,18 @@ symbol = " "
 [aws]
 format = '[ $symbol($profile)( \($region\)) ]($style)'
 style = "bg:color_light_gray fg:color_terminal_background"
-symbol = "  "
+symbol = ""
 
 [azure]
 disabled = false
 format = '[ $symbol($subscription)]($style)'
 style = "bg:color_light_gray fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [conda]
 format = '[ $symbol( $environment) ]($style)'
 style = "bg:color_light_gray fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [direnv]
 disabled = false
@@ -319,12 +282,12 @@ symbol = " "
 [docker_context]
 format = '[ $symbol( $context)]($style)'
 style = "bg:color_light_gray fg:color_terminal_background"
-symbol = " "
+symbol = ""
 
 [gcloud]
 format = '[ $symbol($project)( \($region\)) ]($style)'
 style = "bg:color_light_gray fg:color_terminal_background"
-symbol = "  "
+symbol = ""
 
 [kubernetes]
 disabled = false
@@ -333,16 +296,21 @@ detect_files = ['Dockerfile', 'docker-compose.yml']
 detect_folders = ['.kube']
 format = '[ $symbol$context( \($namespace\)) ]($style)'
 style = "bg:color_light_gray fg:color_terminal_background"
-symbol = "󱃾 "
+symbol = "󱃾"
+
+[mise]
+format = '[ 󰔷 $env_value ]($style)'
+style = 'bg:color_light_gray fg:color_terminal_background'
+symbol = "󰔷"
 
 [pixi]
-symbol = "󰏗 "
+symbol = "󰏗"
 
 [terraform]
 disabled = false
 format = '[ $symbol$workspace ]($style)'
 style = "bg:color_light_gray fg:color_terminal_background"
-symbol = "󱁢 "
+symbol = "󱁢"
 
 # ===========================================================
 # Segment 6: Time (color_dark_gray)
@@ -422,165 +390,162 @@ threshold = 60
 disabled = false
 format = '[ $symbol$ram_pct ]($style)'
 style = "bg:color_dark_gray fg:color_cream"
-symbol = "󰍛 "
+symbol = "󰍛"
 threshold = 75
 
 # ===========================================================
-# Symbol-Only Overrides (not in format string, alphabetical)
+# Inactive native module presets (alphabetical)
 # ===========================================================
 
 [buf]
-symbol = " "
+symbol = ""
 
 [bun]
-symbol = " "
+symbol = ""
 
 [cmake]
-symbol = " "
+symbol = ""
 
 [cobol]
-symbol = "󰒓 "
+symbol = "󰒓"
 
 [container]
-symbol = "󰡨 "
+symbol = "󰡨"
 
 [crystal]
-symbol = " "
+symbol = ""
 
 [daml]
-symbol = "󰘧 "
+symbol = "󰘧"
 
 [dart]
-symbol = " "
+symbol = ""
 
 [deno]
-symbol = " "
+symbol = ""
 
 [dotnet]
-symbol = " "
+symbol = ""
 
 [elixir]
-symbol = " "
+symbol = ""
 
 [elm]
-symbol = " "
+symbol = ""
 
 [erlang]
-symbol = " "
+symbol = ""
 
 [fennel]
-symbol = " "
+symbol = ""
 
 [fortran]
-symbol = "󱈚 "
+symbol = "󱈚"
 
 [fossil_branch]
-symbol = " "
+symbol = ""
 
 [gleam]
-symbol = "󰓎 "
+symbol = "󰓎"
 
 [guix_shell]
-symbol = " "
+symbol = ""
 
 [haxe]
-symbol = " "
+symbol = ""
 
 [helm]
-symbol = "󰠳 "
+symbol = "󰠳"
 
 [hg_branch]
-symbol = " "
+symbol = ""
 
 [julia]
-symbol = " "
+symbol = ""
 
 [lua]
-symbol = " "
+symbol = ""
 
 [maven]
 symbol = ""
 
 [meson]
-symbol = "󰔷 "
-
-[mise]
-symbol = "󰔷 "
+symbol = "󰔷"
 
 [mojo]
-symbol = "󰈸 "
+symbol = "󰈸"
 
 [nats]
-symbol = "󰇮 "
+symbol = "󰇮"
 
 [nim]
-symbol = "󰆥 "
+symbol = "󰆥"
 
 [ocaml]
-symbol = " "
+symbol = ""
 
 [odin]
-symbol = "󰟢 "
+symbol = "󰟢"
 
 [openstack]
-symbol = "󰑲 "
+symbol = "󰑲"
 
 [perl]
-symbol = " "
+symbol = ""
 
 [pijul_channel]
-symbol = " "
+symbol = ""
 
 [pulumi]
-symbol = " "
+symbol = ""
 
 [purescript]
-symbol = "󰅭 "
+symbol = "󰅭"
 
 [quarto]
-symbol = "󰐕 "
+symbol = "󰐕"
 
 [raku]
-symbol = "󱖉 "
+symbol = "󱖉"
 
 [red]
-symbol = "󰐊 "
+symbol = "󰐊"
 
 [rlang]
-symbol = "󰟔 "
+symbol = "󰟔"
 
 [scala]
-symbol = " "
+symbol = ""
 
 [shlvl]
-symbol = "󰜮 "
+symbol = "󰜮"
 
 [singularity]
-symbol = "󰿂 "
+symbol = "󰿂"
 
 [solidity]
-symbol = "󰞻 "
+symbol = "󰞻"
 
 [spack]
-symbol = "󰣪 "
+symbol = "󰣪"
 
 [sudo]
-symbol = "󰀦 "
+symbol = "󰀦"
 
 [typst]
-symbol = " "
+symbol = ""
 
 [vagrant]
-symbol = "󰜐 "
+symbol = "󰜐"
 
 [vlang]
 symbol = " "
 
 [xmake]
-symbol = "󰔷 "
+symbol = "󰔷"
 
 [zig]
-symbol = " "
+symbol = ""
 
 # ===========================================================
 # Custom Modules
