@@ -9,8 +9,3 @@ ln -sfn "$TOOL_DIR/additional_configuration" "$HOME/.config/git/additional_confi
 ln -sf "$TOOL_DIR/configuration" "$HOME/.config/git/config"
 ln -sf "$TOOL_DIR/global_gitignore" "$HOME/.config/git/global_gitignore"
 ln -sfn "$TOOL_DIR/template" "$HOME/.config/git/template"
-
-# Run the gitleaks secret-scanning pre-commit hook in every repo via a
-# global core.hooksPath. The global hook chains to each repo's local
-# pre-commit hook, and a repo's own (local) core.hooksPath still wins.
-git config --global core.hooksPath "$HOME/.config/git/global_hooks"
