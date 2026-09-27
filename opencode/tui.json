@@ -3,6 +3,9 @@
 	"keybinds": {
 		"input_submit": "super+return"
 	},
+	"plugin": [
+		"@leohenon/opencode-vim-plugin"
+	],
 	"scroll_acceleration": {
 		"enabled": true
 	},
@@ -10,8 +13,5 @@
 	"theme": "gruvbox",
 	"tui": {
 		"message_limit": 10000
-	},
-	"plugin": [
-		"@leohenon/opencode-vim-plugin"
-	]
+	}
 }
