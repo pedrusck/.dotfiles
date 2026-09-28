@@ -1,6 +1,6 @@
-#!/usr/bin/env zsh
+#!/bin/sh
 
-setopt errexit nounset pipefail
+set -eu
 
 TOOL_DIR="${DOTFILES_PATH:=$PWD}/neovim"
 
@@ -20,34 +20,41 @@ ln -sfn "$TOOL_DIR/spell" "$HOME/.config/nvim/spell"
 # adding a new language's wordlist is enough to pull its dictionary.
 # The .spl files are large binaries and stay untracked (see .gitignore).
 # Failures never abort setup: spell checking is optional.
-() {
-	local url="https://ftp.nluug.nl/pub/vim/runtime/spell"
-	local runtime language target file_signature
+install_spell_dictionaries() (
+	url="https://ftp.nluug.nl/pub/vim/runtime/spell"
+	runtime=""
 
-	(( $+commands[nvim] )) && runtime=$(nvim --headless --clean -c 'echo $VIMRUNTIME' -c quit 2>&1)/spell
+	if command -v nvim >/dev/null 2>&1; then
+		runtime=$(nvim --headless --clean -c 'echo $VIMRUNTIME' -c quit 2>&1)/spell
+	fi
 
 	# `en` and friends are skipped here: Neovim ships their dictionaries
-	local wanted=( "$TOOL_DIR"/spell/*.utf-8.add(N:t:r:r) )
-	local have=( "$TOOL_DIR"/spell/*.utf-8.spl(N:t:r:r) ${runtime:+$runtime/*.utf-8.spl(N:t:r:r)} )
-
-	for language in ${wanted:|have}; do
-		print "  Downloading '$language' spell dictionary"
+	for wordlist in "$TOOL_DIR"/spell/*.utf-8.add; do
+		[ -f "$wordlist" ] || continue
+		language=${wordlist##*/}
+		language=${language%.utf-8.add}
 		target="$TOOL_DIR/spell/$language.utf-8.spl"
+		if [ -f "$target" ] || { [ -n "$runtime" ] && [ -f "$runtime/$language.utf-8.spl" ]; }; then
+			continue
+		fi
+		printf '%s\n' "  Downloading '$language' spell dictionary"
 
 		curl --fail --silent --show-error --location --max-time 120 \
 			--remove-on-error --output "$target.part" "$url/$language.utf-8.spl" || {
-			print -ru2 -- "  warning: could not download '$language' dictionary from $url"
+			printf '%s\n' "  warning: could not download '$language' dictionary from $url" >&2
 			continue
 		}
 
 		# Guards against a captive portal or error page served with HTTP 200
-		read -k9 -u0 file_signature < "$target.part" || true
-		[[ $file_signature == VIMspell2 ]] || {
-			print -ru2 -- "  warning: '$language' download is not a Vim spell file, discarding"
+		if ! file_signature=$(dd if="$target.part" bs=9 count=1 2>/dev/null) \
+			|| [ "$file_signature" != VIMspell2 ]; then
+			printf '%s\n' "  warning: '$language' download is not a Vim spell file, discarding" >&2
 			rm -f "$target.part"
 			continue
-		}
+		fi
 
 		mv "$target.part" "$target"
 	done
-}
+)
+
+install_spell_dictionaries
