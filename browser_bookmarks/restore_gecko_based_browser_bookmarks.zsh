@@ -6,12 +6,13 @@
 # Unlike Chromium-based browsers, Firefox-family browsers keep bookmarks inside
 # places.sqlite (shared with history) rather than a swappable flat file, so this
 # script cannot fully automate the restore. After it runs, finish manually in
-# Floorp: Bookmarks → Manage Bookmarks → Import and Backup → Restore → pick the
-# staged date → confirm.
+# Floorp: Bookmarks → Manage Bookmarks → Import and Backup → Restore →
+# Choose File... → the reported backup → confirm.
+# Identical backups are reused; Floorp is relaunched only if it was running.
 #
 # Usage: restore_gecko_based_browser_bookmarks.zsh [SOURCE_FILE|SOURCE_DIR]
 #   SOURCE_FILE: a specific gecko_based_browser_bookmarks_*.secret.jsonlz4 snapshot.
-#   SOURCE_DIR:  a directory to search for the newest matching snapshot (default: $PWD).
+#   SOURCE_DIR:  newest snapshot by filename timestamp (default: $PWD).
 
 setopt errexit nounset pipefail
 
@@ -20,13 +21,10 @@ SOURCE="${1:-$PWD}"
 if [[ -f "$SOURCE" ]]; then
 	SOURCE_FILE="$SOURCE"
 elif [[ -d "$SOURCE" ]]; then
-	typeset -a SNAPSHOT_FILES=("$SOURCE"/gecko_based_browser_bookmarks_*.secret.jsonlz4(N))
+	typeset -a SNAPSHOT_FILES=("$SOURCE"/gecko_based_browser_bookmarks_*.secret.jsonlz4(NOn[1]))
 	(( ${#SNAPSHOT_FILES} > 0 )) || { print "Error: no snapshot files found in $SOURCE"; exit 1 }
 
 	SOURCE_FILE="${SNAPSHOT_FILES[1]}"
-	for SNAPSHOT_FILE in "${SNAPSHOT_FILES[@]:1}"; do
-		[[ "$SNAPSHOT_FILE" -nt "$SOURCE_FILE" ]] && SOURCE_FILE="$SNAPSHOT_FILE"
-	done
 else
 	print "Error: source not found: $SOURCE"
 	exit 1
@@ -34,9 +32,9 @@ fi
 
 [[ -s "$SOURCE_FILE" ]] || { print "Error: source file is empty: $SOURCE_FILE"; exit 1 }
 
-MAGIC=$(dd if="$SOURCE_FILE" bs=1 count=7 2>/dev/null)
-[[ "$MAGIC" == "mozLz40" ]] \
-	|| print -u2 "Warning: $SOURCE_FILE does not look like a mozLz40 bookmarks backup; continuing anyway."
+MAGIC=$(head -c 8 -- "$SOURCE_FILE")
+[[ "$MAGIC" == $'mozLz40\0' ]] \
+	|| { print -u2 "Error: not a mozLz40 bookmarks backup: $SOURCE_FILE"; exit 1 }
 
 INSTALLS_INI="$HOME/Library/Application Support/Floorp/installs.ini"
 PROFILES_INI="$HOME/Library/Application Support/Floorp/profiles.ini"
@@ -59,23 +57,31 @@ if [[ -z "$PROFILE_REL" && -f "$PROFILES_INI" ]]; then
 	' "$PROFILES_INI")
 fi
 
-[[ -n "$PROFILE_REL" ]] || { print "Error: could not resolve Floorp's default profile."; exit 1 }
+[[ -n "$PROFILE_REL" ]] || { print -u2 "Floorp default profile not found. Launch Floorp once, then rerun this helper."; exit 1 }
 
 PROFILE_DIR="$FLOORP_ROOT/$PROFILE_REL"
-[[ -d "$PROFILE_DIR" ]] || { print "Error: Floorp profile directory not found: $PROFILE_DIR"; exit 1 }
+[[ $PROFILE_REL == /* ]] && PROFILE_DIR=$PROFILE_REL
+[[ -d "$PROFILE_DIR" ]] || { print -u2 "Floorp profile not found: $PROFILE_DIR. Launch Floorp once, then rerun this helper."; exit 1 }
 
 BACKUPS_DIR="$PROFILE_DIR/bookmarkbackups"
 mkdir -p "$BACKUPS_DIR"
 
-TODAY=$(date '+%Y-%m-%d')
-DEST="$BACKUPS_DIR/bookmarks-$TODAY.jsonlz4"
-typeset -i SUFFIX=2
-while [[ -e "$DEST" ]]; do
-	DEST="$BACKUPS_DIR/bookmarks-${TODAY}_${SUFFIX}.jsonlz4"
-	(( SUFFIX += 1 ))
+function restore_reminder() {
+	print -r -- "In Floorp: Bookmarks > Manage Bookmarks > Import and Backup > Restore > Choose File...
+  Select: $1"
+}
+
+for BACKUP in "$BACKUPS_DIR"/bookmarks-*.jsonlz4(N); do
+	if cmp -s "$SOURCE_FILE" "$BACKUP"; then
+		print "Identical Floorp backup already present: $BACKUP"
+		restore_reminder "$BACKUP"
+		exit 0
+	fi
 done
 
+typeset -i WAS_RUNNING=0
 if pgrep -x floorp >/dev/null; then
+	WAS_RUNNING=1
 	print "Quitting Floorp…"
 	osascript -e 'quit app "Floorp"' >/dev/null
 
@@ -87,15 +93,19 @@ if pgrep -x floorp >/dev/null; then
 	done
 fi
 
-cp -- "$SOURCE_FILE" "$DEST"
+TEMP=""
+trap '[[ -z $TEMP ]] || rm -f -- "$TEMP"; if (( WAS_RUNNING )); then open -a Floorp; fi' EXIT
+TODAY=$(date '+%Y-%m-%d')
+DEST="$BACKUPS_DIR/bookmarks-$TODAY.jsonlz4"
+typeset -i SUFFIX=2
+while [[ -e "$DEST" ]]; do
+	DEST="$BACKUPS_DIR/bookmarks-${TODAY}_${SUFFIX}.jsonlz4"
+	(( SUFFIX += 1 ))
+done
 
-[[ $(md5 -q "$SOURCE_FILE") == $(md5 -q "$DEST") ]] \
-	|| { print "Error: copy verification failed."; exit 1 }
-
+TEMP=$(mktemp "$BACKUPS_DIR/.bookmarks.restore.XXXXXX")
+cp -- "$SOURCE_FILE" "$TEMP"
+cmp -s "$SOURCE_FILE" "$TEMP" || { print -u2 "Error: copy verification failed."; exit 1 }
+mv -- "$TEMP" "$DEST"
 print "Staged: $SOURCE_FILE -> $DEST"
-
-open -a Floorp
-print "Floorp relaunched."
-print
-print "To finish the restore in Floorp:"
-print "  Bookmarks → Manage Bookmarks → Import and Backup → Restore → ${TODAY} → confirm."
+restore_reminder "$DEST"
