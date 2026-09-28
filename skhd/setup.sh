@@ -1,6 +1,6 @@
-#!/usr/bin/env zsh
+#!/bin/sh
 
-setopt errexit nounset pipefail
+set -eu
 
 TOOL_DIR="${DOTFILES_PATH:=$PWD}/skhd"
 

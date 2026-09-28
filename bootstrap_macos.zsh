@@ -119,7 +119,10 @@ function prepare_repository() {
 function load_profile() {
     [[ -f $DOTFILES_PATH/profiles/$PROFILE.sh ]] \
         || { error "Profile '$PROFILE' not found in $DOTFILES_PATH/profiles."; exit 1; }
-    source "$DOTFILES_PATH/profiles/$PROFILE.sh"
+    local tools
+    tools=$(/bin/sh -eu -c '. "$1"; printf "%s\n" "${PROFILE_TOOLS:-}"' sh "$DOTFILES_PATH/profiles/$PROFILE.sh") \
+        || { error "Could not load profile '$PROFILE'."; exit 1; }
+    PROFILE_TOOLS=( ${=tools} )
     (( $#PROFILE_TOOLS )) || { error "Profile '$PROFILE' defines no tools."; exit 1; }
     local tool
     for tool in $PROFILE_TOOLS; do
@@ -222,7 +225,7 @@ function run_tool_setups() {
             continue
         fi
         info " Setting up $tool"
-        DOTFILES_PATH=$DOTFILES_PATH /bin/zsh -f "$DOTFILES_PATH/$tool/setup.sh" \
+        DOTFILES_PATH=$DOTFILES_PATH /bin/sh "$DOTFILES_PATH/$tool/setup.sh" \
             || { error "Setup failed for profile tool '$tool'."; exit 1; }
         CONFIGURED_TOOLS+=( "$tool" )
     done
