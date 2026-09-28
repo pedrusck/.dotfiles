@@ -4,7 +4,8 @@ To my future self,
 
 ## for macOS
 
-On an Apple Silicon Mac, complete these prerequisites:
+Apple Silicon is required; the script refuses to run on Intel because it expects
+Homebrew at `/opt/homebrew`. Complete these prerequisites:
 
 1. **Install the Xcode command line tools** (provides `git` for cloning):
 
@@ -24,20 +25,35 @@ bootstrap=$(curl -fsSL \
     --key-dir "/Volumes/MY_KEYS" --profile development
 ```
 
-Replace `/Volumes/MY_KEYS` with the directory containing your `.asc`, `.gpg`, or
-`.key` files. Downloading before execution preserves terminal input for sudo
+Replace `/Volumes/MY_KEYS` with the directory containing your `.asc` or `.gpg`
+files. Downloading before execution preserves terminal input for sudo
 and GPG passphrase prompts and prevents execution after a failed download.
 
 The script creates `$HOME/Developer/personal_projects` and clones
 `https://codeberg.org/pedrusck/.dotfiles.git` into its `.dotfiles` directory,
 including all submodules. An existing checkout at that destination is reused
 without pulling or resetting local work; missing submodules are initialized.
+The clone is verified to come from the expected origin URL, but its commits are
+not signature-verified.
 
 It installs Homebrew at `/opt/homebrew` without an acceptance prompt, imports
-the supplied GPG keys and marks only those keys ultimately trusted, unlocks
-git-crypt, and installs the Brewfile packages. Administrator authentication and
-GPG passphrases may still be required. Unrelated keys retain their ownertrust;
-keys supplied again on a rerun are included even if their import is unchanged.
+the supplied GPG keys, unlocks git-crypt, and installs the Brewfile packages.
+Administrator authentication and GPG passphrases may still be required.
+
+Brewfile failures are not fatal: a package that cannot be installed (commonly a
+`mas` app needing a different App Store account or region) is reported in the
+closing summary with a command to retry, so the remaining setup still runs.
+
+Ultimate ownertrust is granted **only to imported keys that carry secret key
+material**. Public keys that happen to share the directory are imported and
+reported, but never become trust roots. Unrelated keys already in the keyring
+retain their ownertrust, and keys supplied again on a rerun are included even
+if their import is unchanged.
+
+Homebrew is installed by fetching upstream's official `install.sh` from the
+moving `HEAD` ref and executing it unverified while sudo is pre-authorized.
+This is Homebrew's documented installation method and is accepted deliberately;
+it does mean a compromised upstream would gain root on a fresh machine.
 
 After installation, it runs the available tool setup scripts in profile order,
 installs the EurKEY keyboard layout system-wide, and sets macOS keybindings that
@@ -75,10 +91,11 @@ On a new machine:
 2. Install git-crypt: `brew install git-crypt`
 3. Unlock the repo: `git-crypt unlock`
 
-`bootstrap_macos.zsh` imports the keys supplied through `--key-dir`, marks those
-keys ultimately trusted, and unlocks the repository before installing the
-Brewfile packages. Ultimate ownertrust is applied to these imported keys for
-subsequent GPG use; git-crypt decryption itself does not require it.
+`bootstrap_macos.zsh` imports the keys supplied through `--key-dir`, marks the
+imported *secret* keys ultimately trusted, and unlocks the repository before
+installing the Brewfile packages. Ultimate ownertrust is applied to those keys
+for subsequent GPG use; git-crypt decryption itself does not require it, so
+public keys in the same directory are left untrusted.
 
 Greetings from the past
 
@@ -87,6 +104,6 @@ Greetings from the past
 - Install git `sudo apt install git -y`
 
 - Clone this repository with
-`git clone https://codeberg.org/petrusck/.dotfiles.git`
+`git clone https://codeberg.org/pedrusck/.dotfiles.git`
 
-- Run the initialization [script](./bootstrap_raspotify.sh) with `./bootstrap_raspotify.sh`.
+- Run the initialization [script](./bootstrap_raspotify.bash) with `./bootstrap_raspotify.bash`.
