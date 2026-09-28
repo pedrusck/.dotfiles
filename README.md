@@ -79,6 +79,62 @@ When it finishes it prints the remaining manual steps (enable the EurKEY input
 source, and Switch to Desktop 1–9 for Amethyst). Afterwards, follow the rest of
 the steps in the [list](./macOS_setup_steps.md).
 
+### Browserpass
+
+The development profile runs Browserpass setup automatically. To rerun it after
+installing a browser or repairing Browserpass, from the repository root:
+
+```sh
+sh browserpass/setup.sh
+```
+
+Setup detects Firefox, Floorp, and Helium in `/Applications` and
+`~/Applications`, then links the installed Browserpass host manifests into the
+per-user native-messaging directories:
+
+- **Firefox/Floorp:** the Firefox manifest goes under
+  `~/Library/Application Support/Mozilla/NativeMessagingHosts/`.
+- **Helium:** the Chromium manifest goes under
+  `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/`.
+  Helium searches this Chrome-compatible location; Chrome need not be installed.
+
+Each directory receives a `com.github.browserpass.native.json` symlink through
+Homebrew's stable Browserpass prefix. Firefox and Floorp share one registration.
+Helium searches its own `net.imput.helium/NativeMessagingHosts/` directory first.
+An existing manifest there is accepted if it resolves to the same Homebrew source;
+otherwise setup asks you to move it aside so the Chrome registration can be used.
+Setup skips successfully when no supported browser, Homebrew, or Browserpass is
+installed. It checks each manifest's executable and verifies the resulting link.
+Rerunning refreshes registrations; conflicting files, directories, and symlinks
+to directories are preserved and reported as errors. A missing Chromium manifest
+is a package problem: setup reports it rather than creating a broken Helium link.
+
+Install the Browserpass extension in each browser profile you use:
+
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/browserpass-ce/)
+  for Floorp and Firefox.
+- [Chrome Web Store](https://chromewebstore.google.com/detail/browserpass/naepdomgkenhinolocfifgehidddafch)
+  for Helium.
+
+If setup reports a missing or invalid manifest, or a missing native executable,
+try reinstalling the package and rerun setup:
+
+```sh
+brew reinstall browserpass
+sh browserpass/setup.sh
+```
+
+If the manifest remains missing after reinstalling, investigate the Browserpass
+Homebrew formula; setup cannot generate a packaged host manifest.
+
+Open the extension in each browser to check host discovery. If entries appear
+but decryption or autofill fails, follow the
+[upstream GPG troubleshooting instructions](https://github.com/browserpass/browserpass-native#error-unable-to-fetch-and-parse-login-fields).
+GPG needs a GUI pinentry such as `pinentry-mac`; configure its absolute path with
+`pinentry-program` in `~/.gnupg/gpg-agent.conf`, then restart the agent with
+`gpgconf --kill gpg-agent`. If GPG cannot be found, set its absolute path using
+the extension's `gpgPath` option or `.browserpass.json` in the password store.
+
 ## Encrypted files
 
 Files matching `*.secret` and `*.secret.*` are encrypted with
