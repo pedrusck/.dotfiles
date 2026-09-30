@@ -74,34 +74,5 @@ require("oil").setup({
 vim.keymap.set("n", "-", require("oil").open, { desc = "Open parent directory" })
 vim.keymap.set("n", "<leader>e", "<cmd>Oil<CR>", { desc = "Open file explorer (oil)" })
 
--- Auto-open oil at the current working directory when nvim is started with no
--- arguments (bare `nvim`). Directory arguments (`nvim .` / `nvim <dir>`) are
--- handled natively by oil via `default_file_explorer = true`, so they are
--- intentionally skipped here. The open is deferred with `vim.schedule` so it
--- runs after VimEnter completes and oil has settled; opening synchronously in
--- the VimEnter callback races with oil's startup buffer and yields an empty
--- listing.
-vim.api.nvim_create_autocmd("VimEnter", {
-	group = vim.api.nvim_create_augroup("OilAutoOpen", { clear = true }),
-	desc = "Open oil in cwd when starting with no file/dir arguments",
-	callback = function()
-		if vim.fn.argc() > 0 then
-			return
-		end
-		-- Escape hatch: set `vim.g.oil_no_auto_open = true` (e.g. from an env-
-		-- specific config or before launch) to suppress the bare-`nvim` auto-open.
-		if vim.g.oil_no_auto_open then
-			return
-		end
-		local buf = vim.api.nvim_get_current_buf()
-		if vim.api.nvim_buf_get_name(buf) ~= "" or vim.bo[buf].buftype ~= "" then
-			return
-		end
-		vim.schedule(function()
-			require("oil").open(vim.fn.getcwd())
-		end)
-	end,
-})
-
 -- Undotree
 vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)

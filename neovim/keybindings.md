@@ -17,7 +17,7 @@ together. Press `<leader>` and wait to see the live **which-key** popup listing
 every group.
 
 | Namespace    | Domain      | Purpose                                  |
-|--------------|-------------|------------------------------------------|
+| ------------ | ----------- | ---------------------------------------- |
 | `<leader>f*` | Find        | Telescope pickers (files, grep, …)       |
 | `<leader>b*` | Buffer      | Buffer switch / delete                   |
 | `<leader>h*` | Harpoon     | Pinned-file navigation                   |
@@ -41,7 +41,7 @@ go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 ## Learn these first
 
 | Action                     | Key               |
-|----------------------------|-------------------|
+| -------------------------- | ----------------- |
 | Find files                 | `<leader>ff`      |
 | Live grep (search text)    | `<leader>fg`      |
 | File explorer (oil)        | `-` / `<leader>e` |
@@ -51,7 +51,7 @@ go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 ## General editing & movement
 
 | Key                         | Mode | Action                                    |
-|-----------------------------|------|-------------------------------------------|
+| --------------------------- | ---- | ----------------------------------------- |
 | `<Esc>`                     | n    | Clear search highlights                   |
 | `J` / `K`                   | v    | Move selection down / up                  |
 | `<leader>mj` / `<leader>mk` | n    | Move line down / up                       |
@@ -64,7 +64,7 @@ go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 ## Windows & buffers
 
 | Key                                   | Mode | Action                                |
-|---------------------------------------|------|---------------------------------------|
+| ------------------------------------- | ---- | ------------------------------------- |
 | `<C-h>` / `<C-j>` / `<C-k>` / `<C-l>` | n    | Focus window left / down / up / right |
 | `<leader>bp`                          | n    | Previous buffer                       |
 | `<leader>bn`                          | n    | Next buffer                           |
@@ -79,23 +79,23 @@ go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 
 ## Find (Telescope)
 
-| Key           | Action                          |
-|---------------|---------------------------------|
-| `<leader>ff`  | Find files                      |
-| `<leader>fg`  | Live grep                       |
-| `<leader>fb`  | Buffers                         |
-| `<leader>fh`  | Help tags                       |
-| `<leader>fd`  | Diagnostics                     |
-| `<leader>fr`  | Resume last picker              |
-| `<leader>fo`  | Recent (old) files              |
-| `<leader>fw`  | Current word                    |
-| `<leader>fk`  | Keymaps                         |
-| `<leader>fn`  | Neovim config files             |
+| Key          | Action              |
+| ------------ | ------------------- |
+| `<leader>ff` | Find files          |
+| `<leader>fg` | Live grep           |
+| `<leader>fb` | Buffers             |
+| `<leader>fh` | Help tags           |
+| `<leader>fd` | Diagnostics         |
+| `<leader>fr` | Resume last picker  |
+| `<leader>fo` | Recent (old) files  |
+| `<leader>fw` | Current word        |
+| `<leader>fk` | Keymaps             |
+| `<leader>fn` | Neovim config files |
 
 ## File navigation
 
 | Key                         | Action                      |
-|-----------------------------|-----------------------------|
+| --------------------------- | --------------------------- |
 | `-`                         | Open parent directory (oil) |
 | `<leader>e`                 | Open file explorer (oil)    |
 | `<leader>ha`                | Harpoon: add file           |
@@ -104,17 +104,17 @@ go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 | `<leader>hp` / `<leader>hn` | Harpoon: previous / next    |
 | `<leader>u`                 | Toggle undotree             |
 
-> oil opens automatically at the current directory when Neovim starts with no
-> file arguments (bare `nvim`); `nvim .` / `nvim <dir>` are handled by oil's
-> native explorer. Hidden files are shown (`show_hidden = true`); toggle with
-> `g.` inside oil.
+> Bare `nvim` starts with an empty buffer and no intro message. Open oil manually
+> with `-` or `<leader>e`; `nvim .` / `nvim <dir>` open oil's native explorer,
+> and file arguments open normally. Hidden files are shown (`show_hidden = true`);
+> toggle with `g.` inside oil.
 
 ## Code (LSP)
 
 ### Custom (this config, buffer-local on attach)
 
 | Key           | Action                                  |
-|---------------|-----------------------------------------|
+| ------------- | --------------------------------------- |
 | `<leader>cf`  | Format buffer (LSP)                     |
 | `<leader>ca`  | Code action (alias → `gra`)             |
 | `<leader>cr`  | Rename symbol (alias → `grn`)           |
@@ -133,7 +133,7 @@ The config also relies on Neovim's built-in LSP defaults; the `<leader>c*`
 aliases above sit alongside them for discoverability:
 
 | Key         | Mode | Action                     |
-|-------------|------|----------------------------|
+| ----------- | ---- | -------------------------- |
 | `grn`       | n    | Rename symbol              |
 | `gra`       | n, x | Code action                |
 | `grr`       | n    | References                 |
@@ -148,7 +148,7 @@ aliases above sit alongside them for discoverability:
 ## Diagnostics
 
 | Key          | Action                            |
-|--------------|-----------------------------------|
+| ------------ | --------------------------------- |
 | `<leader>xd` | Open diagnostic float             |
 | `<leader>xq` | Send diagnostics to quickfix list |
 | `<leader>xl` | Send diagnostics to location list |
@@ -158,7 +158,7 @@ aliases above sit alongside them for discoverability:
 Upstream default-preset chords (active in insert mode while the menu is open):
 
 | Key                 | Action                             |
-|---------------------|------------------------------------|
+| ------------------- | ---------------------------------- |
 | `<C-space>`         | Show menu / toggle documentation   |
 | `<C-e>`             | Hide menu                          |
 | `<C-y>`             | Accept selected item               |
@@ -172,7 +172,7 @@ Upstream default-preset chords (active in insert mode while the menu is open):
 Plugin defaults (not custom-set). mini.surround operates on the `s` prefix:
 
 | Key         | Mode | Action                                    |
-|-------------|------|-------------------------------------------|
+| ----------- | ---- | ----------------------------------------- |
 | `sa`        | n, v | Surround add (e.g. `saiw)` word → parens) |
 | `sd`        | n    | Surround delete (e.g. `sd"`)              |
 | `sr`        | n    | Surround replace (e.g. `sr)'`)            |
@@ -186,7 +186,7 @@ mini.ai extends textobjects with `n` / `l` for next / last (e.g. `van(`,
 ## Spell & language
 
 | Key          | Action                        |
-|--------------|-------------------------------|
+| ------------ | ----------------------------- |
 | `<leader>sd` | Set spell language to German  |
 | `<leader>se` | Set spell language to English |
 
