@@ -10,3 +10,7 @@ ln -sf "$TOOL_DIR/settings.secret.json" "$HOME/.pi/agent/settings.json"
 
 mkdir -p "$HOME/.pi/agent/themes"
 ln -sf "$TOOL_DIR/themes/gruvbox.json" "$HOME/.pi/agent/themes/gruvbox.json"
+
+if command -v herdr >/dev/null 2>&1; then
+	herdr integration install pi
+fi
