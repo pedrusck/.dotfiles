@@ -72,12 +72,12 @@ delay_seconds = 1                 # wait 1s so momentary state flips don't notif
 [ui.sound]
 enabled = false
 
-# Show state text (working/blocked/done) next to the icon in the agent panel;
-# otherwise the stock two-row layout (state_icon/workspace/tab, then agent).
+# Keep machine/workspace/tab location on the first row; show agent and state
+# text on the second. Machine identity disappears for a single local machine.
 [ui.sidebar.agents]
 rows = [
-  ["state_icon", "workspace", "state_text"],
-  ["agent"],
+  ["state_icon", "machine", "workspace", "tab"],
+  ["agent", "state_text"],
 ]
 
 # Keybindings -- deliberate custom remap (Vim-aligned). Prefix stays ctrl+b.
