@@ -22,7 +22,8 @@ upstream defaults.
 A multiplexer sits between your terminal and the programs inside it, which
 already claim most key chords. The **prefix** solves the conflict: press
 `ctrl+b`, release, then press one action key. `prefix+n` means `ctrl+b` then
-`n`. One reserved chord instead of dozens.
+`n`. A prefix-only keymap reserves one chord; this setup also reserves the direct
+shortcuts listed below.
 
 Most actions also have a **prefix-free `ctrl+alt` chord** (see the right-hand
 column below); `ctrl+alt` is the one modifier family terminals and desktops
@@ -47,12 +48,16 @@ Inside a pane, Herdr does shadow a few low-value defaults, each easily replaced:
   blink.cmp doc-scroll-up (minor; docs `auto_show = false`)
 - **lazygit** — nothing (binds no `<c-b>`)
 
+To send a literal **`Ctrl+B`** to the focused pane, press **`ctrl+b ctrl+b`**
+(the prefix twice). This lets the pane application handle its own Ctrl+B action.
+`ctrl+b` followed by plain `b` is different: it toggles Herdr's sidebar.
+
 ## Direct `ctrl+alt` chords vs. full-screen TUIs
 
-The prefix-free `ctrl+alt+*` direct chords are intercepted by Herdr *before* they
-reach the focused pane. That is exactly what you want in a shell pane, but it
-means a full-screen TUI running in the pane (Neovim, OpenCode, …) never sees
-them:
+During normal pane input, Herdr intercepts configured prefix-free `ctrl+alt+*`
+chords *before* they reach the focused pane application. Prefix and direct
+bindings are active simultaneously in shell panes and full-screen TUIs (Neovim,
+OpenCode, …); this configuration does not scope direct shortcuts to shells.
 
 - **No collision with Neovim window motion** — Neovim uses *bare* `Ctrl+h/j/k/l`
   (window focus), not `ctrl+alt`, so those pass straight through to nvim.
@@ -60,9 +65,23 @@ them:
   (`edit_scrollback`), `ctrl+alt+t/s/v` can mask a chord the TUI or a coding
   agent wants.
 
-Rule of thumb: **inside a full-screen TUI, drive Herdr with the `prefix` form**
-(`prefix+e`, `prefix+s`, …). The `ctrl+alt` direct chords are a convenience for
-plain shell panes. (Herdr is mouse-first, so none of these are required.)
+**Using the prefix form does not disable its direct alternative.** For example,
+choosing `prefix+e` to open scrollback still leaves `ctrl+alt+e` intercepted by
+Herdr while both are configured.
+
+To give a conflicting chord back to a pane application, remove or remap the
+Herdr direct binding, or choose a different shortcut in the application. For
+example, to free `ctrl+alt+e` while keeping `prefix+e`, replace the existing
+`edit_scrollback` entry under `[keys]` in `herdr/config.toml` with:
+
+```toml
+edit_scrollback = "prefix+e"
+```
+
+Validate with `herdr config check`, then reload with `prefix+shift+e`. Binding
+arrays replace an action's shortcut list, so keep every shortcut you still want
+when editing one. The mappings below describe the current config, including its
+direct alternatives.
 
 ## Learn these five first
 
@@ -122,7 +141,12 @@ reachable.
 
 ### Left at Herdr's defaults
 
-Not remapped in `config.toml`, listed so they aren't accidentally re-bound:
+The prefix (`ctrl+b`), detach (`prefix+q`), new workspace (`prefix+shift+n`),
+goto (`prefix+g`), toggle sidebar (`prefix+b`), and Navigate-mode pane movement
+(`h/j/k/l`) use built-in defaults without config entries. Their mappings remain
+listed above and below for reference.
+
+Other inherited bindings, listed so they aren't accidentally re-bound:
 
 | Key                               | Action                        |
 | --------------------------------- | ----------------------------- |
@@ -151,8 +175,8 @@ panel is ordered by state priority (`agent_panel_sort = "priority"`).
 | `prefix+shift+o`     | `ctrl+alt+o` | Open an existing worktree checkout                |
 | `prefix+alt+shift+g` | —            | Delete worktree checkout (confirmed; branch kept) |
 
-Worktrees are checked out under `~/.herdr/worktrees/<repo>/<branch-slug>`
-(`[worktrees] directory`) and behave like normal workspaces — navigate them with
+Worktrees use Herdr's default `~/.herdr/worktrees/<repo>/<branch-slug>` location
+(no `[worktrees]` override) and behave like normal workspaces — navigate them with
 the workspace picker (`prefix+shift+w`) and goto (`prefix+g`). Closing the parent
 workspace closes the whole group but never deletes checkouts or branches.
 
@@ -168,13 +192,52 @@ When the **navigate surface** is open, bare `h/j/k/l` move between panes
 directly (no prefix), and `shift+j` / `shift+k` move the workspace selection
 down / up — keeping the Vim feel for quick hops.
 
+#### File-viewer setup
+
+`herdr/setup.sh` installs [herdr-file-viewer](https://github.com/smarzban/herdr-file-viewer)
+from the upstream repository's default-branch HEAD, without a `--ref` pin. The
+development bootstrap runs this after installing Herdr from the Brewfile. To
+install or reapply it manually, run from the repository root:
+
+```sh
+sh herdr/setup.sh
+```
+
+Plugin installation requires Herdr and Git on `PATH` and network access. Setup
+installs noninteractively with `--yes`; reruns replace the managed plugin checkout
+with the latest upstream HEAD while retaining the plugin's separate config and
+state. If Herdr is missing, setup installs the config symlink but silently skips
+the plugin. A failed plugin installation makes setup fail. Herdr refuses to
+overwrite a locally linked development checkout.
+
+The plugin installer downloads a matching prebuilt binary and verifies its SHA-256.
+If that download is unavailable or cannot be verified, its fallback builds from
+source and requires Rust 1.96+ with Cargo. The optional renderers `glow`,
+`git-delta` (the `delta` command), and `bat` are already included in the Brewfile.
+
+After launching or attaching to Herdr, verify registration:
+
+```sh
+herdr plugin list
+herdr plugin action list --plugin herdr-file-viewer
+```
+
+The plugin should be enabled, with actions
+`herdr-file-viewer.open-file-viewer` and
+`herdr-file-viewer.open-file-viewer-tab`. Reload config with `prefix+shift+e` and
+check `prefix+f` (split) and `prefix+shift+f` (tab).
+
+To update the plugin, rerun setup and verify both actions and shortcuts again.
+The plugin is installed per user on the machine running setup; remote servers
+need their own installation.
+
 ## Theme / visual indicators
 
 - **Theme:** `gruvbox` (dark), matching Alacritty and Lazygit across these
-  dotfiles. `auto_switch = false`, so the theme stays pinned to dark and does
-  **not** follow the host terminal's light/dark appearance. `dark_name` and
-  `light_name` are kept in the config but only take effect if `auto_switch` is
-  turned back on.
+  dotfiles. Auto-switching defaults to `false`, so the theme stays dark and does
+  **not** follow the host terminal's light/dark appearance. If enabled later,
+  Herdr infers the `gruvbox` / `gruvbox-light` siblings from the theme name;
+  explicit `dark_name` and `light_name` entries are unnecessary.
 - **Accent:** gruvbox green `#98971a` (`[theme.custom] accent`) — the same color
   Lazygit uses.
 - **Sidebar:** agent state (`working` / `blocked` / `done` / `idle`) is rolled
@@ -182,11 +245,13 @@ down / up — keeping the Vim feel for quick hops.
   state priority rather than by space. Worktree children appear **indented and
   packed as one Space group** under their parent workspace.
 - **Agent rows** (`[ui.sidebar.agents] rows`): a two-row layout of
-  `state_icon` + `workspace` + `state_text`, with the `agent` name on the second
-  row. This swaps Herdr's stock `tab` token for `state_text`, so the state
-  (`working` / `blocked` / `done`) reads inline next to the icon. The **Space
-  rows** are left at Herdr's defaults and show the Git `branch` with ahead/behind
-  `git_status` (handy for the worktree workflow).
+  `state_icon` + `machine` + `workspace` + `tab`, with `agent` + `state_text` on
+  the second row. This preserves location information as the priority-sorted
+  agent panel reorders, while keeping the state readable beside the agent name.
+  The `machine` token disappears for a single local machine; missing values and
+  their separators are omitted. These rows apply to the expanded desktop sidebar.
+  The **Space rows** are left at Herdr's defaults and show the Git `branch` with
+  ahead/behind `git_status` (handy for the worktree workflow).
 
 ## Architecture (who owns what)
 
@@ -208,20 +273,56 @@ throwaway side-by-side views.
 
 - **Notifications** (`[ui.toast]`): set to `delivery = "terminal"` so Ghostty
   shows a native desktop notification when a background agent finishes or needs
-  input (active-tab agents are not announced). Sound is **off** (`[ui.sound]`) —
-  the sidebar plus terminal notifications are enough.
-- **Agent integrations**: install once per agent for authoritative
-  `working` / `blocked` / `done` state instead of screen detection:
+  input (active-tab agents are not announced), using the default one-second
+  delay. Sound is **off** (`[ui.sound]`) — the sidebar plus terminal notifications
+  are enough.
+- **Agent integrations**: Pi and OpenCode report lifecycle state and native
+  session identity through their integrations. Claude Code's hook reports native
+  session identity only; its lifecycle state still comes from screen detection.
+  All three integrations support native conversation restoration when a valid
+  session reference has been reported.
+
+  The development bootstrap runs `claude_code/setup.sh`, `opencode/setup.sh`, and
+  `pi_coding_agent/setup.sh` before `herdr/setup.sh`. Each agent setup prepares its
+  config directory, then installs its bundled integration if Herdr is available.
+  Installation failures propagate; missing Herdr prints a message to rerun setup.
+  To apply manually, run from the repository root:
+
+  ```sh
+  sh claude_code/setup.sh
+  sh opencode/setup.sh
+  sh pi_coding_agent/setup.sh
+  herdr integration status
+  ```
+
+  After upgrading Herdr, refresh just the integrations without reapplying agent
+  settings:
 
   ```sh
   herdr integration install pi        # Pi Coding Agent
   herdr integration install claude    # Claude Code
   herdr integration install opencode  # OpenCode
-  herdr integration status            # see what's installed
+  herdr integration status            # check installed versions and status
   ```
 
-  `claude` and `opencode` are already installed; `pi` is added here.
-- **Session restore** (`[session] resume_agents_on_restore = true`): after a
+  Installation state is machine-specific; use the status command to verify it.
+  Integrations do not install the agent executables or authenticate them.
+
+  Claude's `settings.json` is copied from the repo template on each setup run,
+  then Herdr installs the hook script and generates the machine-local registration.
+  Rerunning Claude setup reapplies that template; keep shared preferences in
+  `claude_code/settings.json`. With Herdr 0.9.3, the generated `SessionStart`
+  matcher is `^(startup|resume|clear|compact|fork)$`, avoiding Grok's `new` / `load`
+  events. No generated absolute hook path is committed. Claude and Pi setup honor
+  `CLAUDE_CONFIG_DIR` and `PI_CODING_AGENT_DIR`; use absolute paths for overrides.
+
+  Restart agents after installation. OpenCode also needs its shared servers
+  restarted after an integration upgrade. If the installer defers OpenCode V2
+  registration for first-start migration, start `opencode2` once and rerun
+  `herdr integration install opencode`. See the
+  [integration documentation](https://herdr.dev/docs/integrations/) for supported
+  versions and install locations.
+- **Session restore** (enabled by default; no `[session]` override): after a
   server restart, eligible Pi / OpenCode / Claude Code panes relaunch into their
   native conversation sessions using valid session references reported by current
   official integrations. Missing, invalid, duplicated, or stale references fall
@@ -295,11 +396,15 @@ hk                   # stop the server and its pane processes
 - Validate the config with `herdr config check`; print the full upstream default
   with `herdr --default-config`; apply edits to a running server with
   `herdr server reload-config` or `prefix+shift+e`.
-- The config tracks **Herdr 0.8.2**. After a Herdr upgrade, diff against
-  `herdr --default-config` to catch newly added keys or changed defaults — 0.8.2
-  itself changed the sidebar `row_gap` default from `1` to `0` and made Herdr
-  write the outer terminal title.
+- Defaults were checked against **Herdr 0.9.3**. After a Herdr upgrade, compare
+  `herdr --default-config` to catch newly added keys or changed defaults. Redundant
+  overrides are omitted, so inherited settings follow upstream defaults.
 - **Left at Herdr defaults** (no config entry):
+  - theme auto-switching is off; eligible agent sessions resume after a restart;
+  - worktrees use `~/.herdr/worktrees`, and agent notifications wait one second;
+  - the prefix and unchanged keybindings listed under **Left at Herdr's defaults**
+    above are inherited; arrays retain both prefix and direct shortcuts because
+    they replace an action's entire binding list;
   - new panes/tabs/workspaces inherit the source pane's cwd
     (`[terminal] new_cwd = "follow"`), and new-pane shells start in
     `shell_mode = "auto"` (login shells on macOS, already the default);
