@@ -35,6 +35,9 @@ opt.mouse = "a"
 opt.list = true
 opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 
+-- Start with an empty editing area instead of the intro message
+opt.shortmess:append("I")
+
 -- Splits
 opt.splitbelow = true
 opt.splitright = true
