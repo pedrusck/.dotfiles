@@ -43,8 +43,9 @@ accent = "#98971a"
 #     login-only PATH setup (Homebrew, Mise) runs in new panes. No pin needed.
 #   new_cwd = "follow"  -- new panes/tabs/workspaces inherit the source cwd.
 
-# Resume Pi / OpenCode / Claude Code panes into their native sessions after a
-# server restart.
+# Relaunch eligible Pi / OpenCode / Claude Code panes into their native sessions
+# after a server restart. Requires valid session references from current official
+# integrations; other panes restore as new shells. Original processes do not survive.
 [session]
 resume_agents_on_restore = true
 
