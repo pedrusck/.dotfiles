@@ -35,7 +35,7 @@ Press **`prefix+?`** at any time to see every active binding live.
 No other layer in this setup claims `Ctrl+B`, so the prefix always reaches Herdr:
 
 | Layer         | `Ctrl+B`?                                                   |
-|---------------|-------------------------------------------------------------|
+| ------------- | ----------------------------------------------------------- |
 | macOS (Tahoe) | free — Cmd family owns global shortcuts, not Ctrl           |
 | Amethyst      | free — uses `Opt+Cmd`; `b` is only `Opt+Cmd+B` (bsp layout) |
 | Ghostty       | free — passes `Ctrl`-letter chords through to the pane      |
@@ -67,7 +67,7 @@ plain shell panes. (Herdr is mouse-first, so none of these are required.)
 ## Learn these five first
 
 | Action                           | Key                     |
-|----------------------------------|-------------------------|
+| -------------------------------- | ----------------------- |
 | New tab                          | `prefix+n`              |
 | Split right / down               | `prefix+v` / `prefix+s` |
 | Move between panes               | `prefix+h/j/k/l`        |
@@ -82,7 +82,7 @@ prefix-free direct chord is also bound, it is shown in the last column.
 ### Panes
 
 | Key                          | Direct chord             | Action                                   | Vim parallel      |
-|------------------------------|--------------------------|------------------------------------------|-------------------|
+| ---------------------------- | ------------------------ | ---------------------------------------- | ----------------- |
 | `prefix+s`                   | `ctrl+alt+s`             | Split down                               | `:split`          |
 | `prefix+v`                   | `ctrl+alt+v`             | Split right                              | `:vsplit`         |
 | `prefix+h` / `j` / `k` / `l` | `ctrl+alt+h/j/k/l`       | Focus pane left / down / up / right      | `Ctrl+w h/j/k/l`  |
@@ -95,7 +95,7 @@ prefix-free direct chord is also bound, it is shown in the last column.
 ### Tabs
 
 | Key                           | Direct chord                      | Action              | Vim parallel |
-|-------------------------------|-----------------------------------|---------------------|--------------|
+| ----------------------------- | --------------------------------- | ------------------- | ------------ |
 | `prefix+n`                    | —                                 | New tab             | `:tabnew`    |
 | `prefix+t` / `prefix+shift+t` | `ctrl+alt+t` / `ctrl+alt+shift+t` | Next / previous tab | `gt` / `gT`  |
 | `prefix+1..9`                 | `ctrl+alt+1..9`                   | Jump to tab 1–9     | `{n}gt`      |
@@ -105,7 +105,7 @@ prefix-free direct chord is also bound, it is shown in the last column.
 ### Workspaces & session
 
 | Key              | Action                            |
-|------------------|-----------------------------------|
+| ---------------- | --------------------------------- |
 | `prefix+shift+w` | Workspace picker                  |
 | `prefix+shift+n` | New workspace                     |
 | `prefix+shift+r` | Rename workspace                  |
@@ -125,7 +125,7 @@ reachable.
 Not remapped in `config.toml`, listed so they aren't accidentally re-bound:
 
 | Key                               | Action                        |
-|-----------------------------------|-------------------------------|
+| --------------------------------- | ----------------------------- |
 | `prefix+?`                        | Keybinding help               |
 | `prefix+[`                        | Copy mode                     |
 | `prefix+shift+p`                  | Rename pane                   |
@@ -135,7 +135,7 @@ Not remapped in `config.toml`, listed so they aren't accidentally re-bound:
 ### Agents (agent-aware navigation)
 
 | Key                           | Direct chord                      | Action                      |
-|-------------------------------|-----------------------------------|-----------------------------|
+| ----------------------------- | --------------------------------- | --------------------------- |
 | `prefix+a` / `prefix+shift+a` | `ctrl+alt+a` / `ctrl+alt+shift+a` | Focus next / previous agent |
 | `prefix+alt+1..9`             | —                                 | Focus agent 1–9 by index    |
 
@@ -146,7 +146,7 @@ panel is ordered by state priority (`agent_panel_sort = "priority"`).
 ### Worktrees (grouped workspaces)
 
 | Key                  | Direct chord | Action                                            |
-|----------------------|--------------|---------------------------------------------------|
+| -------------------- | ------------ | ------------------------------------------------- |
 | `prefix+shift+g`     | `ctrl+alt+g` | New worktree → opens as a grouped workspace       |
 | `prefix+shift+o`     | `ctrl+alt+o` | Open an existing worktree checkout                |
 | `prefix+alt+shift+g` | —            | Delete worktree checkout (confirmed; branch kept) |
@@ -159,7 +159,7 @@ workspace closes the whole group but never deletes checkouts or branches.
 ### Custom commands / plugins
 
 | Key              | Action                                                     |
-|------------------|------------------------------------------------------------|
+| ---------------- | ---------------------------------------------------------- |
 | `prefix+alt+l`   | Open **lazygit** in a temporary popup (matches `lg` alias) |
 | `prefix+f`       | Open **file viewer** in a split (herdr-file-viewer plugin) |
 | `prefix+shift+f` | Open **file viewer** in a tab (herdr-file-viewer plugin)   |
@@ -191,16 +191,18 @@ down / up — keeping the Vim feel for quick hops.
 ## Architecture (who owns what)
 
 | Layer                                     | Owner     | Mechanism                                        |
-|-------------------------------------------|-----------|--------------------------------------------------|
+| ----------------------------------------- | --------- | ------------------------------------------------ |
 | OS windows / spaces                       | Amethyst  | `Opt+Cmd` / `Opt+Cmd+Shift`                      |
 | Non-persistent terminal splits            | Ghostty   | `Cmd`-based built-ins (`ghostty/keybindings.md`) |
 | **Session-persistent, agent-aware panes** | **Herdr** | `ctrl+b` prefix + `herdr` CLI                    |
 | Editor (splits, buffers, files)           | Neovim    | `<leader>` + `Ctrl`                              |
 | European characters                       | EurKEY    | `Opt+key`                                        |
 
-Reach for **Herdr panes** (`prefix+v`) when you want a split to persist across
-detach/reboot or you are running a coding agent worth keeping alive; use quick
-**Ghostty splits** (`Cmd+D`) for throwaway side-by-side views.
+Reach for **Herdr panes** (`prefix+v`) when you want pane processes to keep
+running after detach or closing the terminal client. After a server restart or
+reboot, Herdr restores the saved layout and can relaunch eligible agent sessions;
+the original processes do not survive. Use quick **Ghostty splits** (`Cmd+D`) for
+throwaway side-by-side views.
 
 ## Notifications & agents
 
@@ -220,8 +222,10 @@ detach/reboot or you are running a coding agent worth keeping alive; use quick
 
   `claude` and `opencode` are already installed; `pi` is added here.
 - **Session restore** (`[session] resume_agents_on_restore = true`): after a
-  server restart, Pi / OpenCode / Claude Code panes resume their native
-  conversation sessions.
+  server restart, eligible Pi / OpenCode / Claude Code panes relaunch into their
+  native conversation sessions using valid session references reported by current
+  official integrations. Missing, invalid, duplicated, or stale references fall
+  back to new shells in the saved directories.
 
 ## Session control (CLI)
 
@@ -229,7 +233,7 @@ Shell aliases defined in `zsh/zsh_aliases` (all guarded by `herdr` being
 installed):
 
 | Alias       | Command                       | What it does                                       |
-|-------------|-------------------------------|----------------------------------------------------|
+| ----------- | ----------------------------- | -------------------------------------------------- |
 | `hh`        | `herdr`                       | Launch or attach to the default persistent session |
 | `ha <name>` | `herdr session attach <name>` | Attach to (or create) a named session              |
 | `hl`        | `herdr session list`          | List named sessions                                |
@@ -242,8 +246,27 @@ can be triggered from inside Herdr with `prefix+shift+e` instead of
 `herdr server reload-config`. Validate the file first with `herdr config check`.
 
 Detaching is done from **inside** Herdr with `prefix+q` (or by closing the
-terminal); there is no detach subcommand — everything keeps running in the
-background until `hk` (`herdr server stop`).
+terminal client); there is no detach subcommand. Pane processes keep running in
+the background while the server lives, unless they exit on their own. `hk`
+(`herdr server stop`) stops the server and its pane processes.
+
+### What survives
+
+| Event                                                                | Behavior with this configuration                                                                                                            |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Detach / close the terminal client, then reattach to the live server | Pane processes keep running; the live layout and terminal buffers remain available.                                                         |
+| Full server restart or host reboot                                   | Saved workspaces, tabs, panes, directories, layout, and focus are restored. Original processes are gone; ordinary panes start new shells.   |
+| Eligible agent restoration after a restart                           | Herdr relaunches supported agents into their saved native conversations; this does not preserve their original processes or in-flight work. |
+
+Pane screen history is **off** (`experimental.pane_history` is unset and defaults
+to `false`), so ordinary pane screen contents and scrollback are not replayed
+after a full server restart. The live per-pane buffer used by `edit_scrollback`
+survives detach, but is not configured for disk-backed restoration. Editors,
+development servers, tests, and other arbitrary processes must be restarted.
+
+See [Herdr's session state and restore guide](https://herdr.dev/docs/session-state/)
+for the distinction between live persistence, snapshot restore, and native agent
+session restore.
 
 ### Typical workflow
 
@@ -254,9 +277,9 @@ claude               # start a coding agent in the pane; Herdr detects its state
 prefix+v             # split right -> a second pane
 prefix+h / prefix+l  # focus between panes
 prefix+q             # detach — all panes (and agents) keep running
-# close the Ghostty window, reboot the GUI, etc.
-hh                   # reattach later; every pane is as you left it
-hk                   # when you actually want to stop everything
+# Close Ghostty; leave the Herdr server and host running.
+hh                   # reattach to the live session; work may have progressed
+hk                   # stop the server and its pane processes
 ```
 
 (For agent-state detection integrations, see **Notifications & agents** above.)
