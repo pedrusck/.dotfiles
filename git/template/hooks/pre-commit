@@ -4,9 +4,10 @@
 # Installed into newly initialized and cloned repositories through
 # init.templateDir.
 #
-# git-crypt encrypted files (*.secret.*) are already encrypted in the
-# staging area via the clean filter, so gitleaks only sees binary blobs
-# for those files -- no special handling needed.
+# Gitleaks scans the staged Git diff. Git textconv drivers (including
+# git-crypt) can expose decrypted text to that diff, even though the index
+# stores encrypted blobs. Such content is scanned too; --redact keeps
+# detected secrets out of the diagnostic output.
 #
 # To bypass: SKIP=gitleaks git commit -m "message"
 #
