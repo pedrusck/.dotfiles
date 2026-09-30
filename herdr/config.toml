@@ -26,13 +26,10 @@
 # Skip first-run onboarding; this repo already provisions the setup.
 onboarding = false
 
-# gruvbox, matching Alacritty / Lazygit. auto_switch follows the host terminal's
-# light/dark appearance and swaps the gruvbox dark/light siblings.
+# gruvbox, matching Alacritty / Lazygit. Auto-switching is off by default,
+# keeping the theme dark regardless of the host terminal's appearance.
 [theme]
 name = "gruvbox"
-auto_switch = false
-dark_name = "gruvbox"
-light_name = "gruvbox-light"
 
 # gruvbox green accent (same as Lazygit).
 [theme.custom]
@@ -43,17 +40,6 @@ accent = "#98971a"
 #     login-only PATH setup (Homebrew, Mise) runs in new panes. No pin needed.
 #   new_cwd = "follow"  -- new panes/tabs/workspaces inherit the source cwd.
 
-# Relaunch eligible Pi / OpenCode / Claude Code panes into their native sessions
-# after a server restart. Requires valid session references from current official
-# integrations; other panes restore as new shells. Original processes do not survive.
-[session]
-resume_agents_on_restore = true
-
-# Git worktrees are checked out under <directory>/<repo>/<slug> and opened as
-# grouped workspaces (keys under [keys], see new/open/remove_worktree).
-[worktrees]
-directory = "~/.herdr/worktrees"
-
 [ui]
 # Show detected agent labels in split pane borders when no manual name is set.
 show_agent_labels_on_pane_borders = true
@@ -62,10 +48,10 @@ agent_panel_sort = "priority"
 
 # Background notifications: ask Ghostty (a supported terminal) to show a native
 # desktop notification when a background agent finishes or needs input. Works
-# over SSH; the active tab is suppressed.
+# over SSH; the active tab is suppressed. The default 1s delay filters momentary
+# state changes.
 [ui.toast]
 delivery = "terminal"
-delay_seconds = 1                 # wait 1s so momentary state flips don't notify
 
 # Sound off; rely on the sidebar + terminal notifications. See [ui.sound.agents]
 # in `herdr --default-config` for per-agent overrides.
@@ -84,16 +70,11 @@ rows = [
 # Most actions also get a prefix-free ctrl+alt chord. Press prefix+? for the
 # live list. Herdr is mouse-first: none of these are required.
 [keys]
-prefix = "ctrl+b"
 
 # Session / workspace
-detach = "prefix+q"
 workspace_picker = "prefix+shift+w"
-new_workspace = "prefix+shift+n"
 rename_workspace = "prefix+shift+r"
 close_workspace = "prefix+shift+x"
-goto = "prefix+g"
-toggle_sidebar = "prefix+b"
 settings = "prefix+shift+s"
 # rename_workspace above takes prefix+shift+r, which is reload_config's default.
 # Moved here so both actions stay reachable (e = reload). Equivalent to the CLI
@@ -140,11 +121,8 @@ resize_mode = ["prefix+w", "ctrl+alt+w"]
 zoom = ["prefix+z", "ctrl+alt+z"]				# fullscreen the focused pane
 edit_scrollback = ["prefix+e", "ctrl+alt+e"]	# open pane scrollback in $EDITOR (nvim)
 
-# Navigate mode -- bare Vim keys while the navigate surface is open (no prefix).
-navigate_pane_left = "h"
-navigate_pane_down = "j"
-navigate_pane_up = "k"
-navigate_pane_right = "l"
+# Navigate mode -- pane movement defaults to bare h/j/k/l; use Shift+K/J for
+# workspace movement while the navigate surface is open (no prefix).
 navigate_workspace_up = "shift+k"
 navigate_workspace_down = "shift+j"
 
