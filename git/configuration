@@ -3,10 +3,7 @@
 	lol = log --oneline --decorate
 
 [branch]
-	sort = -committerdate # sort by most recently used branches
-
-[browser "firefox"]
-	cmd = open -a Firefox.app
+	sort = -committerdate # sort by newest branch-tip commit
 
 [column]
 	ui = auto # for supported commands show in columns if the output is to the terminal
@@ -16,9 +13,7 @@
 
 [core]
 	editor = nvim
-	excludesFile = ~/.config/git/global_gitignore
 	pager = delta
-	ignorecase = false
 	fsmonitor = true
 	untrackedcache = true
 
@@ -27,11 +22,9 @@
 
 [delta]
 	dark = true      # use dark mode for terminals with a dark background
-	features = decorations
 	inspect-raw-lines = false
 	line-numbers = true
 	navigate = true    # use n and N to move between diff sections
-	; side-by-side = true
 	syntax-theme = gruvbox-dark
 	tabs = 4
 
@@ -39,19 +32,13 @@
 	algorithm = histogram
 	colorMoved = true
 	mnemonicPrefix = true
-	renames = true
-	word-diff = color
 
-[difftool "nvimdiff"]
-	cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""
+[difftool]
 	prompt = true
 
 [fetch]
-	all = true
-	fsckobjects = true # avoid data corruption
 	prune = true
-	prunetags = true
-	tagOpts = --force
+	pruneTags = false # opt in per remote when intentionally mirroring tags
 	writeCommitGraph = true
 
 [filter "lfs"]
@@ -62,9 +49,9 @@
 
 [help]
 	autocorrect = prompt
+
 [init]
 	defaultBranch = main
-	templateDir = ~/.config/git/template
 
 [interactive]
 	diffFilter = delta --color-only
@@ -77,21 +64,13 @@
 	tool = nvimdiff
 
 [mergetool]
-	path = nvim
 	prompt = false # automatically launch merge tool without displaying a prompt
-
-[pager]
-	diff = delta
-	log = delta
-	reflog = delta
-	show = delta
 
 [pull]
 	rebase = true
 
 [push]
 	autosetupremote = true
-	default = simple
 	followtags = true # push new tags along with commits being pushed
 	recurseSubmodules = on-demand
 
@@ -100,11 +79,8 @@
 	autoStash = true
 	updateRefs = true
 
-[receive]
-	fsckobjects = true # avoid data corruption
-
 [rerere] # REuse REcorded REsolution - Remember the resolution of git merge conflicts and automatically fix them on new occurrences
-	enable = true
+	enabled = true
 	autoupdate = true
 
 [submodule]
@@ -112,10 +88,9 @@
 
 [tag]
 	sort = version:refname
-	# sort = taggerdate # sort by most recently used tags
 
 [transfer]
-	fsckobjects = true # avoid data corruption
+	fsckObjects = true # validate incoming objects on fetch and receive
 
 [user]
 	name = Pere Bohigas
