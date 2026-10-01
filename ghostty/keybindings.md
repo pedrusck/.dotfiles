@@ -17,7 +17,7 @@ default. This doc is repo documentation only; it is **not** symlinked.
 These are the ones to learn first.
 
 | Shortcut               | Action                                       |
-| ---------------------- | -------------------------------------------- |
+|------------------------|----------------------------------------------|
 | `Cmd + D`              | New split to the **right**                   |
 | `Cmd + Shift + D`      | New split **down**                           |
 | `Cmd + [`              | Focus **previous** split (order of creation) |
@@ -42,7 +42,7 @@ Run through this once and the split model will stick:
 ## Tabs
 
 | Shortcut             | Action                                                           |
-| -------------------- | ---------------------------------------------------------------- |
+|----------------------|------------------------------------------------------------------|
 | `Cmd + T`            | New tab                                                          |
 | `Cmd + 1`…`Cmd + 8`  | Go to tab 1–8                                                    |
 | `Cmd + 9`            | Go to the **last** tab                                           |
@@ -55,7 +55,7 @@ Run through this once and the split model will stick:
 ## Windows
 
 | Shortcut          | Action                                   |
-| ----------------- | ---------------------------------------- |
+|-------------------|------------------------------------------|
 | `Cmd + N`         | New window                               |
 | `Cmd + Enter`     | Toggle fullscreen                        |
 | `Cmd + Ctrl + F`  | Toggle fullscreen (alt binding)          |
@@ -65,22 +65,17 @@ Run through this once and the split model will stick:
 
 There are two ways to split the terminal, and they behave differently:
 
-|                           | **Ghostty splits** (this doc)       | **Herdr panes** (`ctrl+b` prefix)                                         |
-| ------------------------- | ----------------------------------- | ------------------------------------------------------------------------- |
-| Created with              | `Cmd+D`, `Cmd+Shift+D`, …           | `prefix+v` / `prefix+minus`                                               |
-| Each pane is              | an independent shell                | part of the Herdr session                                                 |
-| Survives detach/reattach? | **No**                              | **Yes** (persists in the background)                                      |
-| Best for                  | quick, throwaway side-by-side views | pane processes you want to keep running after closing the terminal client |
+|                           | **Ghostty splits** (this doc)       | **Herdr panes** (`ctrl+b` prefix)                                       |
+|---------------------------|-------------------------------------|-------------------------------------------------------------------------|
+| Created with              | `Cmd+D`, `Cmd+Shift+D`, …           | `prefix+v` / `prefix+minus`                                             |
+| Each pane is              | an independent shell                | part of the Herdr session                                               |
+| Survives detach/reattach? | **No**                              | **Yes** (persists in the background)                                    |
+| Best for                  | quick, throwaway side-by-side views | panes (and coding agents) you want to keep across window close / reboot |
 
 Rule of thumb: if you want the split to **persist with the session** — or you are
 running a coding agent you want to keep alive — create it as a Herdr pane
 (`prefix+v`); otherwise a Ghostty split is fine. See `herdr/keybindings.md` for
 the full Herdr pane reference.
-
-After a full Herdr server restart or reboot, only the saved layout and directories
-are restored automatically; eligible agent conversations can be relaunched from
-valid native session references. Original processes do not survive, and pane screen
-history is disabled in this setup. See [what survives](../herdr/keybindings.md#what-survives).
 
 ## Notes on conflicts / this setup
 
@@ -109,5 +104,5 @@ history is disabled in this setup. See [what survives](../herdr/keybindings.md#w
 
 ## Reference
 
-- Ghostty keybind docs: <https://ghostty.org/docs/config/keybind>
-- Action reference: <https://ghostty.org/docs/config/keybind/reference>
+- Ghostty keybind docs: https://ghostty.org/docs/config/keybind
+- Action reference: https://ghostty.org/docs/config/keybind/reference
