@@ -46,19 +46,17 @@ window-padding-y = 9
 window-padding-color = background
 
 # Scrollback
-# Left at Ghostty's default. Herdr keeps its own per-pane buffer for
-# `edit_scrollback`, available across detach while its server remains running.
-# Herdr pane screen history is disabled, so this buffer is not replayed after a
-# full server restart or reboot.
+# Left at Ghostty's default. Persistent, per-pane scrollback is owned by Herdr
+# (which keeps its own buffer and reads it for `edit_scrollback`); an oversized
+# Ghostty buffer would multiply memory across many persistent panes for no gain.
 
 # Mouse
 # Non-default: hide the cursor while typing; it reappears on any mouse activity.
 mouse-hide-while-typing = true
 
 # Interface
-# Non-default: start fresh each launch. Herdr keeps pane processes running across
-# detach or closing Ghostty. After a server restart or reboot, it restores the
-# saved layout and can relaunch eligible agent conversations, not the old processes.
+# Non-default: ephemeral by design -- start fresh each launch. Session
+# persistence (surviving detach/close/reboot) is delegated to Herdr, not Ghostty.
 window-save-state = never
 
 # Shell
