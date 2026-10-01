@@ -1,111 +1,67 @@
 #!/usr/bin/env zsh
-# Stages a gecko_based_browser_bookmarks_*.secret.jsonlz4 snapshot (produced by
-# extract_gecko_based_browser_bookmarks.zsh) into Floorp's bookmarkbackups folder
-# so it can be restored from the GUI.
-#
-# Unlike Chromium-based browsers, Firefox-family browsers keep bookmarks inside
-# places.sqlite (shared with history) rather than a swappable flat file, so this
-# script cannot fully automate the restore. After it runs, finish manually in
-# Floorp: Bookmarks → Manage Bookmarks → Import and Backup → Restore →
-# Choose File... → the reported backup → confirm.
-# Identical backups are reused; Floorp is relaunched only if it was running.
-#
-# Usage: restore_gecko_based_browser_bookmarks.zsh [SOURCE_FILE|SOURCE_DIR]
-#   SOURCE_FILE: a specific gecko_based_browser_bookmarks_*.secret.jsonlz4 snapshot.
-#   SOURCE_DIR:  newest snapshot by filename timestamp (default: $PWD).
+# Select an existing snapshot for manual restoration in configured Gecko browsers.
+# No bookmark-content validation, browser shutdown, or profile-directory writes.
 
+emulate -LR zsh
 setopt errexit nounset pipefail
+source "${0:A:h}/gecko_browsers.zsh"
 
-SOURCE="${1:-$PWD}"
-
-if [[ -f "$SOURCE" ]]; then
-	SOURCE_FILE="$SOURCE"
-elif [[ -d "$SOURCE" ]]; then
-	typeset -a SNAPSHOT_FILES=("$SOURCE"/gecko_based_browser_bookmarks_*.secret.jsonlz4(NOn[1]))
-	(( ${#SNAPSHOT_FILES} > 0 )) || { print "Error: no snapshot files found in $SOURCE"; exit 1 }
-
-	SOURCE_FILE="${SNAPSHOT_FILES[1]}"
-else
-	print "Error: source not found: $SOURCE"
-	exit 1
-fi
-
-[[ -s "$SOURCE_FILE" ]] || { print "Error: source file is empty: $SOURCE_FILE"; exit 1 }
-
-MAGIC=$(head -c 8 -- "$SOURCE_FILE")
-[[ "$MAGIC" == $'mozLz40\0' ]] \
-	|| { print -u2 "Error: not a mozLz40 bookmarks backup: $SOURCE_FILE"; exit 1 }
-
-INSTALLS_INI="$HOME/Library/Application Support/Floorp/installs.ini"
-PROFILES_INI="$HOME/Library/Application Support/Floorp/profiles.ini"
-FLOORP_ROOT="$HOME/Library/Application Support/Floorp"
-
-typeset PROFILE_REL=""
-if [[ -f "$INSTALLS_INI" ]]; then
-	PROFILE_REL=$(awk -F= '/^Default=/{print $2; exit}' "$INSTALLS_INI")
-fi
-
-if [[ -z "$PROFILE_REL" && -f "$PROFILES_INI" ]]; then
-	PROFILE_REL=$(awk '
-		/^\[/ {
-			if (isdefault && path != "") defpath = path
-			path = ""; isdefault = 0; next
-		}
-		/^Path=/ { sub(/^Path=/, ""); path = $0; next }
-		/^Default=1/ { isdefault = 1; next }
-		END { if (isdefault && path != "") defpath = path; print defpath }
-	' "$PROFILES_INI")
-fi
-
-[[ -n "$PROFILE_REL" ]] || { print -u2 "Floorp default profile not found. Launch Floorp once, then rerun this helper."; exit 1 }
-
-PROFILE_DIR="$FLOORP_ROOT/$PROFILE_REL"
-[[ $PROFILE_REL == /* ]] && PROFILE_DIR=$PROFILE_REL
-[[ -d "$PROFILE_DIR" ]] || { print -u2 "Floorp profile not found: $PROFILE_DIR. Launch Floorp once, then rerun this helper."; exit 1 }
-
-BACKUPS_DIR="$PROFILE_DIR/bookmarkbackups"
-mkdir -p "$BACKUPS_DIR"
-
-function restore_reminder() {
-	print -r -- "In Floorp: Bookmarks > Manage Bookmarks > Import and Backup > Restore > Choose File...
-  Select: $1"
+function usage() {
+	print -r -- 'Usage: restore_gecko_based_browser_bookmarks.zsh [SOURCE_FILE|SOURCE_DIR]
+  -h, --help  Show help
+The source defaults to the script directory. Directories select the newest raw
+snapshot by filename timestamp/collision counter. An explicit file selects that
+exact copy and may have any name. Relative paths use the current directory.
+This helper only reports the file to select in the browser GUI. It does not
+restore bookmarks itself or copy files into the managed bookmarkbackups folder.
+GUI restoration replaces existing bookmarks rather than merging them.'
 }
 
-for BACKUP in "$BACKUPS_DIR"/bookmarks-*.jsonlz4(N); do
-	if cmp -s "$SOURCE_FILE" "$BACKUP"; then
-		print "Identical Floorp backup already present: $BACKUP"
-		restore_reminder "$BACKUP"
-		exit 0
+function fail() {
+	print -ru2 -- "Error: $*"
+	return 1
+}
+
+# Return an absolute path in REPLY. Directory selection accepts only raw snapshot
+# names, with an optional six-digit collision counter, never e.g. *_sorted.*.
+function select_snapshot() {
+	local source=$1 family=$2 extension=$3 candidate pattern
+	local -x LC_ALL=C
+	local -a candidates
+	REPLY=""
+	if [[ -f $source ]]; then
+		REPLY=${source:A}
+	elif [[ -d $source ]]; then
+		pattern="^${family}_based_browser_bookmarks_[0-9]{8}_[0-9]{6}(_[0-9]{6})?\\.secret\\.${extension}$"
+		candidates=("$source"/${family}_based_browser_bookmarks_*.secret.${extension}(NOn.))
+		for candidate in "${candidates[@]}"; do
+			if [[ ${candidate:t} =~ $pattern ]]; then
+				REPLY=${candidate:A}
+				break
+			fi
+		done
+		[[ -n $REPLY ]] || { fail "no snapshots found in $source"; return 1; }
+	else
+		fail "source not found: $source"
+		return 1
 	fi
-done
+	[[ -r $REPLY && -s $REPLY ]] || { fail "source is unreadable or empty: $REPLY"; return 1; }
+}
 
-typeset -i WAS_RUNNING=0
-if pgrep -x floorp >/dev/null; then
-	WAS_RUNNING=1
-	print "Quitting Floorp…"
-	osascript -e 'quit app "Floorp"' >/dev/null
-
-	typeset -i WAITED=0
-	while pgrep -x floorp >/dev/null; do
-		(( WAITED >= 10 )) && { print "Error: Floorp did not quit in time."; exit 1 }
-		sleep 1
-		(( WAITED += 1 ))
-	done
+SOURCE=${0:A:h}
+if (( $# )); then
+	case $1 in
+		-h|--help) usage; exit 0 ;;
+		--) shift ;;
+		-*) fail "unknown option: $1"; exit 1 ;;
+	esac
+	(( $# == 1 )) || { fail 'expected one source file or directory'; exit 1; }
+	SOURCE=$1
 fi
-
-TEMP=""
-trap '[[ -z $TEMP ]] || rm -f -- "$TEMP"; if (( WAS_RUNNING )); then open -a Floorp; fi' EXIT
-TODAY=$(date '+%Y-%m-%d')
-DEST="$BACKUPS_DIR/bookmarks-$TODAY.jsonlz4"
-typeset -i SUFFIX=2
-while [[ -e "$DEST" ]]; do
-	DEST="$BACKUPS_DIR/bookmarks-${TODAY}_${SUFFIX}.jsonlz4"
-	(( SUFFIX += 1 ))
-done
-
-TEMP=$(mktemp "$BACKUPS_DIR/.bookmarks.restore.XXXXXX")
-cp -- "$SOURCE_FILE" "$TEMP"
-cmp -s "$SOURCE_FILE" "$TEMP" || { print -u2 "Error: copy verification failed."; exit 1 }
-mv -- "$TEMP" "$DEST"
-print "Staged: $SOURCE_FILE -> $DEST"
-restore_reminder "$DEST"
+select_snapshot "$SOURCE" gecko jsonlz4
+print -r -- "Snapshot selected (manual restore required): $REPLY"
+typeset -a BROWSER_NAMES
+for KEY in "${GECKO_BROWSERS[@]}"; do BROWSER_NAMES+=("${GECKO_BROWSER_NAMES[$KEY]}"); done
+print -r -- "In a configured Gecko browser (${(j:, :)BROWSER_NAMES}): Bookmarks > Manage Bookmarks > Import and Backup > Restore > Choose File…
+  Select: $REPLY
+  Confirm replacement of the current bookmarks."
