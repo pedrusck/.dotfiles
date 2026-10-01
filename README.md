@@ -153,6 +153,28 @@ installing the Brewfile packages. Ultimate ownertrust is applied to those keys
 for subsequent GPG use; git-crypt decryption itself does not require it, so
 public keys in the same directory are left untrusted.
 
+Before installing packages or running tool setups, bootstrap also validates the
+effective Git filters and secret-file attributes, checks for ciphertext left in
+working files, and verifies decryption/re-encryption through Git. These checks run
+on every invocation, even when the repository's local key already exists. Local
+plaintext edits are allowed and are preserved by validation.
+
+If a secret Zsh script produces a parse error on line 1, check whether its working
+copy still contains git-crypt ciphertext. A key file alone does not establish that
+the working tree is decrypted, and `git-crypt status -e` reports encryption in Git,
+not whether applications can read the working files. Do not stage ciphertext from
+an already-unlocked working tree: the clean filter would encrypt it again.
+
+For a working file confirmed to be an exact copy of its encrypted index blob,
+restore its decrypted contents with the configured Git filters:
+
+```sh
+git restore --worktree -- path/to/file.secret.zsh
+```
+
+Use only the verified paths: restore replaces working contents with the indexed
+version. Repair missing or broken filter configuration before restoring files.
+
 Greetings from the past
 
 ## for Raspberry Pi

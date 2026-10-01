@@ -199,6 +199,66 @@ function repository_is_locked() {
 	[[ ! -f $git_directory/git-crypt/keys/default ]]
 }
 
+function validate_git_crypt() {
+	local setting value files_output secret_file header attributes_output
+	local probe_file="" index_hash decrypted_hash roundtrip_hash
+	local validation_failed=0
+	local -a attributes
+
+	# A key can survive a failed unlock or a checkout that bypassed the filters.
+	# Check the effective configuration, including overrides outside .git/config.
+	for setting in filter.git-crypt.clean filter.git-crypt.smudge diff.git-crypt.textconv; do
+		value=$(git -C "$DOTFILES_PATH" config --get "$setting") \
+			&& [[ -n $value ]] || { print_error "Missing git-crypt configuration: $setting"; exit 1; }
+	done
+	value=$(git -C "$DOTFILES_PATH" config --bool --get filter.git-crypt.required) \
+		&& [[ $value == true ]] || { print_error "filter.git-crypt.required must be true."; exit 1; }
+
+	files_output=$(git -C "$DOTFILES_PATH" ls-files --cached --others --exclude-standard --deduplicate -z -- '*.secret' '*.secret.*') \
+		|| { print_error "Cannot list secret files for git-crypt validation."; exit 1; }
+	for secret_file in "${(@0)files_output}"; do
+		[[ -n $secret_file ]] || continue
+		attributes_output=$(git -C "$DOTFILES_PATH" check-attr -z filter -- "$secret_file") \
+			|| { print_error "Cannot check git-crypt attributes: $secret_file"; exit 1; }
+		attributes=( "${(@0)attributes_output}" )
+		[[ ${attributes[3]:-} == git-crypt ]] || {
+			print_error "Secret file is not protected by filter=git-crypt: $secret_file"
+			validation_failed=1
+		}
+		if [[ ! -f $DOTFILES_PATH/$secret_file || ! -r $DOTFILES_PATH/$secret_file || -L $DOTFILES_PATH/$secret_file ]]; then
+			print_error "Secret file must be a readable regular file: $secret_file"
+			validation_failed=1
+			continue
+		fi
+		header=""
+		# Zsh preserves NUL bytes; short (including empty) plaintext files are valid.
+		IFS= read -r -u 0 -k 10 header < "$DOTFILES_PATH/$secret_file" || true
+		if [[ $header == $'\0GITCRYPT\0' ]]; then
+			print_error "Working file is still encrypted: $secret_file"
+			validation_failed=1
+		fi
+		if [[ -z $probe_file ]] && index_hash=$(git -C "$DOTFILES_PATH" rev-parse --verify ":$secret_file" 2>/dev/null); then
+			probe_file=$secret_file
+		fi
+	done
+	(( validation_failed == 0 )) || {
+		print_error "Repair the reported git-crypt state before rerunning bootstrap (README.md, Encrypted files)."
+		exit 1
+	}
+	[[ -n $probe_file ]] || { print_error "No tracked secret file available to verify git-crypt filters."; exit 1; }
+
+	# Exercise Git's actual smudge and clean filters, without writing objects or
+	# touching the index/working files. Pass-through filters must not count as success.
+	decrypted_hash=$(git -C "$DOTFILES_PATH" cat-file --filters ":$probe_file" \
+		| git -C "$DOTFILES_PATH" hash-object --no-filters --stdin) \
+		|| { print_error "git-crypt decryption filter failed."; exit 1; }
+	roundtrip_hash=$(git -C "$DOTFILES_PATH" cat-file --filters ":$probe_file" \
+		| git -C "$DOTFILES_PATH" hash-object --path="$probe_file" --stdin) \
+		|| { print_error "git-crypt encryption filter failed."; exit 1; }
+	[[ $decrypted_hash != $index_hash && $roundtrip_hash == $index_hash ]] \
+		|| { print_error "git-crypt filters did not decrypt and re-encrypt the indexed secret correctly."; exit 1; }
+}
+
 function unlock_git_crypt() {
 	if repository_is_locked; then
 		print_information "Unlocking git-crypt encrypted files"
@@ -206,9 +266,9 @@ function unlock_git_crypt() {
 			print_error "git-crypt unlock failed; check that --key-dir contains the repository's private key."
 			exit 1
 		}
-	else
-		print_information "Repository already unlocked"
 	fi
+	validate_git_crypt
+	print_information "Repository unlocked; git-crypt filters and secret working files verified"
 }
 
 function install_packages() {
