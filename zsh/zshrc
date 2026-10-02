@@ -232,83 +232,6 @@ ZSH_AUTOSUGGEST_STRATEGY=(history completion match_prev_cmd)
 
 ## Initializations
 
-# NVM initialization (faster nvm lazy initialization)
-# from: https://stackoverflow.com/a/47017363
-#lazy_nvm_load() {
-#	unset -f nvm node npm
-#
-#	export NVM_DIR="$HOME/.nvm"
-#	# Detect Nix vs Homebrew path for nvm
-#	local nvm_script="/run/current-system/sw/opt/nvm/nvm.sh"
-#	[[ ! -s "$nvm_script" ]] && nvm_script="/opt/homebrew/opt/nvm/nvm.sh"
-#	[[ -s "$nvm_script" ]] && \. "$nvm_script"
-#}
-#
-#nvm() {
-#	lazy_nvm_load
-#	nvm $@
-#}
-#
-#node() {
-#	lazy_nvm_load
-#	node $@
-#}
-#
-#npm() {
-#	lazy_nvm_load
-#	npm $@
-#}
-
-# Pyenv initialization
-# web: https://github.com/pyenv/pyenv
-#if (( $+commands[pyenv] )); then
-#	function() {
-#		export PYENV_ROOT="$HOME/.pyenv"
-#		# Detect Nix vs Homebrew path for pyenv
-#		local pyenv_path="${HOMEBREW_PREFIX:-/run/current-system/sw}/opt/pyenv"
-#		[[ -d "$pyenv_path/bin" ]] && PATH="$PATH:$pyenv_path/bin"
-#		[[ -d "$PYENV_ROOT/shims" ]] && PATH="$PATH:$PYENV_ROOT/shims"
-#	}
-#
-#	function pyenv() {
-#		unset -f pyenv
-#
-#		# Pyenv initialization avoiding rehash
-#		# from: https://github.com/pyenv/pyenv/issues/2918#issuecomment-2161707549
-#		eval "$(pyenv init - --no-rehash zsh)"
-#
-#		pyenv $@
-#	}
-#else
-#	echo "pyenv binary not available"
-#fi
-
-# Rbenv initialization (lazy-loaded)
-# from: https://github.com/rbenv/rbenv
-#if (( $+commands[rbenv] )); then
-#	function rbenv() {
-#		unset -f rbenv
-#		eval "$(rbenv init - zsh)"
-#		rbenv $@
-#	}
-#else
-#	echo "rbenv binary not available"
-#fi
-
-# Java (OpenJDK) initialization
-# After installing with Homebrew symlinks for the system Java wrappers should be created to find the JDK (see Homebrew info `brew info openjdk`)
-# sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
-# if (( $+commands[java] )); then
-# 	function() {
-# 		local readonly JAVA_HOMEBREW_PATH="$HOMEBREW_PREFIX/opt/openjdk"
-#
-# 		export JAVA_HOME="`/usr/libexec/java_home`" # Non-standard syntax, accepted by bash
-# 		[[ -d $JAVA_HOMEBREW_PATH ]] && PATH="$PATH:$JAVA_HOMEBREW_PATH/bin"
-# 	}
-# else
-# 	echo "java binary not available"
-# fi
-
 # Swift Version Manager
 #if (( $+commands[swiftenv] )); then
 #	eval "$(swiftenv init -)"
@@ -322,6 +245,9 @@ export GHCUP_USE_XDG_DIRS="true"
 
 # Add rumdl completions
 (( $+commands[rumdl] )) && source <(rumdl completions zsh) || echo "No rumdl installed"
+
+# Add Docker completions
+(( $+commands[docker] )) && source <(docker completion zsh) || echo "No docker installed"
 
 # Add SourceKit-LSP (Swift LSP) from the active Xcode toolchain to PATH
 if (( $+commands[xcode-select] )); then
@@ -394,29 +320,6 @@ zstyle ':completion:*' matcher-list ''							\
 	'm:{a-z\-}={A-Z\_}'											\
 	'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}'	\
 	'r:|?=** m:{a-z\-}={A-Z\_}'
-
-# # basic file preview for ls (you can replace with something more sophisticated than head)
-# zstyle ':completion::*:ls::*' fzf-completion-opts --preview='eval head {1}'
-#
-# # preview when completing env vars (note: only works for exported variables)
-# # eval twice, first to unescape the string, second to expand the $variable
-# zstyle ':completion::*:(-command-|-parameter-|-brace-parameter-|export|unset|expand):*' fzf-completion-opts --preview='eval eval echo {1}'
-#
-# # preview a `git status` when completing git add
-# zstyle ':completion::*:git::git,add,*' fzf-completion-opts --preview='git -c color.status=always status --short'
-#
-# # if other subcommand to git is given, show a git diff or git log
-# zstyle ':completion::*:git::*,[a-z]*' fzf-completion-opts --preview='
-# eval set -- {+1}
-# for arg in "$@"; do
-#     { git diff --color=always -- "$arg" | git log --color=always "$arg" } 2>/dev/null
-# done'
-
-# # only for git
-# zstyle ':completion:*:*:git:*' fzf-search-display true
-# # or for everything
-# zstyle ':completion:*' fzf-search-display true
-
 
 # Debug Zsh Boot
 if [[ -n $ZSHRC_DEBUG ]]; then
