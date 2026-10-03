@@ -1,0 +1,31 @@
+#!/usr/bin/env zsh
+
+emulate -L zsh
+
+# Based on:
+# https://morgan.cugerone.com/blog/how-to-use-git-worktree-and-in-a-clean-way/
+# https://morgan.cugerone.com/blog/workarounds-to-git-worktree-using-bare-repository-and-cannot-fetch-remote-branches/
+
+# Usage: git_clone_worktrees <repository> [directory-name]
+# Clones into <directory-name>.worktrees/.bare (defaults to the repository name).
+if (( $# < 1 || $# > 2 )) || [[ -z $1 ]] || { (( $# == 2 )) && [[ -z $2 ]]; }; then
+	print -ru2 -- 'Usage: git_clone_worktrees <repository> [directory-name]'
+	return 1
+fi
+
+local repository_url=$1
+local repository_basename=${${repository_url%/}##*/}
+local repository_name=${2:-${repository_basename%.git}}
+[[ -n $repository_name ]] || { print -ru2 -- 'Error: repository name cannot be empty'; return 1; }
+local repository_directory="${repository_name}.worktrees"
+
+command mkdir -- "$repository_directory" || return $?
+print -r -- 'Directory created'
+
+command git clone --bare -- "$repository_url" "$repository_directory/.bare" || return $?
+print -r -- 'gitdir: ./.bare' > "$repository_directory/.git" || return $?
+command git -C "$repository_directory" config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*' || return $?
+print -r -- 'Repository cloned'
+
+command git -C "$repository_directory" fetch origin || return $?
+print -r -- 'Repository branches fetched'

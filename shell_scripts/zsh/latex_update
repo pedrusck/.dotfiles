@@ -1,11 +1,14 @@
 #!/usr/bin/env zsh
 
-(( $+commands[tlmgr] )) || echo "TeX Live Manager not installed"; exit 1
+emulate -L zsh
+
+(( $# == 0 )) || { print -ru2 -- 'Usage: latex_update'; return 1; }
+(( $+commands[tlmgr] )) || { print -ru2 -- 'TeX Live Manager not installed'; return 1 }
 
 # Update TeX Live Manager
-sudo tlmgr update --self
+command sudo tlmgr update --self || return $?
 
 # Update all packages reinstalling corrupted ones
-sudo tlmgr update --all --reinstall-forcibly-removed
+command sudo tlmgr update --all --reinstall-forcibly-removed || return $?
 
-sudo tlmgr backup --clean --all
+command sudo tlmgr backup --clean --all

@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+
+emulate -L zsh
+
+(( $# == 0 )) || { print -ru2 -- 'Usage: teams_clean_cache'; return 1; }
+
+command rm -r -- "$HOME/Library/Application Support/Microsoft/Teams" || return $?
+print -r -- 'MS Teams cache removed'

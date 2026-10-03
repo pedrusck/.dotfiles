@@ -1,0 +1,21 @@
+#!/usr/bin/env zsh
+
+emulate -L zsh
+setopt pipefail
+
+(( $# == 0 )) || { print -ru2 -- 'Usage: git_multiple_pull'; return 1; }
+
+local git_path
+local result=0
+print -r -- 'Pulling in latest changes for all repositories...'
+
+# Zsh runs the final pipeline component in this shell, retaining the local result.
+# Prune metadata directories, but include .git files used by linked worktrees.
+command find . -name .git \( -type d -o -type f \) -print0 -prune |
+	while IFS= read -r -d '' git_path; do
+		print -r -- "${git_path:h}"
+		command git -C "${git_path:h}" pull || result=1
+	done || return $?
+
+(( result == 0 )) || return "$result"
+print -r -- 'Complete!'

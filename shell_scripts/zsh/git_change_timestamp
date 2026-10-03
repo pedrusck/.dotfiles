@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+emulate -L zsh
+
+if (( $# != 1 )) || [[ -z $1 ]]; then
+	print -ru2 -- 'Usage: git_change_timestamp <timestamp (YYYY-MM-DD HH:MM:SS [+HHMM])>'
+	return 1
+fi
+
+# Git validates the date syntax; both identities receive the same timestamp.
+GIT_AUTHOR_DATE="$1" GIT_COMMITTER_DATE="$1" \
+	command git commit --amend --no-edit --date "$1"

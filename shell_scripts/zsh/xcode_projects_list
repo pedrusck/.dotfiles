@@ -1,37 +1,35 @@
 #!/usr/bin/env zsh
 
-setopt errexit nounset pipefail
+emulate -L zsh
+setopt pipefail
 
-declare -a PROJECTS=()
+(( $# <= 1 )) || { print -ru2 -- 'Usage: xcode_projects_list [name-pattern]'; return 1; }
 
-function XcodeProjectsInCurrentDirectory() {
-	TEMP_FILE=$(mktemp)
-	SEARCH_PATTERN="*${1}*.xcodeproj"
-	find . -iname "$SEARCH_PATTERN" -type d -print0 | sort -z > "$TEMP_FILE"
-	while IFS=  read -r -d $'\0'; do
-		PROJECTS+=("$REPLY")
-	done <"$TEMP_FILE"
-	rm -f "$TEMP_FILE"
-}
+local -a projects=()
+local project search_pattern="*${1-}*.xcodeproj" REPLY
 
-function ListProjects() {
-	echo "Collecting .xcodeproj..."
-	XcodeProjectsInCurrentDirectory "$1"
-	if [ "${#PROJECTS[@]}" -eq 0 ]; then
-		echo "The project not found."
-		exit 0
-	elif [ "${#PROJECTS[@]}" -eq 1 ]; then
-		echo "Opening ${PROJECTS[0]}..."
-		xed "${PROJECTS[0]}"
-	else
-		echo "Please select a project:"
-		select d in "${PROJECTS[@]}"; do test -n "$d" && break; echo ">>> Invalid Selection"; done
-		echo "Opening ${d}..."
-		xed "$d"
-	fi
-}
+print -r -- 'Collecting .xcodeproj...'
+# Zsh retains the array built by the final pipeline component in this function.
+command find . -iname "$search_pattern" -type d -print0 | command sort -z |
+	while IFS= read -r -d '' project; do
+		projects+=("$project")
+	done || return $?
 
-ListProjects "${1-}"
+if (( $#projects == 0 )); then
+	print -r -- 'The project not found.'
+	return 0
+elif (( $#projects == 1 )); then
+	project=$projects[1]
+else
+	print -r -- 'Please select a project:'
+	project=''
+	select project in "${projects[@]}"; do
+		[[ -n $project ]] && break
+		print -r -- '>>> Invalid Selection'
+	done
+	# EOF cancels selection without opening an empty path.
+	[[ -n $project ]] || return 1
+fi
 
-unset XcodeProjectsInCurrentDirectory;
-unset ListProjects;
+print -r -- "Opening $project..."
+command xed "$project"
