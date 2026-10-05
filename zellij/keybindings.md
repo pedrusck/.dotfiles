@@ -15,22 +15,22 @@ Pressing `Ctrl+g` enters **Zellij mode**. Every action there is **one-shot**: it
 performs the action and immediately returns to Locked. Panes created this way are
 real Zellij panes, so they **co-persist** in the session.
 
-| Key | Action | Vim parallel |
-|-----|--------|--------------|
-| `s` | Split down | `:split` |
-| `v` | Split right | `:vsplit` |
-| `n` | New pane (auto direction) | — |
-| `h` / `j` / `k` / `l` | Focus pane left / down / up / right | `Ctrl+w h/j/k/l` |
+| Key                   | Action                                    | Vim parallel     |
+| --------------------- | ----------------------------------------- | ---------------- |
+| `s`                   | Split down                                | `:split`         |
+| `v`                   | Split right                               | `:vsplit`        |
+| `n`                   | New pane (auto direction)                 | —                |
+| `h` / `j` / `k` / `l` | Focus pane left / down / up / right       | `Ctrl+w h/j/k/l` |
 | `H` / `J` / `K` / `L` | Move / swap pane left / down / up / right | `Ctrl+w H/J/K/L` |
-| `+` (or `=`) | Increase focused pane size | `Ctrl+w +` |
-| `-` | Decrease focused pane size | `Ctrl+w -` |
-| `x` | Close focused pane | `:close` |
-| `t` | New tab | `:tabnew` |
-| `X` (Shift+x) | Close current tab | `:tabclose` |
-| `]` | Next tab | `gt` |
-| `[` | Previous tab | `gT` |
-| `w` | Session-manager (switch / create / kill) | — |
-| `Esc` / `Ctrl+g` | Exit back to Locked | — |
+| `+` (or `=`)          | Increase focused pane size                | `Ctrl+w +`       |
+| `-`                   | Decrease focused pane size                | `Ctrl+w -`       |
+| `x`                   | Close focused pane                        | `:close`         |
+| `t`                   | New tab                                   | `:tabnew`        |
+| `X` (Shift+x)         | Close current tab                         | `:tabclose`      |
+| `]`                   | Next tab                                  | `gt`             |
+| `[`                   | Previous tab                              | `gT`             |
+| `w`                   | Session-manager (switch / create / kill)  | —                |
+| `Esc` / `Ctrl+g`      | Exit back to Locked                       | —                |
 
 Tabs are shown in the slim compact-bar at the bottom, so you can see which tab is
 active. Tab actions are one-shot too: repeat the gateway to switch several tabs,
@@ -48,11 +48,11 @@ There are two cues:
    this single row is the minimal chrome needed to keep the session name visible.
 2. **Pane frame color** — a **rounded frame** whose color marks focus and mode:
 
-| Color | Meaning |
-|-------|---------|
-| **green** `#98971a` (gruvbox green, as in Lazygit) | the focused pane |
-| **gray** `#928374` (gruvbox light gray) | other (unfocused) panes |
-| **orange** `#d65d0e` (gruvbox orange) | shown while **Zellij mode is active** |
+| Color                                              | Meaning                               |
+| -------------------------------------------------- | ------------------------------------- |
+| **green** `#98971a` (gruvbox green, as in Lazygit) | the focused pane                      |
+| **gray** `#928374` (gruvbox light gray)            | other (unfocused) panes               |
+| **orange** `#d65d0e` (gruvbox orange)              | shown while **Zellij mode is active** |
 
 So when you press `Ctrl+g` the border turns orange (you're in the mode); after a
 one-shot action it returns to green. With multiple panes, the green border marks
@@ -64,13 +64,13 @@ compact-bar).
 
 ## Architecture (who owns what)
 
-| Layer | Owner | Mechanism |
-|-------|-------|-----------|
-| OS windows / spaces | Amethyst | `Opt+Cmd` / `Opt+Cmd+Shift` |
-| Non-persistent terminal splits | Ghostty | `Cmd`-based built-ins (see `ghostty/keybindings.md`) |
-| **Co-persisting panes + session persistence** | **Zellij** | `Ctrl+g` mode + CLI aliases |
-| Editor (splits, buffers, files) | Neovim | `<leader>` + `Ctrl` |
-| European characters | EurKEY | `Opt+key` |
+| Layer                                         | Owner      | Mechanism                                            |
+| --------------------------------------------- | ---------- | ---------------------------------------------------- |
+| OS windows / spaces                           | Amethyst   | `Opt+Cmd` / `Opt+Cmd+Shift`                          |
+| Non-persistent terminal splits                | Ghostty    | `Cmd`-based built-ins (see `ghostty/keybindings.md`) |
+| **Co-persisting panes + session persistence** | **Zellij** | `Ctrl+g` mode + CLI commands                         |
+| Editor (splits, buffers, files)               | Neovim     | `<leader>` + `Ctrl`                                  |
+| European characters                           | EurKEY     | `Opt+key`                                            |
 
 Note there are two ways to split: **Ghostty splits** are independent shells that
 do *not* co-persist; **Zellij panes** (`Ctrl+g s` / `v` / `n`) co-persist in the
@@ -78,36 +78,38 @@ session. Use Zellij panes when you want them to survive detach/reattach.
 
 ## Session control (CLI)
 
-Shell aliases defined in `zsh/zsh_aliases`:
+Use the Zellij CLI directly; `zsh/zshrc` configures Herdr aliases for session
+control.
 
-| Alias | Command | What it does |
-|-------|---------|--------------|
-| `za <name>` | `zellij attach -c <name>` | Attach to a session, creating it if missing |
-| `zai` | `zellij_attach_interactive` | Interactively pick an existing session to attach to |
-| `zl` | `zellij list-sessions` | List active sessions |
-| `zd` | `zellij action detach` | Detach from the current session |
-| `zk <name>` | `zellij kill-session <name>` | Kill a named session |
-| `zka` | `zellij kill-all-sessions` | Kill every session |
+| Command                      | What it does                                |
+| ---------------------------- | ------------------------------------------- |
+| `zellij attach -c <name>`    | Attach to a session, creating it if missing |
+| `zellij list-sessions`       | List active sessions                        |
+| `zellij action detach`       | Detach from the current session             |
+| `zellij kill-session <name>` | Kill a named session                        |
+| `zellij kill-all-sessions`   | Kill every session                          |
 
 ### Typical workflow
 
 ```sh
-za main              # start (or resume) the "main" session
+zellij attach -c main # start (or resume) the "main" session
 Ctrl+g v             # split right -> a second co-persisting pane
 Ctrl+g l / Ctrl+g h  # focus between panes
-zd                   # detach — all panes keep running in the background
+zellij action detach # detach — all panes keep running in the background
 # close the Ghostty window, reboot the GUI, etc.
-za main              # reattach later; every pane is exactly as you left it
+zellij attach -c main # reattach later; every pane is exactly as you left it
 Ctrl+g w             # any time: fuzzy switch / create / kill sessions
 ```
 
-Sessions are started explicitly with `za` (no auto-attach on shell start).
+Sessions are started explicitly with `zellij attach -c` (no auto-attach on shell
+start).
 
-`zai` is the out-of-session counterpart to the in-session `Ctrl+g w` gateway: run
-it from a plain shell to fuzzy-pick (skim, falling back to a builtin `select`
-menu) one of the existing sessions and attach. It only *selects* — create
-sessions with `za <name>`. It refuses to run inside a session (detach with `zd`
-first) and prints a hint when no sessions exist yet.
+The optional `zellij_attach_interactive` helper is the out-of-session counterpart
+to the in-session `Ctrl+g w` gateway. Load it with
+`autoload -Uz zellij_attach_interactive`, then run it to fuzzy-pick (skim, falling
+back to a builtin `select` menu) an existing session. It only *selects* — create
+sessions with `zellij attach -c <name>`. Detach before using it; it refuses to run
+inside a session and prints a hint when no sessions exist yet.
 
 ## Configuration files
 
