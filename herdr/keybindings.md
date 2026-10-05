@@ -283,8 +283,9 @@ throwaway side-by-side views.
   session reference has been reported.
 
   The development bootstrap runs `claude_code/setup.sh`, `opencode/setup.sh`, and
-  `pi_coding_agent/setup.sh` before `herdr/setup.sh`. Each agent setup prepares its
-  config directory, then installs its bundled integration if Herdr is available.
+  `pi_coding_agent/setup.sh` before `herdr/setup.sh`. Each agent setup prepares
+  its config directory, then installs its bundled integration if Herdr is
+  available.
   Installation failures propagate; missing Herdr prints a message to rerun setup.
   To apply manually, run from the repository root:
 
@@ -330,7 +331,7 @@ throwaway side-by-side views.
 
 ## Session control (CLI)
 
-Shell aliases defined in `zsh/zsh_aliases` (all guarded by `herdr` being
+Shell aliases defined in `zsh/zshrc` (all guarded by `herdr` being
 installed):
 
 | Alias       | Command                       | What it does                                       |
