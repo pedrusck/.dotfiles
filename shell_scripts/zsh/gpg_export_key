@@ -15,10 +15,9 @@
 # Exporting the private key needs its passphrase, so gpg may open a pinentry
 # prompt. Gpg itself creates the private key file with `600` permissions.
 #
-# Autoloaded as a zsh function (see `custom_functions_to_load` in `zsh/zshrc`), so
-# it runs in the current shell: it must use `return`, never `exit`, and must not
-# set `errexit`/`nounset`, which would abort the interactive shell on failure.
-setopt local_options pipefail
+# Autoloaded by zsh/zshrc; options and temporary state stay local to this call.
+emulate -L zsh
+setopt pipefail
 
 (( $+commands[gpg] )) || { print -ru2 -- "Error: gpg is required but not installed"; return 1 }
 

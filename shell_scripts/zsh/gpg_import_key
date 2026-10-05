@@ -11,10 +11,9 @@
 # one cannot leave the keyring half-populated. Importing the private key needs
 # its passphrase, so gpg may open a pinentry prompt (hence no `--batch`).
 #
-# Autoloaded as a zsh function (see `custom_functions_to_load` in `zsh/zshrc`), so
-# it runs in the current shell: it must use `return`, never `exit`, and must not
-# set `errexit`/`nounset`, which would abort the interactive shell on failure.
-setopt local_options pipefail
+# Autoloaded by zsh/zshrc; options and temporary state stay local to this call.
+emulate -L zsh
+setopt pipefail
 
 (( $+commands[gpg] )) || { print -ru2 -- "Error: gpg is required but not installed"; return 1 }
 
@@ -42,7 +41,10 @@ gpg --import "$private_file" \
 # carry an ownertrust value.
 local fingerprints
 fingerprints=$(gpg --show-keys --with-colons "$public_file" \
-	| awk -F: '$1 == "pub" { want = 1; next } $1 == "fpr" && want { print $10; want = 0 }')
+	| awk -F: '$1 == "pub" { want = 1; next } $1 == "fpr" && want { print $10; want = 0 }') || {
+	print -ru2 -- 'Error: failed to read primary key fingerprints'
+	return 1
+}
 
 [[ -n $fingerprints ]] \
 	|| { print -ru2 -- "Error: no primary key fingerprint found in: $public_file"; return 1 }

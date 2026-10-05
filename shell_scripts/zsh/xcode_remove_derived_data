@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+
+emulate -L zsh
+
+(( $# == 0 )) || { print -ru2 -- 'Usage: xcode_remove_derived_data'; return 1; }
+
+command rm -rf -- "$HOME/Library/Developer/Xcode/DerivedData" || return $?
+print -r -- 'Xcode derived data removed'

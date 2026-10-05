@@ -9,10 +9,9 @@
 # it matches nothing, so a typo would otherwise blank the clipboard. An ambiguous
 # KEY_ID is rejected too, as exporting several keys at once is rarely intended.
 #
-# Autoloaded as a zsh function (see `custom_functions_to_load` in `zsh/zshrc`), so
-# it runs in the current shell: it must use `return`, never `exit`, and must not
-# set `errexit`/`nounset`, which would abort the interactive shell on failure.
-setopt local_options pipefail
+# Autoloaded by zsh/zshrc; options and temporary state stay local to this call.
+emulate -L zsh
+setopt pipefail
 
 local dependency
 for dependency in gpg pbcopy; do

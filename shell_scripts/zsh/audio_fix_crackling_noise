@@ -1,0 +1,7 @@
+#!/usr/bin/env zsh
+
+emulate -L zsh
+
+(( $# == 0 )) || { print -ru2 -- 'Usage: audio_fix_crackling_noise'; return 1; }
+
+command sudo killall coreaudiod

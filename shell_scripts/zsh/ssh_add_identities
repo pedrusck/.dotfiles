@@ -1,48 +1,39 @@
 #!/usr/bin/env zsh
 
-# based on https://github.com/ohmyzsh/ohmyzsh/blob/master/plugins/ssh-agent/ssh-agent.plugin.zsh
-local id file line sig lines
-local -a identities loaded_sigs loaded_ids not_loaded
+emulate -L zsh
 
-identities=("$@")
+# Add requested identities, or the default key files, to the macOS SSH agent.
+local id file line sig lines result
+local -a identities=("$@") loaded_sigs=() fields=()
+local -aU not_loaded=()
 
-# check for .ssh directory presence
-if [[ ! -d "$HOME/.ssh" ]]; then
-	return
-fi
-
-# add default keys if no identities were set up via zstyle
-# this is to mimic the call to ssh-add with no identities
-if [[ ${#identities} -eq 0 ]]; then
-	# key list found on `ssh-add` man page's DESCRIPTION section
+if (( $#identities == 0 )); then
 	for id in id_rsa id_dsa id_ecdsa id_ed25519 identity; do
-		# check if file exists
-		[[ -f "$HOME/.ssh/$id" ]] && identities+=($id)
+		[[ -f $HOME/.ssh/$id ]] && identities+=("$id")
 	done
 fi
+(( $#identities )) || return 0
 
-# get list of loaded identities' signatures and filenames
-if lines=$(ssh-add -l); then
-	for line in ${(f)lines}; do
-		loaded_sigs+=${${(z)line}[2]}
-		loaded_ids+=${${(z)line}[3]}
+if lines=$(command ssh-add -l); then
+	for line in "${(@f)lines}"; do
+		fields=(${=line})
+		(( $#fields >= 2 )) && loaded_sigs+=("$fields[2]")
 	done
+else
+	result=$?
+	# ssh-add returns 1 for an empty agent, 2 when it cannot contact the agent.
+	(( result == 1 )) || return "$result"
 fi
 
-# add identities if not already loaded
-for id in $identities; do
-	# if id is an absolute path, make file equal to id
-	[[ "$id" = /* ]] && file="$id" || file="$HOME/.ssh/$id"
-	# check for filename match, otherwise try for signature match
-	if [[ ${loaded_ids[(I)$file]} -le 0 ]]; then
-		sig="$(ssh-keygen -lf "$file" | awk '{print $2}')"
-		[[ ${loaded_sigs[(I)$sig]} -le 0 ]] && not_loaded+=("$file")
-	fi
+for id in "${identities[@]}"; do
+	file=$id
+	[[ $file == /* ]] || file="$HOME/.ssh/$file"
+	line=$(command ssh-keygen -lf "$file") || return $?
+	fields=(${=line})
+	(( $#fields >= 2 )) || { print -ru2 -- "ssh_add_identities: missing fingerprint: $file"; return 1; }
+	sig=$fields[2]
+	(( ${loaded_sigs[(Ie)$sig]} )) || not_loaded+=("$file")
 done
 
-# abort if no identities need to be loaded
-if [[ ${#not_loaded} -eq 0 ]]; then
-return
-fi
-
-ssh-add --apple-use-keychain ${^not_loaded}
+(( $#not_loaded )) || return 0
+command ssh-add --apple-use-keychain "${not_loaded[@]}"
