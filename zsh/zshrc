@@ -1,327 +1,323 @@
-### Zsh configuration file ###
+### Interactive Zsh configuration ###
 
-# Debug Zsh Boot
+[[ -o interactive ]] || return
+
 if [[ -n $ZSHRC_DEBUG ]]; then
 	zmodload zsh/zprof
+	zmodload zsh/datetime
+	typeset -gF _ZSHRC_START=$EPOCHREALTIME
 fi
 
-## Interactive tool configuration
+## Shell options and history
 
-# Preview command shared by FZF and Skim:
-#   - directories: tree (fallback: ls)
-#   - binary files: file
-#   - text files:   bat  (fallback: cat)
-PREVIEW_COMMAND="
-	if [ -d {} ]; then
-		command -v tree >/dev/null && tree -C -L 2 {} || ls -la {}
-	elif file --mime {} | grep -q binary; then
-		file {}
-	else
-		command -v bat >/dev/null && bat --style=numbers --color=always --line-range=:500 {} || cat {}
-	fi
-"
-
-# FZF
-export FZF_DEFAULT_OPTS=" \
-	--bind ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down `#add keybindings`		\
-	--color gutter:-1,selected-bg:238 `#color configuration`								\
-	--highlight-line `#highlight the whole current line`									\
-	--marker ▏ `#multi-select marker`														\
-	--multi `#enable multi-select with tab/shift-tab`										\
-	--pointer ▌ `#pointer to the current line`												\
-	--preview \"$PREVIEW_COMMAND\" `#preview action`										\
-	--prompt '▌ ' `#input prompt`															\
-"
-
-# Skim
-export SKIM_DEFAULT_OPTIONS=" \
-	--bind ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down `#add keybindings`		\
-	--color gutter:-1,selected-bg:238 `#color configuration`								\
-	--highlight-line `#highlight the whole current line`									\
-	--multi `#enable multi-select with tab/shift-tab`										\
-	--multi-selector ▏ `#multi-select marker`												\
-	--preview \"$PREVIEW_COMMAND\" `#preview action`										\
-	--prompt '▌ ' `#input prompt`															\
-	--selector ▌ `#pointer to the current line`												\
-"
-
-unset PREVIEW_COMMAND
-
-## Zsh options
-
-# Enable extended globbing feature (required by compinit cache check glob qualifier #qN.mh+24)
 setopt EXTENDED_GLOB
+typeset -U path fpath
+_zsh_config_dir=${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}
 
-autoload -Uz compinit
+HISTFILE=$_zsh_config_dir/.zsh_history
+HISTSIZE=2000
+SAVEHIST=1000
 
-# Build/refresh the completion cache.
-#   - Fast path (compinit -C): skip the freshness scan + compaudit security
-#     check; just load the existing dump. Taken on almost every startup.
-#   - Slow path (compinit): full rescan + compaudit. Taken when the dump is
-#     missing/empty or older than 24h. `touch` bumps the dump mtime so the 24h
-#     guard actually resets -- compinit does NOT rewrite the dump when nothing
-#     changed, which previously pinned every startup to the slow path.
-#   - Recompile to .zwc only when the dump changed (or .zwc is missing).
+## Environment and paths
+
+# SourceKit-LSP fallback: select DEVELOPER_DIR before xcode-select, but retain
+# earlier executables on PATH rather than overriding the whole toolchain.
 () {
-	local zcd=${ZDOTDIR:-$HOME}/.zcompdump
+	local developer_dir=$DEVELOPER_DIR
+	local sourcekit_bin
 
-	if [[ ! -s $zcd || -n $zcd(#qN.mh+24) ]]; then
-		compinit -d "$zcd"
-		[[ -s "$zcd" ]] && touch "$zcd"
-	else
-		compinit -C -d "$zcd"
+	if [[ -z $developer_dir ]] && (( $+commands[xcode-select] )); then
+		developer_dir=$(command xcode-select -p 2>/dev/null) || developer_dir=''
 	fi
-
-	if [[ -s "$zcd" && ( ! -f "$zcd.zwc" || "$zcd" -nt "$zcd.zwc" ) ]]; then
-		zcompile -R "$zcd" 2>/dev/null &!
-	fi
+	[[ $developer_dir == *.app ]] && developer_dir+=/Contents/Developer
+	sourcekit_bin="$developer_dir/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+	[[ -n $developer_dir && -d $sourcekit_bin ]] && path+=("$sourcekit_bin")
 }
 
-# To activate vi mode in Zsh (not needed when using plugin)
-# bindkey -v
-# export KEYTIMEOUT=1
+# Secretive: prefer its socket when available; otherwise retain the native agent.
+() {
+	local socket="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
+	[[ -S $socket ]] && export SSH_AUTH_SOCK="$socket"
+}
 
-# Set Zsh main options (testing)
-# setopt AUTO_PUSHD           # Push the current directory visited on the stack.
-# setopt PUSHD_IGNORE_DUPS    # Do not store duplicates in the stack.
-# setopt PUSHD_SILENT         # Do not print the directory stack after pushd or popd.
+# Custom functions; completion paths otherwise come from the environment/packages.
+[[ -d $_zsh_config_dir/zsh_functions ]] && fpath=("$_zsh_config_dir/zsh_functions" $fpath)
 
-## Custom options
+## Aliases
 
-# Load aliases
-if [[ -f $HOME/.config/zsh/zsh_aliases ]]; then
-	source "$HOME/.config/zsh/zsh_aliases"
+# Navigation:
+alias ..='cd ..'
+alias desktop='cd "$HOME/Desktop"'
+alias downloads='cd "$HOME/Downloads"'
+alias derived_data='cd "$HOME/Library/Developer/Xcode/DerivedData"'
+
+# Listing: ll includes hidden files, lll adds a tree, d sorts newest first.
+if (( $+commands[eza] )); then
+	() {
+		local list='eza -l --git --group-directories-first --icons --no-user'
+		alias l="$list"
+		alias ld="$list --sort=modified -r"
+		alias ll="$list -a"
+		alias lld="$list -a --sort=modified -r"
+		alias lll="$list -aT --level=3"
+		alias llld="$list -aT --level=3 --sort=modified -r"
+	}
 else
-	print "File with Zsh aliases not found in '$HOME/.config/zsh/zsh_aliases'" >&2
+	alias l='ls -FGhl'
+	alias ld='ls -FGhlt'
+	alias ll='ls -aFGhl'
+	alias lld='ls -aFGhlt'
 fi
 
-# Use anonymous function encapsulation only for scoping purposes
-# see: https://stackoverflow.com/a/13670749
-# Load custom functions
+# Applications
+(( $+commands[lazygit] )) && alias lg='lazygit'
+(( $+commands[spotify_player] )) && alias spotify='spotify_player'
+(( $+commands[leaf] )) && alias -s md='leaf'
+
+# Herdr sessions (see herdr/keybindings.md).
+if (( $+commands[herdr] )); then
+	alias hh='herdr'
+	alias ha='herdr session attach'
+	alias hl='herdr session list'
+	alias hs='herdr status'
+	alias hk='herdr server stop' # Stops all panes.
+fi
+
+## Custom functions and scripts
+
+# Explicit allowlist: this directory also contains standalone scripts.
+autoload -Uz \
+	audio_fix_crackling_noise \
+	git_change_author git_change_timestamp git_clone_worktrees git_multiple_pull \
+	gpg_copy_key gpg_export_key gpg_import_key \
+	latex_update opencode_update_provider_models ssh_add_identities \
+	teams_clean_cache xcode_projects_list xcode_remove_derived_data
+
+## Completions
+
+# Progressive matching: exact, smart case, word-flex, then full-flex.
+zstyle ':completion:*' matcher-list '' \
+	'm:{a-z\-}={A-Z\_}' \
+	'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}' \
+	'r:|?=** m:{a-z\-}={A-Z\_}'
+
 () {
-	# Add directories with custom functions
-	if [[ -d "$HOME/.config/zsh/bash_functions" ]] && (( $+commands[bash] )); then
-		fpath=("$HOME/.config/zsh/bash_functions" $fpath)
-	else
-		print "File with custom Bash functions not found in '$HOME/.config/zsh/bash_functions/' or Bash not available in the system" >&2
+	autoload -Uz compinit
+	local cache_dir=${XDG_CACHE_HOME:-$HOME/.cache}/zsh
+	local dump="$cache_dir/zcompdump-$ZSH_VERSION"
+
+	if ! { [[ -d $cache_dir ]] || command mkdir -p -- "$cache_dir"; } || [[ ! -w $cache_dir ]]; then
+		compinit -i -D
+		return
 	fi
-
-	if [[ -d "$HOME/.config/zsh/zsh_functions" ]]; then
-		fpath=("$HOME/.config/zsh/zsh_functions" $fpath)
-	else
-		print "File with custom Zsh functions not found in '$HOME/.config/zsh/zsh_functions/'" >&2
-	fi
-
-	local custom_functions_to_load=(
-		audio_fix_crackling_noise
-		git_change_author
-		git_change_timestamp
-		git_clone_worktrees
-		git_multiple_pull
-		gpg_copy_key
-		gpg_export_key
-		gpg_import_key
-		latex_update
-		opencode_update_provider_models
-		ssh_add_identities
-		ssh_copy_key
-		ssh_generate_key
-		teams_clean_cache
-		xcode_projects_list
-		xcode_remove_derived_data
-	)
-
-	local custom_function
-
-	for custom_function in $custom_functions_to_load; do
-		local is_function_in_fpath=( $^fpath/$custom_function(N) )
-
-		if (( $#is_function_in_fpath )); then
-			autoload -Uz $custom_function
-		else
-			print "warning: $custom_function not found in fpath" >&2
-		fi
-	done
+	# Audit on each startup; -i excludes insecure directories without prompting.
+	compinit -i -d "$dump"
 }
 
-# SSH agent: managed by macOS launchd + ssh config (AddKeysToAgent/UseKeychain)
+## Fuzzy finders
+
+() {
+	# Shared preview: placeholders are shell-quoted by fzf/Skim.
+	local preview='
+		if [ -d {} ]; then
+			if command -v tree >/dev/null 2>&1; then
+				tree -C -L 2 -- {}
+			else
+				ls -la -- {}
+			fi
+		elif [ -f {} ]; then
+			if file --brief --mime-encoding -- {} | grep -qx binary; then
+				file -- {}
+			elif command -v bat >/dev/null 2>&1; then
+				bat --style=numbers --color=always --line-range=:500 -- {}
+			else
+				head -n 500 -- {}
+			fi
+		fi
+	'
+	local common="
+		--bind=ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down
+		--color=gutter:-1,selected-bg:238
+		--highlight-line
+		--multi
+		--prompt='▌ '
+	"
+
+	# fzf: previews apply to file/directory pickers, not history or arbitrary lists.
+	export FZF_DEFAULT_OPTS="
+		$common
+		--marker=▏
+		--pointer=▌
+	"
+	export FZF_CTRL_T_OPTS="--preview \"$preview\""
+	export FZF_ALT_C_OPTS="--preview \"$preview\""
+	export FZF_COMPLETION_PATH_OPTS="--preview \"$preview\""
+	export FZF_COMPLETION_DIR_OPTS="--preview \"$preview\""
+
+	# Skim
+	export SKIM_DEFAULT_OPTIONS="
+		$common
+		--multi-selector=▏
+		--selector=▌
+		--preview \"$preview\"
+	"
+}
+
+## Tool initialization
+
+# For the known integrations below: evaluate successful output in function scope,
+# without routing arguments. Generated persistent declarations must be global.
+function _zsh_eval_init() {
+	local _init_tool=$1 _init_code
+	_init_code=$(command "$@") || {
+		print -ru2 -- "zsh: could not generate $_init_tool initialization"
+		return 1
+	}
+	set --
+	eval "$_init_code" || {
+		print -ru2 -- "zsh: $_init_tool initialization failed"
+		return 1
+	}
+}
+
+# zoxide: use builtin cd to bypass its matching behavior.
+if (( $+commands[zoxide] )); then
+	_zsh_eval_init zoxide init zsh --cmd cd
+fi
+
+# Install mise hooks synchronously; the first-prompt hook prepares the tool
+# environment before typed commands. `zsh -ic command` does not render a prompt.
+if (( $+commands[mise] )); then
+	_zsh_eval_init mise activate zsh
+fi
+
+## Prompt
+
+# Starship
+export STARSHIP_CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/starship/starship.toml"
+if (( $+commands[starship] )) && [[ $TERM_PROGRAM != Apple_Terminal ]]; then
+	_zsh_eval_init starship init zsh
+fi
 
 ## Plugins
 
-# Use anonymous function encapsulation only for scoping purposes
-# see: https://stackoverflow.com/a/13670749
-# Dynamically detects Nix vs Homebrew plugin paths
-() {
-	local nix_sw="/run/current-system/sw"
-	local nix_share="$nix_sw/share"
-	local brew_share="$HOMEBREW_PREFIX/share"
-	local brew_opt="$HOMEBREW_PREFIX/opt"
-
-	# Detect package source: prefer Nix if available, fall back to Homebrew
-	local share opt
-
-	if [[ -d "$nix_share/zsh-autosuggestions" ]]; then
-		share="$nix_share"
-		opt="$nix_sw"
-	elif [[ -n "$HOMEBREW_PREFIX" ]]; then
-		share="$brew_share"
-		opt="$brew_opt"
-	fi
-
-	# Re-sourced by zvm_after_init so fzf's keymap bindings survive zsh-vi-mode's reset
-	typeset -g _ZSH_FZF_KEYBINDINGS="$opt/fzf/shell/key-bindings.zsh"
-
-	typeset -A plugins=(
-		[vi_mode]="$opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh"
-		[fzf_completion]="$opt/fzf/shell/completion.zsh"
-		[fzf_key_bindings]="$opt/fzf/shell/key-bindings.zsh"
-		[autosuggestions]="$share/zsh-autosuggestions/zsh-autosuggestions.zsh"
-		[syntax_highlighting]="$share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-	)
-
-	# Source in a FIXED order (associative-array iteration order is undefined in
-	# zsh). zsh-syntax-highlighting MUST be last so it can wrap every ZLE widget
-	# defined by the preceding plugins; zsh-autosuggestions must come right before it.
-	local key
-	for key in vi_mode fzf_completion fzf_key_bindings autosuggestions syntax_highlighting; do
-		# Plugins that use ZLE (Zsh Line Editor) or blocking `read -k` calls fail
-		# or hang in an interactive shell without a controlling tty (e.g. `zsh -i`
-		# spawned by mise/IDE/agent). Skip them when stdin isn't a terminal.
-		[[ ( $key == fzf_* || $key == vi_mode ) && ! -t 0 ]] && continue
-		[[ -f $plugins[$key] ]] && source "$plugins[$key]" \
-			|| echo "Plugin $key not loaded, file '$plugins[$key]' not found!"
+# Usage: _zsh_source_first plugin_name candidate_path ...
+# Missing plugins are quiet; a broken plugin is reported, without double-loading.
+function _zsh_source_first() {
+	local _source_plugin=$1 _source_candidate
+	local -a _source_candidates=("${@:2}")
+	# Sourced code should not inherit this helper's routing arguments.
+	set --
+	for _source_candidate in "${_source_candidates[@]}"; do
+		[[ -f $_source_candidate && -r $_source_candidate ]] || continue
+		if source "$_source_candidate"; then
+			return 0
+		fi
+		print -ru2 -- "zsh: plugin $_source_plugin failed to load: $_source_candidate"
+		return 1
 	done
+	return 0
 }
 
-## Zsh Plugin configuration
-
-# zsh-vi-mode: always start in insert mode for predictable behavior
+# vi-mode settings and hooks must be defined before the plugin is sourced.
 function zvm_config() {
 	ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
 	ZVM_SYSTEM_CLIPBOARD_ENABLED=true
 }
 
-# Set ctrl + y for accepting the proposed suggestion of autosuggestions (as the vim/nvim default keybinding)
-# Set ctrl + k for browsing history backward
-# Set ctrl + j for browsing history forward
-# Must be set inside zvm_after_init to survive zsh-vi-mode keymap resets
-# see: https://github.com/jeffreytse/zsh-vi-mode#execute-extra-commands
-function zvm_after_init() {
-	# Re-apply fzf's keymap bindings (^R/^T/Alt-C), which zsh-vi-mode resets on
-	# its deferred init. Sourcing key-bindings.zsh again is idempotent.
-	[[ -f $_ZSH_FZF_KEYBINDINGS ]] && source "$_ZSH_FZF_KEYBINDINGS"
-
-	bindkey "^y" autosuggest-accept
-	bindkey "^k" history-search-backward
-	bindkey "^j" history-search-forward
-
-	# fzf's cd-widget is bound to Alt-C (\ec) upstream, but on the EurKEY layout
-	# Option is a character-compose layer (Opt+c => composed char), so Alt-C never
-	# fires. Rebind to Ctrl-G ("go to dir") so it works while leaving Option free
-	# for EurKEY character input. Guarded so it only binds when fzf's key-bindings
-	# were sourced (the widget exists). Ctrl-R / Ctrl-T are already EurKEY-safe.
-	if (( ${+widgets[fzf-cd-widget]} )); then
-		bindkey "^g" fzf-cd-widget
-	fi
+function _zsh_load_fzf_keybindings() {
+	_zsh_source_first fzf_key_bindings \
+		/run/current-system/sw/share/fzf/key-bindings.zsh \
+		"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh}"
 }
 
-# Set color for Zsh autosuggestions
-ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE="20"
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=242"
-ZSH_AUTOSUGGEST_STRATEGY=(history completion match_prev_cmd)
-
-## Initializations
-
-# Swift Version Manager
-#if (( $+commands[swiftenv] )); then
-#	eval "$(swiftenv init -)"
-#fi
-
-# Haskell initialization (set GHCup to use XDG specification folder)
-export GHCUP_USE_XDG_DIRS="true"
-
-# Add zoxide (after `compinit` is called) to make completions to work and change the prefix of the `z` and `zi` command to `cd
-(( $+commands[zoxide] )) && eval "$(zoxide init zsh --cmd cd)" || echo "No zoxide installed"
-
-# Add rumdl completions
-(( $+commands[rumdl] )) && source <(rumdl completions zsh) || echo "No rumdl installed"
-
-# Add Docker completions
-(( $+commands[docker] )) && source <(docker completion zsh) || echo "No docker installed"
-
-# Add SourceKit-LSP (Swift LSP) from the active Xcode toolchain to PATH
-if (( $+commands[xcode-select] )); then
-	sourcekit_bin="$(xcode-select -p 2>/dev/null)/Toolchains/XcodeDefault.xctoolchain/usr/bin"
-	[[ -d "$sourcekit_bin" ]] && PATH="$PATH:$sourcekit_bin"
-	unset sourcekit_bin
-fi
-
-# PostgreSQL binaries (pick the highest installed version)
-function() {
-	local pg_dir
-
-	pg_dir=(/opt/homebrew/opt/postgresql@*(nN[-1]))
-
-	if [[ -n "$pg_dir" && -d "$pg_dir/bin" ]]; then
-		PATH="$PATH:$pg_dir/bin"
-	elif [[ -d /run/current-system/sw/bin ]] && command -v psql &>/dev/null; then
-		: # already in PATH via Nix
-	fi
-}
-
-# Mise
-(( $+commands[mise] )) && eval "$(mise activate zsh)"
-
-## Command history setup
-
-# HISTFILE=$HOME/.zhistory
-# SAVEHIST=1000
-# HISTSIZE=999
-# setopt share_history
-# setopt hist_expire_dups_first
-# setopt hist_ignore_dups
-# setopt hist_verify
-
-# Prompt initialization
-export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
-
-if (( $+commands[starship] )) && [ "$TERM_PROGRAM" != "Apple_Terminal" ]; then
-	eval "$(starship init zsh)"
-fi
-
-# Secretive initialization (only when its agent socket exists; otherwise fall
-# back to the default/native ssh-agent). Mirrors the `Match Exec` guard in
-# ssh/configuration so the shell and ssh_config agree on which agent is
-# authoritative — an unconditional export breaks SSH on machines/profiles
-# without Secretive (e.g. the `core` profile).
-_secretive_sock="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
-[[ -S "$_secretive_sock" ]] && export SSH_AUTH_SOCK="$_secretive_sock"
-unset _secretive_sock
-
-# Swiftly initialization
-# . "$HOME/.swiftly/env.sh"
-
-# Load additional Zsh configuration
-if [[ -d $HOME/.config/zsh/zsh_additional_configuration ]]; then
-	for CONFIGURATION_FILE in $HOME/.config/zsh/zsh_additional_configuration/*; do
-		source "$CONFIGURATION_FILE"
+function _zsh_bind_keys() {
+	local keymap
+	for keymap in emacs viins; do
+		(( ${+widgets[autosuggest-accept]} )) && bindkey -M "$keymap" '^y' autosuggest-accept
+		bindkey -M "$keymap" '^k' history-search-backward
+		bindkey -M "$keymap" '^j' history-search-forward
 	done
-else
-	echo "Directory with additional Zsh configuration not found in '$HOME/.config/zsh/zsh_additional_configuration'"
+	if (( ${+widgets[fzf-cd-widget]} )); then
+		for keymap in emacs viins vicmd; do
+			bindkey -M "$keymap" '^g' fzf-cd-widget
+			# EurKEY needs Option: remove Alt-C only while it belongs to fzf.
+			[[ $(bindkey -M "$keymap" '\ec') == *' fzf-cd-widget' ]] &&
+				bindkey -M "$keymap" -r '\ec'
+		done
+	fi
+	return 0
+}
+
+function zvm_after_init() {
+	_zsh_load_fzf_keybindings
+	_zsh_bind_keys
+}
+
+# vi-mode installs normal-mode bindings lazily on the first Escape.
+function zvm_after_lazy_keybindings() {
+	_zsh_bind_keys
+}
+
+# Autosuggestions: contextual history first, before ordinary history masks it.
+ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
+ZSH_AUTOSUGGEST_STRATEGY=(match_prev_cmd history completion)
+
+# Ordered loading: each plugin prefers Nix, then falls back to Homebrew.
+_zsh_vi_mode_loaded=0
+if [[ -t 0 ]]; then
+	if _zsh_source_first vi_mode \
+		/run/current-system/sw/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh \
+		"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh}" &&
+		(( ${+functions[zvm_init]} )) && [[ $ZVM_INIT_DONE == (true|false) ]]; then
+		_zsh_vi_mode_loaded=1
+	else
+		# A failed source may have registered a partially defined deferred hook.
+		precmd_functions=(${precmd_functions:#zvm_init})
+	fi
+
+	_zsh_source_first fzf_completion \
+		/run/current-system/sw/share/fzf/completion.zsh \
+		"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh}"
+
+	# With vi-mode, zvm_after_init loads bindings after its deferred keymap reset.
+	if (( ! _zsh_vi_mode_loaded )) || [[ $ZVM_INIT_DONE == true ]]; then
+		_zsh_load_fzf_keybindings
+	fi
 fi
 
+_zsh_source_first autosuggestions \
+	/run/current-system/sw/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
+	"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh}"
 
-# 0 -- vanilla completion (abc => abc)
-# 1 -- smart case completion (abc => Abc)
-# 2 -- word flex completion (abc => A-big-Car)
-# 3 -- full flex completion (abc => ABraCadabra)
-# The matcher-list sets up progressive fuzzy matching for completions. Zsh tries each level in order until it finds matches
-zstyle ':completion:*' matcher-list ''							\
-	'm:{a-z\-}={A-Z\_}'											\
-	'r:[^[:alpha:]]||[[:alpha:]]=** r:|=* m:{a-z\-}={A-Z\_}'	\
-	'r:|?=** m:{a-z\-}={A-Z\_}'
+# Keep highlighting last for compatibility with older Zsh widget wrappers.
+_zsh_source_first syntax_highlighting \
+	/run/current-system/sw/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
+	"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh}"
 
-# Debug Zsh Boot
+if [[ -t 0 ]] && { (( ! _zsh_vi_mode_loaded )) || [[ $ZVM_INIT_DONE == true ]]; }; then
+	_zsh_bind_keys
+fi
+unset _zsh_vi_mode_loaded
+
+## Local configuration
+
+_zsh_overrides=$_zsh_config_dir/zsh_additional_configuration
+
+[[ -f $_zsh_overrides/zsh_additional_aliases.secret.zsh && -r $_zsh_overrides/zsh_additional_aliases.secret.zsh ]] &&
+	source "$_zsh_overrides/zsh_additional_aliases.secret.zsh"
+
+[[ -f $_zsh_overrides/zsh_company_configuration.secret.zsh && -r $_zsh_overrides/zsh_company_configuration.secret.zsh ]] &&
+	source "$_zsh_overrides/zsh_company_configuration.secret.zsh"
+
+unset _zsh_overrides _zsh_config_dir
+
+## Profiling end
+
 if [[ -n $ZSHRC_DEBUG ]]; then
+	printf 'zshrc configuration: %.1f ms (excludes first-prompt hooks/rendering)\n' \
+		"$((1000 * (EPOCHREALTIME - _ZSHRC_START)))" >&2
+	unset _ZSHRC_START
 	zprof
 fi

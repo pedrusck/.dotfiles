@@ -2,5 +2,9 @@
 
 ### User's environment variables ###
 
-# Set Zsh config directory
-export ZDOTDIR="$HOME/.config/zsh"
+# XDG_CONFIG_HOME must be supplied before startup, as it is when running setup.
+# Linked in both HOME and ZDOTDIR so child shells also read these exports.
+export ZDOTDIR="${XDG_CONFIG_HOME:-$HOME/.config}/zsh"
+
+# Use XDG directories for GHCup installation and subsequent commands.
+export GHCUP_USE_XDG_DIRS=true
