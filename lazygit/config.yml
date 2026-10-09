@@ -35,10 +35,10 @@ customCommands:
         valueFormat: '{{ .project }}'
         labelFormat: '{{ .project | green }}'
     command: >-
-      SELECTED="{{.Form.XcodeProject}}";
+      SELECTED="{{.Form.XcodeProject}}"
       if [ -z "$SELECTED" ]; then
         SELECTED=$(find . \( -name '*.xcodeproj' -o -name '*.xcworkspace' \) -not -path '*.xcodeproj/*' | grep -v '\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2- | sed 's#^\./##');
-      fi;
+      fi
       if [ -z "$SELECTED" ]; then
         echo "No Xcode project or workspace found";
       else
@@ -71,10 +71,10 @@ customCommands:
         valueFormat: '{{ .project }}'
         labelFormat: '{{ .project | green }}'
     command: >-
-      SELECTED="{{.Form.XcodeProject}}";
+      SELECTED="{{.Form.XcodeProject}}"
       if [ -z "$SELECTED" ]; then
         SELECTED=$(find . \( -name '*.xcodeproj' -o -name '*.xcworkspace' \) -not -path '*.xcodeproj/*' | grep -v '\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2- | sed 's#^\./##');
-      fi;
+      fi
       if [ -z "$SELECTED" ]; then
         echo "No Xcode project or workspace found";
       else
@@ -117,17 +117,17 @@ git:
   parseEmoji: true
   overrideGpg: true
 gui:
-  authorColors:
-    # use green for me
-    'Pere Bohigas': 'green'
-    # use white for other authors
-    '*': 'white'
   language: 'en' # one of 'auto' | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
   nerdFontsVersion: "3"
   theme:
     selectedLineBgColor:
       - reverse
       - bold
+    authorColors:
+      # use green for me
+      'Pere Bohigas': 'green'
+      # use white for other authors
+      '*': 'white'
   timeFormat: '02 Jan 2006' # https://pkg.go.dev/time#Time.Format
 notARepository: 'quit'
 os:
