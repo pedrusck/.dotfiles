@@ -1,0 +1,29 @@
+{
+	"$schema": "https://opencode.ai/v2/cli.json",
+	"animations": true,
+	"cursor": {
+		"style": "line"
+	},
+	"diffs": {
+		"wrap": "word"
+	},
+	"keybinds": {
+		"input.submit": "super+return"
+	},
+	"plugins": [
+		"@leohenon/opencode-vim-plugin",
+		"./herdr-opencode"
+	],
+	"scroll": {
+		"speed": 3,
+		"acceleration": true
+	},
+	"session": {
+		"sidebar": "auto",
+		"scrollbar": false,
+		"thinking": "show"
+	},
+	"theme": {
+		"name": "gruvbox"
+	},
+}
