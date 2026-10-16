@@ -6,7 +6,7 @@ setopt pipefail extendedglob
 # Keep this autoload interface while containing helper definitions and state.
 (
 
-# Usage: API_KEY=<key> opencode-update-models [OPTIONS] <PROVIDER_NAME> <API_ENDPOINT> [CONFIG_FILE]
+# Usage: API_KEY=<key> opencode_update_provider_models [OPTIONS] <PROVIDER_NAME> <API_ENDPOINT> [CONFIG_FILE]
 #
 # Options:
 #	-v, --verbose	Enable detailed step-by-step logging.
@@ -23,11 +23,12 @@ setopt pipefail extendedglob
 # Behavior:
 #	Fetches models from the provider endpoint and updates the configuration file.
 #	Prefers the LiteLLM-style `<endpoint>/model/info` route (rich metadata: costs,
-#	limits, modalities, capability flags) mapped onto opencode's model schema, keeping
+#	limits, modalities, capability flags) mapped onto OpenCode's native V2 schema, keeping
 #	chat models only. If unavailable, falls back to the plain `<endpoint>/models` route
 #	(names only).
 #
 #	The provider's models key is completely rewritten (no per-model update).
+#	Migrates this provider's legacy settings to native V2, preserving native overrides.
 #	If the config file doesn't exist, it will be created.
 #
 # Exit codes:
@@ -35,8 +36,8 @@ setopt pipefail extendedglob
 #	nonzero	Error (validation, fetch, transformation, or filesystem failure)
 #
 # Examples:
-#	API_KEY=sk-xxx opencode-update-models "OpenAI Compatible" https://api.example.com opencode.json
-#	API_KEY=sk-xxx opencode-update-models --verbose "OpenAI Compatible" https://api.example.com
+#	API_KEY=sk-xxx opencode_update_provider_models "OpenAI Compatible" https://api.example.com opencode.json
+#	API_KEY=sk-xxx opencode_update_provider_models --verbose "OpenAI Compatible" https://api.example.com
 
 # ── Help ────────────────────────────────────────────────────────────
 local -r SCRIPT_NAME=${0:t}
@@ -169,16 +170,19 @@ def rich:
 			+ (if $info.supports_pdf_input then ["pdf"] else [] end)) as $input_mod
 		| (["text"] + (if $info.supports_audio_output then ["audio"] else [] end)) as $output_mod
 		|
-		# opencode schema requires both `input` and `output` on `cost`;
+		# V2 requires both `input` and `output` on each cost entry;
 		# emit nothing rather than a partial object that fails validation.
 		(if ($info.input_cost_per_token != null and $info.output_cost_per_token != null)
 			then ({input: ($info.input_cost_per_token | fmt), output: ($info.output_cost_per_token | fmt)}
-				+ (if $info.cache_read_input_token_cost != null then {cache_read: ($info.cache_read_input_token_cost | fmt)} else {} end)
-				+ (if $info.cache_creation_input_token_cost != null then {cache_write: ($info.cache_creation_input_token_cost | fmt)} else {} end))
+				+ (if ($info.cache_read_input_token_cost != null or $info.cache_creation_input_token_cost != null)
+					then {cache:
+						((if $info.cache_read_input_token_cost != null then {read: ($info.cache_read_input_token_cost | fmt)} else {} end)
+						+ (if $info.cache_creation_input_token_cost != null then {write: ($info.cache_creation_input_token_cost | fmt)} else {} end))}
+					else {} end))
 			else {} end) as $cost
 		|
-		# opencode schema requires both `context` and `output` on `limit`;
-		# emit nothing rather than a partial object that fails validation.
+		# Preserve the existing all-or-nothing limit inference. V2 also accepts
+		# partial limits on models configured by the user.
 		($info.max_input_tokens // $info.max_tokens) as $ctx
 		| ($info.max_output_tokens // $info.max_tokens) as $out
 		| (if ($ctx != null and $out != null)
@@ -189,22 +193,20 @@ def rich:
 		|
 		(($info.supports_function_calling == true) or ($info.supports_tool_choice == true)) as $tool_call
 		| ($info.supports_reasoning == true) as $reasoning
-		| (($info.supports_vision == true) or ($info.supports_pdf_input == true) or ($info.supports_audio_input == true)) as $attachment
 		|
 		{
 			id: $name,
 			name: ($name | format_name),
-			modalities: {input: $input_mod, output: $output_mod},
-			tool_call: $tool_call,
-			reasoning: $reasoning,
-			attachment: $attachment
+			capabilities: {tools: $tool_call, input: $input_mod, output: $output_mod}
 		}
 		+ (if ($cost | length) > 0 then {cost: $cost} else {} end)
 		+ (if ($limit | length) > 0 then {limit: $limit} else {} end)
-		# temperature: only assert false when LiteLLM explicitly says so
-		+ (if $info.supports_temperature == false then {temperature: false} else {} end)
-		# reasoning models get low/high effort variants
-		+ (if $reasoning then {variants: {low: {reasoningEffort: "low"}, high: {reasoningEffort: "high"}}} else {} end)
+		# V2 ignores the legacy reasoning/attachment/temperature booleans.
+		# Reasoning models retain their low/high effort variants.
+		+ (if $reasoning then {variants: [
+			{id: "low", settings: {reasoningEffort: "low"}},
+			{id: "high", settings: {reasoningEffort: "high"}}
+		]} else {} end)
 	);
 
 def basic: map({id: .id, name: (.id | format_name)});
@@ -264,36 +266,68 @@ fetch_models() {  # endpoint tmp_file api_key
 
 # ── Config validation ───────────────────────────────────────────────
 
-# Structural checks mirroring opencode's provider model schema constraints.
-# Reports one `provider.<p>.models.<m>...` path per violation.
+# Native V2 provider/model checks, based on the V2 docs and their linked
+# Config.ProviderEncoded / Config.ModelEncoded API schemas. The editor schema
+# at opencode.ai/config.json may still describe V1.
+# Reports paths without printing settings or credentials.
 local JQ_VALIDATE_CONFIG='
-def modality_enum: ["text", "audio", "image", "video", "pdf"];
-
-[ (.provider // {}) | to_entries[]
-	| .key as $p
-	| ((.value.models // {}) | to_entries[])
-	| .key as $m
-	| .value as $model
-	| "provider.\($p).models.\($m)" as $base
-	|
-	( (if ($model | has("limit")) then
-			(["context", "output"][] | select(($model.limit[.]) == null) | "Missing key \($base).limit.\(.)")
-		else empty end)
-	, (if ($model | has("cost")) then
-			(["input", "output"][] | select(($model.cost[.]) == null) | "Missing key \($base).cost.\(.)")
-		else empty end)
-	, (if ($model.cost | type) == "object" and ($model.cost | has("context_over_200k")) then
-			(["input", "output"][] | select(($model.cost.context_over_200k[.]) == null)
-				| "Missing key \($base).cost.context_over_200k.\(.)")
-		else empty end)
-	, (if ($model | has("modalities")) then
-			(["input", "output"][] as $dir
-				| ($model.modalities[$dir] // [])
-				| to_entries[]
-				| select((.value | IN(modality_enum[])) | not)
-				| "Invalid modality \(.value | tojson) at \($base).modalities.\($dir).\(.key)")
-		else empty end)
-	)
+def is_type($t):
+	if $t == "integer" then type == "number" and . == floor
+	elif $t == "strings" then type == "array" and all(.[]; type == "string")
+	elif $t == "headers" then type == "object" and all(.[]; type == "string")
+	elif $t == "cost" then type == "object" or type == "array"
+	else type == $t end;
+def fields($p; $types):
+	if type != "object" then "Expected object at \($p)"
+	else to_entries[] | .key as $k
+		| if ($types | has($k) | not) then "Unknown V2 field \($p).\($k)"
+		  elif (.value | is_type($types[$k]) | not) then "Invalid type at \($p).\($k)"
+		  else empty end
+	end;
+def nested($k; $t): select(type == "object" and has($k)) | .[$k] | select(is_type($t));
+def settings($p):
+	(select(has("compaction")) | .compaction
+		| fields("\($p).compaction"; {type: "string"}),
+		  (select(type == "object") | select(.type | IN("native", "summary") | not) | "Invalid compaction at \($p).compaction"));
+def request($p): nested("settings"; "object") | settings("\($p).settings");
+def cost($p):
+	fields($p; {input: "number", output: "number", cache: "object", tier: "object"}),
+	(select(type == "object") | . as $c | ["input", "output"][] | . as $k
+		| select($c | has($k) | not) | "Missing key \($p).\($k)"),
+	(nested("cache"; "object") | fields("\($p).cache"; {read: "number", write: "number"})),
+	(nested("tier"; "object")
+		| fields("\($p).tier"; {type: "string", size: "integer"}),
+		  (select(.type != "context" or (has("size") | not)) | "Invalid tier at \($p).tier"));
+def model($p):
+	fields($p; {modelID: "string", name: "string", family: "string", package: "string",
+		settings: "object", headers: "headers", body: "object", capabilities: "object",
+		compatibility: "object", variants: "array", cost: "cost", limit: "object", disabled: "boolean"}),
+	request($p),
+	(nested("capabilities"; "object") | fields("\($p).capabilities"; {tools: "boolean", input: "strings", output: "strings"})),
+	(nested("limit"; "object") | fields("\($p).limit"; {context: "integer", input: "integer", output: "integer"})),
+	(nested("compatibility"; "object")
+		| fields("\($p).compatibility"; {reasoningField: "string", requireReasoning: "boolean", maxTokensField: "string",
+			requireFinishReason: "boolean", requireAssistantAfterTool: "boolean", supportsPromptCacheKey: "boolean",
+			supportsThinkingBlockBinding: "boolean", supportsEffortUpdates: "boolean"}),
+		  (select(has("maxTokensField")) | select(.maxTokensField | IN("max_tokens", "max_completion_tokens") | not)
+			| "Invalid maxTokensField at \($p).compatibility")),
+	(nested("variants"; "array") | to_entries[] | "\($p).variants.\(.key)" as $v | .value
+		| fields($v; {id: "string", settings: "object", headers: "headers", body: "object"}),
+		  (select(type == "object" and (has("id") | not)) | "Missing key \($v).id"), request($v)),
+	(nested("cost"; "cost") | if type == "array" then to_entries[] | .key as $i | .value | cost("\($p).cost.\($i)") else cost("\($p).cost") end);
+def provider($p):
+	fields($p; {name: "string", canonical: "string", env: "strings", package: "string",
+		settings: "object", headers: "headers", body: "object", models: "object"}),
+	request($p),
+	(nested("settings"; "object")
+		| (to_entries[] | select(.key | IN("timeout", "headerTimeout", "chunkTimeout"))
+			| select(.value != false and (.value | type) != "number") | "Invalid timeout at \($p).settings.\(.key)"),
+		  (select(has("transport")) | select(.transport | IN("http", "websocket") | not) | "Invalid transport at \($p).settings.transport")),
+	(nested("models"; "object") | to_entries[] | .key as $m | .value | model("\($p).models.\($m)"));
+[
+	if type != "object" then "Expected configuration object"
+	elif (.providers | type) != "object" then "Expected object at providers"
+	else .providers | to_entries[] | .key as $p | .value | provider("providers.\($p)") end
 ]
 '
 
@@ -304,7 +338,7 @@ validate_config() {  # candidate_file
 
 	vlog "Validating structure of: $candidate"
 	if ! problems=$(jq -r "${JQ_VALIDATE_CONFIG} | .[]" "$candidate"); then
-		print -ru2 -- "Error: validation failed (candidate is not valid JSON)"
+		print -ru2 -- "Error: unable to validate candidate JSON"
 		return 1
 	fi
 
@@ -318,14 +352,30 @@ validate_config() {  # candidate_file
 	fi
 	vlog "Structural validation passed"
 
-	# Authoritative check: opencode itself parses the candidate. Only available
-	# when the binary is installed; the structural pass above is the fallback.
+	# V2 debug config uses the shared service and has no --pure mode. A private
+	# server receives OPENCODE_CONFIG for this invocation. Parsing can silently
+	# discard invalid fields, so verify the exact document and retained providers.
 	if (( $+commands[opencode] )); then
-		vlog "Validating with: opencode debug config"
+		vlog "Validating with: opencode api --standalone get /api/config"
 		local output
-		if ! output=$(OPENCODE_CONFIG="$candidate" command opencode debug config --pure 2>&1 >/dev/null); then
-			print -ru2 -- "Error: opencode rejected the generated configuration; refusing to write"
-			print -ru2 -- "$output"
+		if ! output=$(OPENCODE_CONFIG="${candidate:A}" command opencode api --standalone get /api/config); then
+			print -ru2 -- "Error: opencode could not load the generated configuration; refusing to write"
+			return 1
+		fi
+		if ! jq -e --arg candidate "${candidate:A}" --slurpfile expected "$candidate" '
+			# Environment/file substitutions are resolved by OpenCode. Check their
+			# presence and type; compare all other values recursively and exactly.
+			def retained($e):
+				. as $actual | if ($e | type) == "object" then
+					type == "object" and all($e | keys[]; . as $k | ($actual | has($k)) and ($actual[$k] | retained($e[$k])))
+				elif ($e | type) == "array" then
+					type == "array" and length == ($e | length) and all($e | keys[]; . as $k | $actual[$k] | retained($e[$k]))
+				elif ($e | type) == "string" and ($e | test("\\{(env|file):[^}]+\\}")) then type == "string"
+				else . == $e end;
+			[.[] | select(.type == "document" and .path == $candidate)]
+			| length == 1 and (.[0].info.providers | retained($expected[0].providers))
+		' <<<"$output" >/dev/null; then
+			print -ru2 -- "Error: opencode did not retain the candidate provider/model settings; refusing to write"
 			return 1
 		fi
 		vlog "opencode validation passed"
@@ -349,10 +399,31 @@ update_config() {  # config_file provider_key display_name base_url new_models
 		--arg provider "$provider_key" \
 		--arg display_name "$display_name" \
 		--arg base_url "$base_url" \
-		'.provider[$provider].models = $new_models |
-		 .provider[$provider].name = $display_name |
-		 .provider[$provider].npm = "@ai-sdk/openai-compatible" |
-		 .provider[$provider].options = ((.provider[$provider].options // {}) + {"baseURL": $base_url})' \
+		'
+		# Models are replaced below. Translate the remaining legacy provider fields
+		# as V2 does, separating HTTP headers/body from runtime settings.
+		def migrate_provider:
+			(.options // {}) as $options
+			| del(.models, .npm, .api, .options, .id, .whitelist, .blacklist)
+			+ {settings: ($options | del(.headers, .body))}
+			+ (if $options | has("headers") then {headers: $options.headers} else {} end)
+			+ (if $options | has("body") then {body: $options.body} else {} end);
+		def merge_headers($old; $new):
+			($new | keys | map(ascii_downcase)) as $names
+			| ($old | with_entries(select((.key | ascii_downcase) as $k | $names | index($k) | not))) + $new;
+		(.provider[$provider] // {} | migrate_provider) as $legacy
+		| (.providers[$provider] // {}) as $native
+		| .providers[$provider] = ($legacy * $native
+			| if ($legacy | has("headers")) and ($native | has("headers"))
+			  then .headers = merge_headers($legacy.headers; $native.headers) else . end)
+		| .providers[$provider].models = $new_models
+		| .providers[$provider].name = $display_name
+		| .providers[$provider].package = "aisdk:@ai-sdk/openai-compatible"
+		| .providers[$provider].settings.baseURL = $base_url
+		| if (.provider // {} | has($provider)) then
+			del(.provider[$provider]) | if .provider == {} then del(.provider) else . end
+		  else . end
+		' \
 		"$config" > "$candidate"; then
 		print -ru2 -- "Error: failed to write configuration"
 		rm -f "$candidate"
@@ -382,11 +453,11 @@ update_config() {  # config_file provider_key display_name base_url new_models
 # Print formatted model summary to stderr
 print_model_summary() {  # config_file provider_key
 	jq -r --arg provider "$2" '
-		.provider[$provider].models | to_entries[]
+		.providers[$provider].models | to_entries[]
 		| .value as $m
-		| ([ (if $m.tool_call then "tools" else empty end),
-			 (if $m.reasoning then "reasoning" else empty end),
-			 (if ($m.modalities.input // []) | index("image") then "vision" else empty end)
+		| ([ (if $m.capabilities.tools then "tools" else empty end),
+			 (if any($m.variants[]?; .settings.reasoningEffort != null) then "reasoning" else empty end),
+			 (if ($m.capabilities.input // []) | index("image") then "vision" else empty end)
 		  ] | if length > 0 then " [" + join(",") + "]" else "" end) as $flags
 		| "\t\($m.name) (\(.key))\($flags)"
 	' "$1" >&2
@@ -456,8 +527,8 @@ if [[ ! -f $config_file ]]; then
 	print -ru2 -- "Configuration file '$config_file' not found; creating it"
 	jq -n --tab '{
 		"$schema": "https://opencode.ai/config.json",
-		"autoupdate": true,
-		"provider": {}
+		"update": "auto",
+		"providers": {}
 	}' > "$config_file" || return $?
 	vlog "Created new config file with default schema"
 else
