@@ -1,29 +1,49 @@
 {
 	"$schema": "https://opencode.ai/v2/cli.json",
 	"animations": true,
+	"attention": {
+		"notifications": true,
+		"sound": false
+	},
 	"cursor": {
 		"style": "line"
 	},
 	"diffs": {
-		"wrap": "word"
+		"source": "turn",
+		"wrap": "word",
+		"tree": true,
+		"single": true,
+		"view": "auto"
+	},
+	"debug": {
+		"turn_tokens": true
 	},
 	"keybinds": {
-		"input.submit": "super+return"
+		"input.submit": "super+return",
+		"diff.open": "<leader>d",
+		"variant.list": "<leader>v",
+		"session.toggle.thinking": "<leader>t",
+		"mcp.list": "<leader>p"
 	},
 	"plugins": [
-		"@leohenon/opencode-vim-plugin",
-		"./herdr-opencode"
+		"./herdr-opencode",
+		"opencode-vim@latest"
 	],
+	"prompt": {
+		"image_preview": true
+	},
 	"scroll": {
-		"speed": 3,
 		"acceleration": true
 	},
 	"session": {
 		"sidebar": "auto",
 		"scrollbar": false,
-		"thinking": "show"
+		"thinking": "show",
+		"image_preview": true,
+		"tps": true,
+		"new_location": "inherit"
 	},
 	"theme": {
 		"name": "gruvbox"
-	},
+	}
 }
