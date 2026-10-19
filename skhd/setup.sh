@@ -2,7 +2,7 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/skhd"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/skhd"
-ln -sf "$TOOL_DIR/skhdrc" "$HOME/.config/skhd/skhdrc"
+ln -sf "$TOOL_DIRECTORY/skhdrc" "$HOME/.config/skhd/skhdrc"

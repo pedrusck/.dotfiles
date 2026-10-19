@@ -2,16 +2,16 @@
 
 set -eu
 
-tool_dir="${DOTFILES_PATH:=$PWD}/zsh"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
-ln -sf "$tool_dir/zshenv" "$HOME/.zshenv"
+ln -sf "$TOOL_DIRECTORY/zshenv" "$HOME/.zshenv"
 
 mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/zsh"
-ln -sf "$tool_dir/zshenv" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/.zshenv"
-ln -sf "$tool_dir/zprofile" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/.zprofile"
-ln -sf "$tool_dir/zshrc" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/.zshrc"
+ln -sf "$TOOL_DIRECTORY/zshenv" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/.zshenv"
+ln -sf "$TOOL_DIRECTORY/zprofile" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/.zprofile"
+ln -sf "$TOOL_DIRECTORY/zshrc" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/.zshrc"
 
-ln -sfn "$tool_dir/zsh_additional_configuration" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_additional_configuration"
-ln -sfn "$DOTFILES_PATH/shell_scripts/zsh" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_functions"
+ln -sfn "$TOOL_DIRECTORY/zsh_additional_configuration" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_additional_configuration"
+ln -sfn "$TOOL_DIRECTORY/../shell_scripts/zsh" "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_functions"
 
 touch "$HOME/.hushlogin" # Disable the "Last Login" message in new terminal sessions.

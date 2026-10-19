@@ -2,13 +2,13 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/neovim"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/nvim"
-ln -sf "$TOOL_DIR/init.lua" "$HOME/.config/nvim/init.lua"
-ln -sfn "$TOOL_DIR/lua" "$HOME/.config/nvim/lua"
-ln -sfn "$TOOL_DIR/lsp" "$HOME/.config/nvim/lsp"
-ln -sfn "$TOOL_DIR/spell" "$HOME/.config/nvim/spell"
+ln -sf "$TOOL_DIRECTORY/init.lua" "$HOME/.config/nvim/init.lua"
+ln -sfn "$TOOL_DIRECTORY/lua" "$HOME/.config/nvim/lua"
+ln -sfn "$TOOL_DIRECTORY/lsp" "$HOME/.config/nvim/lsp"
+ln -sfn "$TOOL_DIRECTORY/spell" "$HOME/.config/nvim/spell"
 
 # ── Spell dictionaries ──────────────────────────────────────────────
 # Without a base .spl, setting 'spelllang' makes Neovim block on a
@@ -29,11 +29,11 @@ install_spell_dictionaries() (
 	fi
 
 	# `en` and friends are skipped here: Neovim ships their dictionaries
-	for wordlist in "$TOOL_DIR"/spell/*.utf-8.add; do
+	for wordlist in "$TOOL_DIRECTORY"/spell/*.utf-8.add; do
 		[ -f "$wordlist" ] || continue
 		language=${wordlist##*/}
 		language=${language%.utf-8.add}
-		target="$TOOL_DIR/spell/$language.utf-8.spl"
+		target="$TOOL_DIRECTORY/spell/$language.utf-8.spl"
 		if [ -f "$target" ] || { [ -n "$runtime" ] && [ -f "$runtime/$language.utf-8.spl" ]; }; then
 			continue
 		fi

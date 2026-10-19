@@ -2,7 +2,7 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/ghostty"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/ghostty"
-ln -sf "$TOOL_DIR/config" "$HOME/.config/ghostty/config"
+ln -sf "$TOOL_DIRECTORY/config" "$HOME/.config/ghostty/config"

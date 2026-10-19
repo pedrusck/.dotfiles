@@ -2,7 +2,7 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/lumen"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/lumen"
-ln -sf "$TOOL_DIR/lumen.config.json" "$HOME/.config/lumen/lumen.config.json"
+ln -sf "$TOOL_DIRECTORY/lumen.config.json" "$HOME/.config/lumen/lumen.config.json"

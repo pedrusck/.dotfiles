@@ -282,12 +282,12 @@ throwaway side-by-side views.
   All three integrations support native conversation restoration when a valid
   session reference has been reported.
 
-  The development bootstrap runs `claude_code/setup.sh`, `opencode/setup.sh`, and
-  `pi_coding_agent/setup.sh` before `herdr/setup.sh`. Each agent setup prepares
-  its config directory, then installs its bundled integration if Herdr is
-  available.
-  Installation failures propagate; missing Herdr prints a message to rerun setup.
-  To apply manually, run from the repository root:
+  The development profile runs `herdr/setup.sh`. Run `claude_code/setup.sh`,
+  `opencode/setup.sh`, and `pi_coding_agent/setup.sh` separately to configure the
+  agent integrations. Each agent setup prepares its config directory, then
+  installs its bundled integration if Herdr is available.
+  Installation failures propagate; integration installation is skipped silently
+  when Herdr is missing. To apply manually, run from the repository root:
 
   ```sh
   sh claude_code/setup.sh

@@ -2,7 +2,7 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/gitui"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/gitui"
-ln -sf "$TOOL_DIR/key_config.ron" "$HOME/.config/gitui/key_config.ron"
+ln -sf "$TOOL_DIRECTORY/key_config.ron" "$HOME/.config/gitui/key_config.ron"

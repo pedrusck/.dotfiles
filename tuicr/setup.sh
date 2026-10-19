@@ -2,7 +2,7 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/tuicr"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/tuicr"
-ln -sf "$TOOL_DIR/config.toml" "$HOME/.config/tuicr/config.toml"
+ln -sf "$TOOL_DIRECTORY/config.toml" "$HOME/.config/tuicr/config.toml"

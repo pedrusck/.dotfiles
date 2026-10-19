@@ -2,11 +2,11 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/xcode"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 KEYBINDINGS_DIR="$HOME/Library/Developer/Xcode/UserData/KeyBindings"
 if [ -d "$KEYBINDINGS_DIR" ]; then
-	ln -sf "$TOOL_DIR/Vimious.idekeybindings" "$KEYBINDINGS_DIR/Vimious.idekeybindings"
+	ln -sf "$TOOL_DIRECTORY/Vimious.idekeybindings" "$KEYBINDINGS_DIR/Vimious.idekeybindings"
 fi
 
 # Manual steps after running this script:
