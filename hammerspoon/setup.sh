@@ -2,6 +2,6 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/hammerspoon"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
-ln -sfn "$TOOL_DIR" "$HOME/.hammerspoon"
+ln -sfn "$TOOL_DIRECTORY" "$HOME/.hammerspoon"

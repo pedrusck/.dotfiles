@@ -2,7 +2,7 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/lazygit"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/lazygit"
-ln -sf "$TOOL_DIR/config.yml" "$HOME/.config/lazygit/config.yml"
+ln -sf "$TOOL_DIRECTORY/config.yml" "$HOME/.config/lazygit/config.yml"

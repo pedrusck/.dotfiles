@@ -2,7 +2,7 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/oh_my_posh"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/oh_my_posh"
-ln -sf "$TOOL_DIR/configuration.toml" "$HOME/.config/oh_my_posh/configuration.toml"
+ln -sf "$TOOL_DIRECTORY/configuration.toml" "$HOME/.config/oh_my_posh/configuration.toml"

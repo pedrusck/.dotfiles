@@ -2,7 +2,7 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/rumdl"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/rumdl"
-ln -sf "$TOOL_DIR/rumdl.toml" "$HOME/.config/rumdl/rumdl.toml"
+ln -sf "$TOOL_DIRECTORY/rumdl.toml" "$HOME/.config/rumdl/rumdl.toml"

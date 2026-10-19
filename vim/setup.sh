@@ -2,8 +2,8 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/vim"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.vim"
 mkdir -p "$HOME/.vim/undo"
-ln -sf "$TOOL_DIR/vimrc" "$HOME/.vim/vimrc"
+ln -sf "$TOOL_DIRECTORY/vimrc" "$HOME/.vim/vimrc"

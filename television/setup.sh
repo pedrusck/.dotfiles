@@ -2,8 +2,8 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/television"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/television"
-ln -sf "$TOOL_DIR/config.toml" "$HOME/.config/television/config.toml"
+ln -sf "$TOOL_DIRECTORY/config.toml" "$HOME/.config/television/config.toml"
 command -v television >/dev/null 2>&1 && television update-channels

@@ -79,6 +79,26 @@ When it finishes it prints the remaining manual steps (enable the EurKEY input
 source, and Switch to Desktop 1–9 for Amethyst). Afterwards, follow the rest of
 the steps in the [list](./macOS_setup_steps.md).
 
+### Running individual tool setups
+
+Each `setup.sh` resolves repository files relative to its own location, so these
+invocations are equivalent:
+
+```sh
+# From the repository root
+sh neovim/setup.sh
+
+# From the tool directory
+cd neovim
+sh setup.sh
+
+# From any directory
+sh /absolute/path/to/.dotfiles/neovim/setup.sh
+```
+
+Execute the scripts rather than sourcing them. The script's checkout determines
+the source files; an externally supplied `DOTFILES_PATH` does not override it.
+
 ### Browserpass
 
 The development profile runs Browserpass setup automatically. To rerun it after

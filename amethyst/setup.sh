@@ -2,7 +2,7 @@
 
 set -eu
 
-TOOL_DIR="${DOTFILES_PATH:=$PWD}/amethyst"
+TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
 mkdir -p "$HOME/.config/amethyst"
-ln -sf "$TOOL_DIR/amethyst.yml" "$HOME/.config/amethyst/amethyst.yml"
+ln -sf "$TOOL_DIRECTORY/amethyst.yml" "$HOME/.config/amethyst/amethyst.yml"

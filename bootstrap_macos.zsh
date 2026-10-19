@@ -289,7 +289,7 @@ function run_tool_setups() {
 			continue
 		fi
 		print_information " Setting up $tool"
-		DOTFILES_PATH=$DOTFILES_PATH /bin/sh "$DOTFILES_PATH/$tool/setup.sh" \
+		/bin/sh "$DOTFILES_PATH/$tool/setup.sh" \
 			|| { print_error "Setup failed for profile tool '$tool'."; exit 1; }
 		CONFIGURED_TOOLS+=( "$tool" )
 	done
