@@ -16,5 +16,4 @@ python = 'latest'
 ruby = 'latest'
 
 ### Web
-deno = 'latest'
 node = 'latest'
