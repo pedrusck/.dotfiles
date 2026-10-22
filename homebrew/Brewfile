@@ -45,7 +45,7 @@ brew "tree-sitter-cli" # Parser generator tool
 ### Version control ###
 # cask "fork" # GIT client
 # brew "gh" # GitHub command-line tool
-brew "git" # Distributed revision control system
+# brew "git" # Distributed revision control system
 brew "git-delta" # Syntax-highlighting pager for git and diff output
 brew "git-crypt" # Transparent file encryption in git
 brew "git-lfs" # Git extension for versioning large files
@@ -83,6 +83,7 @@ brew "drill" # HTTP load testing application written in Rust
 # cask "hoppscotch" # Open source API development ecosystem
 brew "hurl" # Run and Test HTTP Requests with plain text and curl
 # cask "mitmproxy" # Intercept, modify, replay, save HTTP/S traffic
+brew "posting" # Modern API client that lives in your terminal
 # cask "proxyman" # Modern and intuitive HTTP Debugging Proxy app
 brew "telnet" # User interface to the TELNET protocol
 brew "xh" # Friendly and fast tool for sending HTTP requests
@@ -90,7 +91,7 @@ brew "xh" # Friendly and fast tool for sending HTTP requests
 ### Virtualization & Containers ###
 # cask "balenaetcher" # Tool to flash OS images to SD cards & USB drives -> NOT M1 COMPATIBLE
 # cask "citrix-workspace" if system(%q[mdfind "kMDItemCFBundleIdentifier == 'com.checkpoint.eps.gui'" | grep -q .]) # Managed desktop virtualization solution -> TODO: confirm Endpoint Security VPN bundle id (run: mdls -name kMDItemCFBundleIdentifier "/Applications/Endpoint Security VPN.app")
-# brew "docker-desktop" # App to build and share containerised applications and microservices
+cask "docker-desktop" # App to build and share containerised applications and microservices
 brew "podman" # Tool for managing OCI containers and pods
 # cask "raspberry-pi-imager" # Imaging utility to install operating systems to a microSD card -> NOT M1 COMPATIBLE
 
@@ -108,7 +109,7 @@ brew "viu" # Simple terminal image viewer written in Rust
 cask "keka" # File archiver
 
 ### Internet browser ###
-# cask "brave-browser" # Web browser focusing on privacy
+cask "brave-browser" # Web browser focusing on privacy
 # INFO:
 # Browserpass setup for Firefox:
 # PREFIX='/opt/homebrew/opt/browserpass' make hosts-firefox-user -f '/opt/homebrew/opt/browserpass/lib/browserpass/Makefile'
@@ -141,7 +142,7 @@ mas "LanguageTool", id: 1534275760
 # mas "Microsoft Outlook", id: 985367838
 # mas "Microsoft PowerPoint", id: 462062816
 # mas "Microsoft Word", id: 462054704
-# mas "Numbers", id: 361304891
+mas "Numbers", id: 361304891
 # mas "Pages", id: 361309726
 brew "pandoc" # Swiss-army knife of markup format conversion
 # brew "presenterm" # Terminal slideshow tool
@@ -168,7 +169,7 @@ brew "hexyl" # Command-line hex viewer
 brew "jq" # Lightweight and flexible command-line JSON processor
 brew "jql" # JSON query language CLI tool
 brew "qpdf" # Tools for and transforming and inspecting PDF files
-brew "leaf-md" # Terminal Markdown previewer with a GUI-like experience
+brew "leaf-markdown-viewer" # Terminal Markdown previewer with a GUI-like experience
 brew "rumdl" # Markdown Linter and Formatter written in Rust
 brew "tabiew" # TUI to view and query tabular files (CSV,TSV, Parquet, etc.)
 brew "tesseract" # OCR (Optical Character Recognition) engine
@@ -280,6 +281,7 @@ brew "kdoctor" # Environment diagnostics for Kotlin Multiplatform Mobile app dev
 # brew "apfel" # Apple Intelligence from the command-line, with OpenAi-compatible API server
 # cask "claude-code" # Terminal-based AI coding assistant
 # cask "copilot-cli" # Brings the power of Copilot coding agent directly to your terminal
+brew "navikt/tap/cplt", trusted: true # Kernel-enforced sandbox wrapper for coding agents
 # brew "fabric-ai" # Open-source framework for augmenting humans using AI
 brew "anomalyco/tap/opencode", trusted: true # AI coding agent, built for the terminal
 brew "pi-coding-agent" # AI agent toolkit
