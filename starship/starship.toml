@@ -2,7 +2,7 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 palette = 'gruvbox_dark'
-command_timeout = 500 # cap per-module command time (ms) so a slow git status etc. can't stall the prompt
+command_timeout = 500 # timeout per external command (ms), not a whole-prompt deadline
 
 format = """
 [](fg:color_orange)\
@@ -168,6 +168,7 @@ style = "bg:color_aqua fg:color_terminal_background"
 [git_status]
 format = '[($all_status$ahead_behind )]($style)'
 ignore_submodules = true
+use_git_executable = true # retain native Git performance with FSMonitor disabled
 style = "bg:color_aqua fg:color_terminal_background"
 
 # ===========================================================
