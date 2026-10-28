@@ -191,6 +191,11 @@ if (( $+commands[mise] )); then
 	_zsh_eval_init mise activate zsh
 fi
 
+# cplt
+if (( $+commands[cplt] )); then
+	eval "$(cplt --shell-setup --agent opencode)"
+fi
+
 ## Prompt
 
 # Starship
