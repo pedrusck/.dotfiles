@@ -1,0 +1,13 @@
+[allow]
+exec = [
+	"/var/db/xcode_select_link/.." # Xcode MCP (xcode_select_link points to the selected Xcode’s Contents/Developer directory)
+]
+localhost = [
+	3845,	# Figma MCP localhost port
+	64342	# Jetbrains MCP localhost port
+]
+read = [
+	# OpenCode custom configuration files
+	"~/.config/opencode/cli.json",
+	"~/.config/opencode/opencode.json"
+]
