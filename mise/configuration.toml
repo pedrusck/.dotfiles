@@ -14,15 +14,19 @@
 ### Build tools
 just = "latest" # Handy way to save and run project-specific commands
 # mask = "latest" # Task runner defined by a Markdown file; no extra setup or official Zsh completion
+"conda:parallel" = "latest" # Shell command parallelization utility
 protobuf = "latest" # Protocol buffers compiler
 
 ### Containers
 podman = "latest" # Tool for managing OCI containers and pods
 
 ### Database utilities
+postgres = "latest" # Object-relational database system
 "github:achristmascarl/rainfrog" = "latest" # Database management TUI for PostgreSQL/MySQL/SQLite
 
 ### Documents
+# "conda:ghostscript" = "latest" # Interpreter for PostScript and PDF
+# Zsh supplies _ghostscript (including gs) via fpath/compinit; no extra setup.
 pandoc = "latest" # Swiss-army knife of markup format conversion
 typst = "latest" # Markup-based typesetting system
 
@@ -36,6 +40,7 @@ fx = "latest" # Terminal JSON viewer
 hexyl = "latest" # Command-line hex viewer
 jq = "latest" # Lightweight and flexible command-line JSON processor
 "github:yamafaktory/jql" = { version = "latest", version_prefix = "jql-v" } # JSON query language CLI tool
+"conda:qpdf" = "latest" # Tools for transforming and inspecting PDF files
 "github:shshemi/tabiew" = { version = "latest", matching = "tw-", bin = "tw" } # TUI to view and query tabular files (CSV, TSV, Parquet, etc.)
 "github:atanunq/viu" = { version = "latest", bin = "viu" } # Simple terminal image viewer written in Rust
 "github:sibprogrammer/xq" = "latest" # Command-line XML and HTML beautifier and content extractor
@@ -123,6 +128,12 @@ glow = "latest" # Render markdown on the CLI
 # features need additional dependencies; see upstream documentation before use.
 rumdl = "latest" # Markdown Linter and Formatter written in Rust
 
+### Media processing
+# "conda:ffmpeg" = "latest" # Play, record, convert, and stream audio/video
+# "conda:imagemagick" = "latest" # Image manipulation; Conda supports macOS unlike the registry's Aqua backend
+# Zsh supplies _ffmpeg and _imagemagick via its standard fpath/compinit.
+# Neither tool needs a separate completion generator or post-install setup.
+
 ### Music
 spotify-player = "latest" # Command driven spotify player
 
@@ -130,6 +141,9 @@ spotify-player = "latest" # Command driven spotify player
 "github:Julien-cpsn/ATAC" = "latest" # A simple API client (postman like) in your terminal
 curlie = "latest" # Power of curl, ease of use of httpie
 hurl = "latest" # Run and Test HTTP Requests with plain text and curl
+# "conda:openconnect" = "latest" # Open client for Cisco AnyConnect VPN
+# Conda supplies/configures vpnc-script; it runs during VPN connections.
+# No official Zsh completion was found; no separate post-install setup.
 xh = "latest" # Friendly and fast tool for sending HTTP requests
 
 ### Programming languages
@@ -149,6 +163,7 @@ xh = "latest" # Friendly and fast tool for sending HTTP requests
 # Upgrade GHCup itself through mise; these toolchains are managed by GHCup.
 go = "latest" # Open source programming language to build simple/reliable/efficient software
 java = "latest" # Development kit for the Java programming language
+luajit = "latest" # Just-In-Time Compiler for Lua
 node = "latest" # Platform built on V8 to build network applications
 # Pkl's Zsh completion registers via bashcompinit and must be sourced rather
 # than autoloaded as _pkl. Enable the matching source block in zsh/zshrc.
@@ -167,6 +182,7 @@ uv = "latest" # Extremely fast Python package installer and resolver, written in
 bottom = "latest" # Yet another cross-platform graphical process/system monitor
 cheat = "latest" # Create and view interactive cheat sheets for *nix commands
 herdr = "latest" # Agent multiplexer that lives in your terminal
+"conda:htop" = "latest" # Improved top (interactive process viewer)
 hyperfine = "latest" # Command-line benchmarking tool
 "github:alltuner/mise-completions-sync" = "latest" # Sync shell completions for mise-managed tools
 # oh-my-posh = "latest" # Cross-shell prompt theme engine; completion command disabled upstream
@@ -183,6 +199,7 @@ delta = "latest" # Syntax-highlighting pager for git and diff output
 # gh = "latest" # GitHub CLI; gh completion -s zsh is built into sync's registry
 # Optional first-use authentication:
 # gh auth login
+"conda:git-crypt" = "latest" # Transparent file encryption in git
 git-lfs = "latest" # Git extension for versioning large files
 gitleaks = "latest" # Audit git repos for secrets
 gitui = "latest" # Blazing fast terminal-ui for git written in rust

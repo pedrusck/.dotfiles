@@ -29,17 +29,6 @@ export EDITOR=nvim VISUAL=nvim
 [[ -d "${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" ]] && \
 	path=("${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" $path)
 
-# PostgreSQL fallback: highest usable Homebrew version, retaining earlier psql.
-() {
-	[[ -n $HOMEBREW_PREFIX ]] || return
-	local bin
-	for bin in "$HOMEBREW_PREFIX"/opt/postgresql@*/bin(N/nOn); do
-		[[ -f $bin/psql && -x $bin/psql ]] || continue
-		path+=("$bin")
-		break
-	done
-}
-
 # Mint (Swift package manager) binaries
 [[ -d $HOME/.mint/bin ]] && path+=("$HOME/.mint/bin")
 

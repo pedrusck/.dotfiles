@@ -20,7 +20,6 @@ brew "zsh-vi-mode" # Better and friendly vi(vim) mode plugin for ZSH
 
 ### Builder ###
 brew "make" # Utility for directing compilation
-brew "parallel" # Shell command parallelization utility
 
 ### Editor ###
 # cask "zed" # Multiplayer code editor
@@ -28,17 +27,14 @@ brew "parallel" # Shell command parallelization utility
 ### Version control ###
 # cask "fork" # GIT client
 # brew "git" # Distributed revision control system
-brew "git-crypt" # Transparent file encryption in git
 cask "gitup-app" # Git interface focused on visual interaction
 
 ### File/Memory management ###
 brew "tree" # Display directories as trees (with optional color/HTML output)
 
 ### Process/System monitor ###
-brew "htop" # Improved top (interactive process viewer)
 
 ### VPN ###
-# brew "openconnect" # Open client for Cisco AnyConnect VPN
 # mas "Windows App", id: 1295203466
 
 ### Networking ###
@@ -59,7 +55,6 @@ cask "docker-desktop" # App to build and share containerised applications and mi
 # cask "drawio" # Draw.io is free online diagram software
 cask "figma" # Collaborative team software
 cask "gimp" # Free and open-source image editor -> NOT M1 COMPATIBLE
-# brew "imagemagick" # Tools and libraries to manipulate images in many formats
 cask "imageoptim" # Tool to optimize images to a smaller size
 # cask "inkscape" # Vector graphics editor
 # cask "zeplin" # Share, organize and collaborate on designs
@@ -86,7 +81,6 @@ mas "uBlock Origin Lite", id: 6745342698
 # cask "zen" # Gecko based web browser
 
 ### PDF inspection/manipulation ###
-# brew "ghostscript" # Interpreter for PostScript and PDF
 cask "skim" # PDF reader and note-taking application
 
 ### Writing ###
@@ -113,7 +107,6 @@ brew "toipe" # Yet another typing test, but crab flavoured
 
 ### File inspection ###
 #cask "exifcleaner" # Metadata cleaner -> NOT M1 COMPATIBLE
-brew "qpdf" # Tools for and transforming and inspecting PDF files
 brew "tesseract" # OCR (Optical Character Recognition) engine
 brew "tesseract-lang" # Enables extra languages support for Tesseract
 brew "tokei" # Program that allows you to count code, quickly
@@ -141,7 +134,6 @@ cask "secretive" # Store SSH keys in the Secure Enclave
 ### Database ###
 # cask "dbeaver-community" # Universal database tool and SQL client
 cask "pgadmin4" # Administration and development platform for PostgreSQL
-brew "postgresql@17" # Object-relational database system
 
 ### Note taking ###
 # cask "notion" # App to write, plan, collaborate, and get organized
@@ -187,7 +179,6 @@ mas "WhatsApp", id: 310633997
 # cask "zoom" # Video communication and virtual meeting platform
 
 ### Video creation/playback ###
-# brew "ffmpeg" # Play, record, convert, and stream audio and video
 mas "Gifski", id: 1351639930
 # cask "handbrake-app" # Open-source video transcoder
 # mas "iMovie", id: 408981434

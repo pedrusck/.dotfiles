@@ -28,7 +28,9 @@ skim = { completion_name = "sk", zsh = "sk --shell zsh" }
 # apfel = { zsh = "apfel completions zsh" }
 # Fabric's postinstall hook stages _fabric inside its mise install.
 # fabric = { bundled = true, zsh = "_fabric" }
+# Zsh supplies _ghostscript (including gs); no sync recipe is needed.
 
 # Already built in: gh (gh completion -s zsh), yazi/ya (bundled _yazi/_ya),
 # and zellij (zellij setup --generate-completion zsh).
+# Zsh itself supplies _ffmpeg and _imagemagick; no sync recipes are needed.
 # Pkl's generated script must be sourced: see its postinstall and zsh/zshrc.
