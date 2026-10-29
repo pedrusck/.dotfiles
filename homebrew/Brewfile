@@ -23,7 +23,6 @@ brew "make" # Utility for directing compilation
 brew "parallel" # Shell command parallelization utility
 
 ### Editor ###
-brew "neovim" # Ambitious Vim-fork focused on extensibility and agility
 # cask "zed" # Multiplayer code editor
 
 ### Version control ###
@@ -114,7 +113,6 @@ brew "toipe" # Yet another typing test, but crab flavoured
 
 ### File inspection ###
 #cask "exifcleaner" # Metadata cleaner -> NOT M1 COMPATIBLE
-brew "eza" # Modern, maintained replacement for ls
 brew "qpdf" # Tools for and transforming and inspecting PDF files
 brew "tesseract" # OCR (Optical Character Recognition) engine
 brew "tesseract-lang" # Enables extra languages support for Tesseract

@@ -27,6 +27,7 @@ pandoc = "latest" # Swiss-army knife of markup format conversion
 typst = "latest" # Markup-based typesetting system
 
 ### Editors
+neovim = "latest" # Ambitious Vim-fork focused on extensibility and agility
 tree-sitter = "latest" # Parser generator tool
 
 ### File inspection
@@ -42,6 +43,7 @@ jq = "latest" # Lightweight and flexible command-line JSON processor
 ### File management and search
 duf = "latest" # Disk Usage/Free Utility - a better 'df' alternative
 dust = "latest" # More intuitive version of du in rust
+eza = "latest" # Modern, maintained replacement for ls
 fd = "latest" # Simple, fast and user-friendly alternative to find
 fzf = "latest" # Command-line fuzzy finder written in Go
 # "github:tbillington/kondo" = "latest" # Clean non-essential files from software projects
