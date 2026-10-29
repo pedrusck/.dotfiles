@@ -1,4 +1,4 @@
-# run 'brew bundle' to install all listed packages
+# Run 'brew bundle --file=homebrew/Brewfile' to install the Homebrew packages.
 
 ### Mac App Store CLI ###
 brew "mas" # Mac App Store command-line interface
@@ -56,14 +56,8 @@ cask "keka" # File archiver
 
 ### Internet browser ###
 cask "brave-browser" # Web browser focusing on privacy
-# INFO:
-# Browserpass setup for Firefox:
-# PREFIX='/opt/homebrew/opt/browserpass' make hosts-firefox-user -f '/opt/homebrew/opt/browserpass/lib/browserpass/Makefile'
-# Browserpass setup for Helium:
-# mkdir -p "$HOME/Library/Application Support/net.imput.helium/NativeMessagingHosts/"
-# ln -sfv "/opt/homebrew/opt/browserpass/lib/browserpass/hosts/chromium/com.github.browserpass.native.json" \
-  "$HOME/Library/Application Support/net.imput.helium/NativeMessagingHosts/com.github.browserpass.native.json"
-brew "amar1729/homebrew-formulae/browserpass", trusted: true # Host application for browser extension providing access to your password store
+brew "amar1729/formulae/browserpass", trusted: true # Host application for browser extension providing access to your password store
+# Register Homebrew's Browserpass host with 'sh browserpass/setup.sh'.
 mas "Consent-O-Matic", id: 1606897889
 mas "DuckDuckGo", id: 663592361
 # cask "firefox" # Web browser
