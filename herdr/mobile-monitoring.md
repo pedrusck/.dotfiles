@@ -73,7 +73,7 @@ panes, and agents. If the SSH shell cannot find Herdr, use the installation path
 verified on this machine:
 
 ```sh
-/opt/homebrew/bin/herdr
+~/.local/share/mise/shims/herdr
 ```
 
 For named sessions:

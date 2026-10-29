@@ -2,4 +2,6 @@
 schema_version = 1
 
 [tools]
+bottom = { completion_name = "btm", bundled = true, zsh = "_btm" }
 qpdf = { zsh = "qpdf --completion-zsh" }
+skim = { completion_name = "sk", zsh = "sk --shell zsh" }
