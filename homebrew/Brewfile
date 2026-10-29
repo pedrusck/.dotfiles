@@ -31,13 +31,8 @@ brew "neovim" # Ambitious Vim-fork focused on extensibility and agility
 # brew "git" # Distributed revision control system
 brew "git-crypt" # Transparent file encryption in git
 cask "gitup-app" # Git interface focused on visual interaction
-brew "jnsahaj/lumen/lumen", trusted: true # AI-powered CLI tool for git commit summaries
-brew "serie" # Rich git commit graph in your terminal
-brew "tuicr" # Terminal UI for Code Reviews - review AI-generated diffs like a GitHub PR
 
 ### File/Memory management ###
-# brew "kondo" # Save disk space by cleaning non-essential files from software projects
-brew "mole" # Deep clean and optimize your Mac
 brew "tree" # Display directories as trees (with optional color/HTML output)
 
 ### Process/System monitor ###
@@ -48,7 +43,6 @@ brew "htop" # Improved top (interactive process viewer)
 # mas "Windows App", id: 1295203466
 
 ### Networking ###
-brew "julien-cpsn/atac/atac", trusted: true # A simple API client (postman like) in your terminal
 brew "drill" # HTTP load testing application written in Rust
 # cask "hoppscotch" # Open source API development ecosystem
 # cask "mitmproxy" # Intercept, modify, replay, save HTTP/S traffic
@@ -60,7 +54,6 @@ brew "telnet" # User interface to the TELNET protocol
 # cask "balenaetcher" # Tool to flash OS images to SD cards & USB drives -> NOT M1 COMPATIBLE
 # cask "citrix-workspace" if system(%q[mdfind "kMDItemCFBundleIdentifier == 'com.checkpoint.eps.gui'" | grep -q .]) # Managed desktop virtualization solution -> TODO: confirm Endpoint Security VPN bundle id (run: mdls -name kMDItemCFBundleIdentifier "/Applications/Endpoint Security VPN.app")
 cask "docker-desktop" # App to build and share containerised applications and microservices
-brew "podman" # Tool for managing OCI containers and pods
 # cask "raspberry-pi-imager" # Imaging utility to install operating systems to a microSD card -> NOT M1 COMPATIBLE
 
 ### Image editing/manipulation ###
@@ -70,7 +63,6 @@ cask "gimp" # Free and open-source image editor -> NOT M1 COMPATIBLE
 # brew "imagemagick" # Tools and libraries to manipulate images in many formats
 cask "imageoptim" # Tool to optimize images to a smaller size
 # cask "inkscape" # Vector graphics editor
-brew "viu" # Simple terminal image viewer written in Rust
 # cask "zeplin" # Share, organize and collaborate on designs
 
 ### Compression ###
@@ -112,8 +104,6 @@ mas "LanguageTool", id: 1534275760
 # mas "Microsoft Word", id: 462054704
 mas "Numbers", id: 361304891
 # mas "Pages", id: 361309726
-brew "pandoc" # Swiss-army knife of markup format conversion
-# brew "presenterm" # Terminal slideshow tool
 # cask "zotero" # Collect, organize, cite, and share research sources -> NOT M1 COMPATIBLE
 
 ### Keyboard Tools ###
@@ -121,19 +111,14 @@ brew "gnu-typist" # GNU typing tutor
 cask "keyboardcleantool" # Blocks all Keyboard and TouchBar input
 mas "Keymapp", id: 6472865291 # ZSA keyboard firmware flasher
 brew "toipe" # Yet another typing test, but crab flavoured
-brew "zapp" # Flash ZSA keyboards from your terminal
 
 ### File inspection ###
 #cask "exifcleaner" # Metadata cleaner -> NOT M1 COMPATIBLE
 brew "eza" # Modern, maintained replacement for ls
-brew "jql" # JSON query language CLI tool
 brew "qpdf" # Tools for and transforming and inspecting PDF files
-brew "leaf-markdown-viewer" # Terminal Markdown previewer with a GUI-like experience
-brew "tabiew" # TUI to view and query tabular files (CSV,TSV, Parquet, etc.)
 brew "tesseract" # OCR (Optical Character Recognition) engine
 brew "tesseract-lang" # Enables extra languages support for Tesseract
 brew "tokei" # Program that allows you to count code, quickly
-brew "xq" # Command-line XML and HTML beautifier and content extractor
 
 ### File and content search ###
 
@@ -159,7 +144,6 @@ cask "secretive" # Store SSH keys in the Secure Enclave
 # cask "dbeaver-community" # Universal database tool and SQL client
 cask "pgadmin4" # Administration and development platform for PostgreSQL
 brew "postgresql@17" # Object-relational database system
-brew "rainfrog" # Database management TUI for Postgres
 
 ### Note taking ###
 # cask "notion" # App to write, plan, collaborate, and get organized
@@ -172,11 +156,9 @@ mas "reMarkable", id: 1276493162 # View, Screen Share, organize, import, and dow
 cask "amethyst" # Automatic tiling window manager similar to xmonad
 # cask "flashspace" # Virtual workspace manager
 # cask "rectangle" # Move and resize windows using keyboard shortcuts or snap areas
-# brew "yabai" # A tiling window manager for macOS based on binary space partitioning
 
 ### macOS utilities ###
 cask "blackhole-2ch" # Virtual Audio Driver
-brew "defaultbrowser" # Command-line tool for getting & setting the default browser
 # cask "hammerspoon" # Desktop automation application
 # cask "leader-key" # Application launcher
 cask "maccy" # Clipboard manager
@@ -218,17 +200,11 @@ cask "vlc" # Multimedia player
 # mas "GarageBand", id: 682658836
 cask "sonos" # Control your Sonos system
 cask "spotify" # Music streaming service
-brew "spotify_player" # Command driven spotify player
 
 ### Android development ###
-brew "detekt" # Static code analysis for Kotlin
 cask "jetbrains-toolbox" # JetBrains tools manager
-brew "kdoctor" # Environment diagnostics for Kotlin Multiplatform Mobile app development -> Kotlin Multiplatform
 
 ### Large language model ###
-# brew "apfel" # Apple Intelligence from the command-line, with OpenAi-compatible API server
-brew "navikt/tap/cplt", trusted: true # Kernel-enforced sandbox wrapper for coding agents
-# brew "fabric-ai" # Open-source framework for augmenting humans using AI
 brew "anomalyco/tap/opencode", trusted: true # AI coding agent, built for the terminal
 brew "pi-coding-agent" # AI agent toolkit
 # rtk setup: rtk init -g --opencode && rtk init -g && rtk init -g --agent pi

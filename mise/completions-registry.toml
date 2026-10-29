@@ -5,3 +5,30 @@ schema_version = 1
 bottom = { completion_name = "btm", bundled = true, zsh = "_btm" }
 qpdf = { zsh = "qpdf --completion-zsh" }
 skim = { completion_name = "sk", zsh = "sk --shell zsh" }
+
+# Optional migrations: enable the relevant recipe together with its tool entry
+# in configuration.toml. The existing postinstall sync writes to the completion
+# directory already added to fpath before compinit in zsh/zshrc.
+# For an already-installed tool, run misecompsync --shell zsh <tool> manually
+# after enabling its recipe; restart Zsh to load the new completion.
+
+# GHCup and Hub postinstall commands stage these files inside their mise installs.
+# ghcup = { bundled = true, zsh = "_ghcup" }
+# hub = { bundled = true, zsh = "_hub" }
+
+# Cover the canonical Copilot name and its registry alias; both provide copilot.
+# copilot = { completion_name = "copilot", zsh = "copilot completion zsh" }
+# copilot-cli = { completion_name = "copilot", zsh = "copilot completion zsh" }
+# license-plist = { zsh = "license-plist --generate-completion-script zsh" }
+
+# Optional explicit-backend tools: enable together with their configuration.toml
+# entries. For already-installed tools, run misecompsync --shell zsh without a
+# tool argument so it discovers the full backend IDs; restart Zsh afterward.
+# kondo = { zsh = "kondo --completions=zsh" }
+# apfel = { zsh = "apfel completions zsh" }
+# Fabric's postinstall hook stages _fabric inside its mise install.
+# fabric = { bundled = true, zsh = "_fabric" }
+
+# Already built in: gh (gh completion -s zsh), yazi/ya (bundled _yazi/_ya),
+# and zellij (zellij setup --generate-completion zsh).
+# Pkl's generated script must be sourced: see its postinstall and zsh/zshrc.

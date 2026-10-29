@@ -7,12 +7,23 @@
 # Installations trigger the completion-sync hook below; restart Zsh to load them.
 # First-use commands in comments are manual steps, not TOML configuration.
 
+### Android development
+"github:detekt/detekt" = { version = "latest", asset_pattern = "detekt-cli-*.zip", strip_components = 1, bin_path = "bin", depends = ["java"], postinstall = 'ln -sf detekt-cli "$MISE_TOOL_INSTALL_PATH/bin/detekt"' } # Static code analysis for Kotlin
+"github:Kotlin/kdoctor" = { version = "latest", os = ["macos"] } # Environment diagnostics for Kotlin Multiplatform Mobile app development
+
 ### Build tools
 just = "latest" # Handy way to save and run project-specific commands
 # mask = "latest" # Task runner defined by a Markdown file; no extra setup or official Zsh completion
 protobuf = "latest" # Protocol buffers compiler
 
+### Containers
+podman = "latest" # Tool for managing OCI containers and pods
+
+### Database utilities
+"github:achristmascarl/rainfrog" = "latest" # Database management TUI for PostgreSQL/MySQL/SQLite
+
 ### Documents
+pandoc = "latest" # Swiss-army knife of markup format conversion
 typst = "latest" # Markup-based typesetting system
 
 ### Editors
@@ -23,12 +34,19 @@ bat = "latest" # Clone of cat(1) with syntax highlighting and Git integration
 fx = "latest" # Terminal JSON viewer
 hexyl = "latest" # Command-line hex viewer
 jq = "latest" # Lightweight and flexible command-line JSON processor
+"github:yamafaktory/jql" = { version = "latest", version_prefix = "jql-v" } # JSON query language CLI tool
+"github:shshemi/tabiew" = { version = "latest", matching = "tw-", bin = "tw" } # TUI to view and query tabular files (CSV, TSV, Parquet, etc.)
+"github:atanunq/viu" = { version = "latest", bin = "viu" } # Simple terminal image viewer written in Rust
+"github:sibprogrammer/xq" = "latest" # Command-line XML and HTML beautifier and content extractor
 
 ### File management and search
 duf = "latest" # Disk Usage/Free Utility - a better 'df' alternative
 dust = "latest" # More intuitive version of du in rust
 fd = "latest" # Simple, fast and user-friendly alternative to find
 fzf = "latest" # Command-line fuzzy finder written in Go
+# "github:tbillington/kondo" = "latest" # Clean non-essential files from software projects
+# Enable its completion recipe in completions-registry.toml; no extra setup.
+mole = { version = "latest", os = ["macos"] } # Deep clean and optimize your Mac
 ripgrep = "latest" # Search tool like grep and The Silver Searcher
 ripgrep-all = "latest" # Wrapper around ripgrep that adds multiple rich file types
 sd = "latest" # Intuitive find & replace CLI
@@ -55,6 +73,9 @@ xcodegen = "latest" # Generate your Xcode project from a spec file and your fold
 xcodes = { version = "latest", os = ["macos"] } # Command-line tool to install and switch between multiple versions of Xcode
 
 ### Large Language Models
+# "github:Arthur-Ficial/apfel" = { version = "latest", os = ["macos"] } # Apple Intelligence CLI/server
+# Requires Apple Silicon, macOS 26+, and Apple Intelligence enabled manually.
+# Enable its completion recipe in completions-registry.toml; no install script.
 # claude-code = "latest" # AI coding assistant; registry alias of claude, provides claude
 # Optional settings/key-helper links and Herdr integration: enable claude_code
 # in profiles/development.sh. No official Zsh completion generator is documented.
@@ -63,13 +84,48 @@ xcodes = { version = "latest", os = ["macos"] } # Command-line tool to install a
 # copilot-cli = "latest" # GitHub Copilot coding agent; registry alias of copilot, provides copilot
 # Enable its completion recipe in completions-registry.toml. Optional first use:
 # copilot login
+"github:navikt/cplt" = "latest" # Kernel-enforced sandbox wrapper for coding agents
+# Stage Fabric's version-matched upstream completion inside its mise install;
+# release archives do not guarantee it. Enable its bundled-file completion recipe.
+# "github:danielmiessler/fabric" = { version = "latest", postinstall = '''
+# set -eu
+# completion_dir="$MISE_TOOL_INSTALL_PATH/completions"
+# mkdir -p "$completion_dir"
+# completion_tmp=$(mktemp "$completion_dir/.fabric.XXXXXX")
+# trap 'rm -f "$completion_tmp"' 0
+# curl -fsSL "https://raw.githubusercontent.com/danielmiessler/fabric/v${MISE_TOOL_VERSION#v}/completions/_fabric" -o "$completion_tmp"
+# test -s "$completion_tmp"
+# mv "$completion_tmp" "$completion_dir/_fabric"
+# ''' } # AI augmentation framework; Homebrew: fabric-ai, executable: fabric
+# Interactive first-use provider/model configuration (run manually):
+# fabric --setup
 rtk = "latest" # CLI proxy to minimize LLM token consumption
+
+### macOS utilities
+"github:kerma/defaultbrowser" = { version = "latest", asset_pattern = "defaultbrowser", bin = "defaultbrowser", os = ["macos"] } # Command-line tool for getting & setting the default browser (requires Rosetta on Apple Silicon)
+# "github:asmvik/yabai" = { version = "latest", os = ["macos"] } # Tiling window manager
+# No official Zsh completion was found. Manual setup from the repository root:
+# sh yabai/setup.sh
+# Select Yabai instead of Amethyst: quit/disable Amethyst and replace its profile
+# entry in profiles/development.sh with yabai before starting the service.
+# Grant Yabai Accessibility permission in macOS System Settings, then:
+# yabai --start-service
+# Optional scripting-addition setup is documented in comments in yabai/yabairc.
+"github:zsa/zapp" = "latest" # Flash ZSA keyboards from your terminal
 
 ### Markdown
 glow = "latest" # Render markdown on the CLI
+"github:RivoLink/leaf" = { version = "latest", bin = "leaf" } # Terminal Markdown previewer with a GUI-like experience
+# "github:mfontanini/presenterm" = "latest" # Terminal slideshow tool
+# No official Zsh completion was found; no basic setup. Optional rendering/export
+# features need additional dependencies; see upstream documentation before use.
 rumdl = "latest" # Markdown Linter and Formatter written in Rust
 
+### Music
+spotify-player = "latest" # Command driven spotify player
+
 ### Networking
+"github:Julien-cpsn/ATAC" = "latest" # A simple API client (postman like) in your terminal
 curlie = "latest" # Power of curl, ease of use of httpie
 hurl = "latest" # Run and Test HTTP Requests with plain text and curl
 xh = "latest" # Friendly and fast tool for sending HTTP requests
@@ -137,6 +193,9 @@ gitui = "latest" # Blazing fast terminal-ui for git written in rust
 # mv "$completion_dir/_hub.tmp" "$completion_dir/_hub"
 # ''' } # GitHub support for Git; authenticates on first API use (or uses GITHUB_TOKEN)
 lazygit = "latest" # Simple terminal UI for git commands
+"github:jnsahaj/lumen" = "latest" # AI-powered CLI tool for git commit summaries
+"github:lusingander/serie" = "latest" # Rich git commit graph in your terminal
+"github:agavra/tuicr" = "latest" # Terminal UI for Code Reviews - review AI-generated diffs like a GitHub PR
 
 ### YAML
 yamlfmt = "latest" # Extensible command-line tool to format YAML files
