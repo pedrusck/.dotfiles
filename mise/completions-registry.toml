@@ -26,9 +26,13 @@ skim = { completion_name = "sk", zsh = "sk --shell zsh" }
 # tool argument so it discovers the full backend IDs; restart Zsh afterward.
 # kondo = { zsh = "kondo --completions=zsh" }
 # apfel = { zsh = "apfel completions zsh" }
+# spm:vapor/toolbox normalizes to toolbox, but its executable/completion is vapor.
+# toolbox = { completion_name = "vapor", zsh = "vapor --generate-completion-script zsh" }
 # Fabric's postinstall hook stages _fabric inside its mise install.
 # fabric = { bundled = true, zsh = "_fabric" }
 # Zsh supplies _ghostscript (including gs); no sync recipe is needed.
+# No supported upstream Zsh completion was found for openconnect, presenterm,
+# yabai, Mint (the Swift package manager), or mlx.
 
 # Already built in: gh (gh completion -s zsh), yazi/ya (bundled _yazi/_ya),
 # and zellij (zellij setup --generate-completion zsh).

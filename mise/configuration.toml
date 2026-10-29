@@ -73,10 +73,19 @@ dependency-check = { version = "latest", depends = ["java"] } # OWASP dependency
 # license-plist = { version = "latest", os = ["macos"] } # iOS dependency license lists; Homebrew: licenseplist
 # Enable its completion recipe in completions-registry.toml; no extra setup.
 "pypi:lizard" = { version = "latest", depends = ["python", "uv"] } # Extensible Cyclomatic Complexity Analyzer
+# "spm:yonaskolb/Mint" = { version = "latest", filter_bins = ["mint"] } # Install/run Swift CLI packages
+# Requires a compatible Swift toolchain; bare mise mint is a different project.
+# Optional PATH for Mint-installed tools: enable ~/.mint/bin in zsh/zprofile.
+# No official Zsh completion was found; no other setup is required.
+"spm:apple/swift-protobuf" = { version = "latest", filter_bins = ["protoc-gen-swift"] } # Plugin for using protobuf with Swift
 swiftformat = "latest" # Formatting technology for Swift source code
 swiftgen = "latest" # Swift code generator for assets, storyboards, Localizable.strings, …
 swiftlint = "latest" # Tool to enforce Swift style and conventions
+"spm:swiftlang/swiftly" = { version = "latest", filter_bins = ["swiftly"], os = ["macos", "linux"] } # Swift toolchain installer and manager
 tuist = "latest" # Create, maintain, and interact with Xcode projects at scale
+# "spm:vapor/toolbox" = { version = "latest", filter_bins = ["vapor"] } # Vapor server-side Swift CLI
+# Requires a compatible Swift toolchain. Enable the toolbox completion recipe
+# in completions-registry.toml (it writes _vapor); no extra setup.
 xcbeautify = "latest" # Little beautifier tool for xcodebuild
 xcodegen = "latest" # Generate your Xcode project from a spec file and your folder structure
 xcodes = { version = "latest", os = ["macos"] } # Command-line tool to install and switch between multiple versions of Xcode

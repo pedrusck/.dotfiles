@@ -29,8 +29,9 @@ export EDITOR=nvim VISUAL=nvim
 [[ -d "${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" ]] && \
 	path=("${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" $path)
 
-# Mint (Swift package manager) binaries
-[[ -d $HOME/.mint/bin ]] && path+=("$HOME/.mint/bin")
+# Optional Mint-installed tools; enable with spm:yonaskolb/Mint in
+# mise/configuration.toml. Mise supplies the mint executable itself.
+# [[ -d $HOME/.mint/bin ]] && path+=("$HOME/.mint/bin")
 
 # Rust/Cargo binaries
 [[ -d $HOME/.cargo/bin ]] && path+=("$HOME/.cargo/bin")
