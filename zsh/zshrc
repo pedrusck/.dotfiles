@@ -23,6 +23,11 @@ SAVEHIST=1000
 # Make standalone mise available in non-login shells before activation.
 [[ -d $HOME/.local/bin ]] && path=("$HOME/.local/bin" $path)
 
+# Shims make tools available before the mise activation block below, including
+# for aliases and Zoxide initialization in non-login shells.
+[[ -d "${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" ]] && \
+	path=("${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" $path)
+
 # SourceKit-LSP fallback: select DEVELOPER_DIR before xcode-select, but retain
 # earlier executables on PATH rather than overriding the whole toolchain.
 () {
@@ -188,8 +193,8 @@ if (( $+commands[zoxide] )); then
 	_zsh_eval_init zoxide init zsh --cmd cd
 fi
 
-# Install mise hooks synchronously; the first-prompt hook prepares the tool
-# environment before typed commands. `zsh -ic command` does not render a prompt.
+# Activation initializes the tool environment immediately, including in `zsh -ic`.
+# Prompt and directory-change hooks refresh it afterward.
 if (( $+commands[mise] )); then
 	_zsh_eval_init mise activate zsh
 fi
