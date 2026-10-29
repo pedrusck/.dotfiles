@@ -72,6 +72,7 @@ television = "latest" # General purpose fuzzy finder TUI
 dependency-check = { version = "latest", depends = ["java"] } # OWASP dependency-check
 # license-plist = { version = "latest", os = ["macos"] } # iOS dependency license lists; Homebrew: licenseplist
 # Enable its completion recipe in completions-registry.toml; no extra setup.
+"pypi:lizard" = { version = "latest", depends = ["python", "uv"] } # Extensible Cyclomatic Complexity Analyzer
 swiftformat = "latest" # Formatting technology for Swift source code
 swiftgen = "latest" # Swift code generator for assets, storyboards, Localizable.strings, …
 swiftlint = "latest" # Tool to enforce Swift style and conventions
@@ -123,6 +124,12 @@ rtk = "latest" # CLI proxy to minimize LLM token consumption
 # Optional scripting-addition setup is documented in comments in yabai/yabairc.
 "github:zsa/zapp" = "latest" # Flash ZSA keyboards from your terminal
 
+### Machine learning
+# "pypi:mlx" = { version = "latest", depends = ["python", "uv"], os = ["macos"] } # Array framework CLI utilities
+# Targets Apple Silicon; provides mlx.launch and mlx.distributed_config.
+# Projects importing mlx must install it in their own Python environments.
+# No official Zsh completion was found; no mandatory first-use setup.
+
 ### Markdown
 glow = "latest" # Render markdown on the CLI
 "github:RivoLink/leaf" = { version = "latest", bin = "leaf" } # Terminal Markdown previewer with a GUI-like experience
@@ -145,9 +152,15 @@ spotify-player = "latest" # Command driven spotify player
 curlie = "latest" # Power of curl, ease of use of httpie
 "cargo:drill" = { version = "latest", depends = ["rust"] } # HTTP load testing application written in Rust
 hurl = "latest" # Run and Test HTTP Requests with plain text and curl
+# "pypi:mitmproxy" = { version = "latest", depends = ["python", "uv"] } # Interactive HTTP/S proxy
+# No official Zsh completion or setup is needed to start. First launch creates
+# ~/.mitmproxy/mitmproxy-ca-cert.pem. For HTTPS interception, manually configure
+# the client's proxy (default localhost:8080) and trust that CA on the client;
+# http://mitm.it, accessed through the proxy, provides platform instructions.
 # "conda:openconnect" = "latest" # Open client for Cisco AnyConnect VPN
 # Conda supplies/configures vpnc-script; it runs during VPN connections.
 # No official Zsh completion was found; no separate post-install setup.
+"pypi:posting" = { version = "latest", depends = ["python", "uv"] } # Modern API client that lives in your terminal
 xh = "latest" # Friendly and fast tool for sending HTTP requests
 
 ### Programming languages

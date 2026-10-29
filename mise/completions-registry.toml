@@ -34,3 +34,5 @@ skim = { completion_name = "sk", zsh = "sk --shell zsh" }
 # and zellij (zellij setup --generate-completion zsh).
 # Zsh itself supplies _ffmpeg and _imagemagick; no sync recipes are needed.
 # Pkl's generated script must be sourced: see its postinstall and zsh/zshrc.
+# Oh My Posh disables its completion command. No official Zsh completion recipe
+# is available here for mask, superfile (spf), mitmproxy, or claude-code (claude).

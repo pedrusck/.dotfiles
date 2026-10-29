@@ -37,8 +37,6 @@ brew "tree" # Display directories as trees (with optional color/HTML output)
 
 ### Networking ###
 # cask "hoppscotch" # Open source API development ecosystem
-# cask "mitmproxy" # Intercept, modify, replay, save HTTP/S traffic
-brew "posting" # Modern API client that lives in your terminal
 # cask "proxyman" # Modern and intuitive HTTP Debugging Proxy app
 brew "telnet" # User interface to the TELNET protocol
 
@@ -195,7 +193,6 @@ cask "jetbrains-toolbox" # JetBrains tools manager
 mas "Apple Configurator", id: 1037126344
 # mas "Dev Jobs", id: 1578276279
 mas "Developer", id: 640199958 # Apple Developer
-brew "lizard-analyzer" # Extensible Cyclomatic Complexity Analyzer
 # brew "mint" # Dependency manager that installs and runs Swift command-line tool packages
 cask "sf-symbols" # Tool that provides consistent, highly configurable symbols for apps
 # cask "swiftybeaver" # Access your app logs in development & release with end-to-end encryption -> NOT M1 COMPATIBLE
@@ -207,6 +204,3 @@ mas "Transporter", id: 1450874784
 # mas "Xcode", id: 497799835 # <- Xcode being installed using xcodes
 brew "xcode-kotlin" # Kotlin Native Xcode Plugin
 # brew "vapor" if system(%q[mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode'" | grep -q .]) # Command-line tool for Vapor (Server-side Swift web framework) -> requires Xcode
-
-### Machine learning ###
-# brew "mlx" # Array framework for Apple silicon
