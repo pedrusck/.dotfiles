@@ -15,8 +15,14 @@ java = "latest"
 python = "latest"
 ruby = "latest"
 
+### Shell and terminal
+"github:alltuner/mise-completions-sync" = "latest" # Sync shell completions for mise-managed tools
+
 ### Web
 node = "latest"
 
 ### Yaml
 yamlfmt = "latest"
+
+[hooks]
+postinstall = "if command -v misecompsync >/dev/null 2>&1; then misecompsync --shell zsh --new-only; fi" # Sync completions after tool installations

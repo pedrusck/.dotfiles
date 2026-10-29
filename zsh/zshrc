@@ -48,7 +48,7 @@ SAVEHIST=1000
 	[[ -S $socket ]] && export SSH_AUTH_SOCK="$socket"
 }
 
-# Custom functions; completion paths otherwise come from the environment/packages.
+# Custom functions; tool completion paths are added before compinit below.
 [[ -d $_zsh_config_dir/zsh_functions ]] && fpath=("$_zsh_config_dir/zsh_functions" $fpath)
 
 ## Aliases
@@ -102,6 +102,15 @@ autoload -Uz \
 	teams_clean_cache xcode_projects_list xcode_remove_derived_data
 
 ## Completions
+
+() {
+	# Completions for tools still managed by Homebrew.
+	local brew_completions=${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh/site-functions
+	[[ -d $brew_completions ]] && fpath=("$brew_completions" $fpath)
+	# mise/setup.sh and mise's postinstall hook generate these files.
+	local completion_dir=${MISE_COMPLETIONS_SYNC_ZSH_DIR:-${MISE_COMPLETIONS_SYNC_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/mise-completions}/zsh}
+	[[ -d $completion_dir ]] && fpath=("$completion_dir" $fpath)
+}
 
 # Progressive matching: exact, smart case, word-flex, then full-flex.
 zstyle ':completion:*' matcher-list '' \
