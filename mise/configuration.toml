@@ -107,6 +107,8 @@ xcodes = { version = "latest", os = ["macos"] } # Command-line tool to install a
 # ''' } # AI augmentation framework; Homebrew: fabric-ai, executable: fabric
 # Interactive first-use provider/model configuration (run manually):
 # fabric --setup
+opencode = { version = "latest", depends = ["node"] } # OpenCode V2 - the AI coding agent for the terminal
+"npm:@earendil-works/pi-coding-agent" = { version = "latest", depends = ["node"] } # AI agent toolkit
 rtk = "latest" # CLI proxy to minimize LLM token consumption
 
 ### macOS utilities

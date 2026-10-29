@@ -189,8 +189,6 @@ cask "spotify" # Music streaming service
 cask "jetbrains-toolbox" # JetBrains tools manager
 
 ### Large language model ###
-brew "anomalyco/tap/opencode", trusted: true # AI coding agent, built for the terminal
-brew "pi-coding-agent" # AI agent toolkit
 # rtk setup: rtk init -g --opencode && rtk init -g && rtk init -g --agent pi
 
 ### iOS development ###
