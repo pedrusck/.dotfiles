@@ -1,4 +1,5 @@
 [tools]
+
 ### iOS development
 swiftformat = "latest" # Formatting technology for Swift source code
 swiftgen = "latest" # Swift code generator for assets, storyboards, Localizable.strings, …
@@ -11,15 +12,15 @@ xcodegen = "latest" # Generate your Xcode project from a spec file and your fold
 rumdl = "latest"
 
 ### Programming languages
-java = "latest"
-python = "latest"
-ruby = "latest"
+go = "latest" # Open source programming language to build simple/reliable/efficient software
+java = "latest" # Development kit for the Java programming language
+node = "latest" # Platform built on V8 to build network applications
+python = "latest" # Interpreted, interactive, object-oriented programming language
+ruby = "latest" # Powerful, clean, object-oriented scripting language
+rust = "latest" # Safe, concurrent, practical language
 
 ### Shell and terminal
 "github:alltuner/mise-completions-sync" = "latest" # Sync shell completions for mise-managed tools
-
-### Web
-node = "latest"
 
 ### Yaml
 yamlfmt = "latest"

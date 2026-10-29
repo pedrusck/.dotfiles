@@ -24,7 +24,6 @@ brew "zsh-vi-mode" # Better and friendly vi(vim) mode plugin for ZSH
 ### Compilers ###
 # brew "ghcup" # Installer for the general purpose language Haskell
 # brew "pkl" # CLI for the Pkl programming language
-# brew "rust" # Safe, concurrent, practical language
 
 ### Builder ###
 brew "just" # Handy way to save and run project-specific commands
