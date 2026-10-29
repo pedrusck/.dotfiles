@@ -36,7 +36,6 @@ brew "tree" # Display directories as trees (with optional color/HTML output)
 # mas "Windows App", id: 1295203466
 
 ### Networking ###
-brew "drill" # HTTP load testing application written in Rust
 # cask "hoppscotch" # Open source API development ecosystem
 # cask "mitmproxy" # Intercept, modify, replay, save HTTP/S traffic
 brew "posting" # Modern API client that lives in your terminal
@@ -101,13 +100,11 @@ mas "Numbers", id: 361304891
 brew "gnu-typist" # GNU typing tutor
 cask "keyboardcleantool" # Blocks all Keyboard and TouchBar input
 mas "Keymapp", id: 6472865291 # ZSA keyboard firmware flasher
-brew "toipe" # Yet another typing test, but crab flavoured
 
 ### File inspection ###
 #cask "exifcleaner" # Metadata cleaner -> NOT M1 COMPATIBLE
 brew "tesseract" # OCR (Optical Character Recognition) engine
 brew "tesseract-lang" # Enables extra languages support for Tesseract
-brew "tokei" # Program that allows you to count code, quickly
 
 ### File and content search ###
 

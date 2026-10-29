@@ -42,6 +42,7 @@ jq = "latest" # Lightweight and flexible command-line JSON processor
 "github:yamafaktory/jql" = { version = "latest", version_prefix = "jql-v" } # JSON query language CLI tool
 "conda:qpdf" = "latest" # Tools for transforming and inspecting PDF files
 "github:shshemi/tabiew" = { version = "latest", matching = "tw-", bin = "tw" } # TUI to view and query tabular files (CSV, TSV, Parquet, etc.)
+tokei = { version = "latest", depends = ["rust"] } # Program that allows you to count code, quickly
 "github:atanunq/viu" = { version = "latest", bin = "viu" } # Simple terminal image viewer written in Rust
 "github:sibprogrammer/xq" = "latest" # Command-line XML and HTML beautifier and content extractor
 
@@ -140,6 +141,7 @@ spotify-player = "latest" # Command driven spotify player
 ### Networking
 "github:Julien-cpsn/ATAC" = "latest" # A simple API client (postman like) in your terminal
 curlie = "latest" # Power of curl, ease of use of httpie
+"cargo:drill" = { version = "latest", depends = ["rust"] } # HTTP load testing application written in Rust
 hurl = "latest" # Run and Test HTTP Requests with plain text and curl
 # "conda:openconnect" = "latest" # Open client for Cisco AnyConnect VPN
 # Conda supplies/configures vpnc-script; it runs during VPN connections.
@@ -195,6 +197,9 @@ starship = "latest" # Cross-shell prompt for astronauts
 zoxide = "latest" # Shell extension to navigate your filesystem faster
 "conda:zsh-autosuggestions" = "latest" # Fish-like autosuggestions for Zsh
 "conda:zsh-syntax-highlighting" = "latest" # Fish-like syntax highlighting for Zsh
+
+### Typing tools
+"cargo:toipe" = { version = "latest", depends = ["rust"] } # Yet another typing test, but crab flavoured
 
 ### Version control
 delta = "latest" # Syntax-highlighting pager for git and diff output
