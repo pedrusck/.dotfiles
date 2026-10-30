@@ -20,6 +20,9 @@ export EDITOR=nvim VISUAL=nvim
 	done
 }
 
+# Prefer standalone mise and other user-local executables over Homebrew.
+[[ -d $HOME/.local/bin ]] && path=("$HOME/.local/bin" $path)
+
 # Prepend mise shims after Homebrew for login shells without interactive hooks.
 # Ordinary `ssh host command` does not load this profile; use an explicit login
 # shell or mise exec when automation needs that environment.
