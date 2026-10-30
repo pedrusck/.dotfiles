@@ -326,7 +326,7 @@ ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
 ZSH_AUTOSUGGEST_STRATEGY=(match_prev_cmd history completion)
 
-# Homebrew provides the shell plugins.
+# Homebrew provides vi-mode; global mise provides autosuggestions and highlighting.
 _zsh_vi_mode_loaded=0
 if [[ -t 0 ]]; then
 	if _zsh_source_plugin vi_mode \
@@ -344,12 +344,20 @@ if [[ -t 0 ]]; then
 	fi
 fi
 
-_zsh_source_plugin autosuggestions \
-	"${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+() {
+	local autosuggestions_prefix='' highlighting_prefix=''
+	if (( $+commands[mise] )); then
+		autosuggestions_prefix=$(command mise --cd "$HOME" where conda:zsh-autosuggestions 2>/dev/null) || autosuggestions_prefix=''
+		highlighting_prefix=$(command mise --cd "$HOME" where conda:zsh-syntax-highlighting 2>/dev/null) || highlighting_prefix=''
+	fi
 
-# Keep highlighting last for compatibility with older Zsh widget wrappers.
-_zsh_source_plugin syntax_highlighting \
-	"${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+	_zsh_source_plugin autosuggestions \
+		"${autosuggestions_prefix:+$autosuggestions_prefix/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh}"
+
+	# Keep highlighting last for compatibility with older Zsh widget wrappers.
+	_zsh_source_plugin syntax_highlighting \
+		"${highlighting_prefix:+$highlighting_prefix/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh}"
+}
 
 if [[ -t 0 ]] && { (( ! _zsh_vi_mode_loaded )) || [[ $ZVM_INIT_DONE == true ]]; }; then
 	_zsh_bind_keys

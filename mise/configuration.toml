@@ -193,6 +193,8 @@ starship = "latest" # Cross-shell prompt for astronauts
 # Completion generation is built into sync's registry. Enable zellij in
 # profiles/development.sh for config/layout links; optional auto-start is in zsh/zshrc.
 zoxide = "latest" # Shell extension to navigate your filesystem faster
+"conda:zsh-autosuggestions" = "latest" # Fish-like autosuggestions for Zsh
+"conda:zsh-syntax-highlighting" = "latest" # Fish-like syntax highlighting for Zsh
 
 ### Version control
 delta = "latest" # Syntax-highlighting pager for git and diff output
