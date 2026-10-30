@@ -227,8 +227,11 @@ function zvm_config() {
 }
 
 function _zsh_load_fzf_keybindings() {
-	_zsh_source_plugin fzf_key_bindings \
-		"${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fzf/shell/key-bindings.zsh"
+	# The executable ships both completion and keybindings, including in mise's
+	# binary-only install. Load after vi-mode has initialized its keymaps.
+	if (( $+commands[fzf] )); then
+		_zsh_eval_init fzf --zsh
+	fi
 }
 
 function _zsh_bind_keys() {
@@ -275,9 +278,6 @@ if [[ -t 0 ]]; then
 		# A failed source may have registered a partially defined deferred hook.
 		precmd_functions=(${precmd_functions:#zvm_init})
 	fi
-
-	_zsh_source_plugin fzf_completion \
-		"${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fzf/shell/completion.zsh"
 
 	# With vi-mode, zvm_after_init loads bindings after its deferred keymap reset.
 	if (( ! _zsh_vi_mode_loaded )) || [[ $ZVM_INIT_DONE == true ]]; then
