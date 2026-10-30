@@ -206,22 +206,18 @@ fi
 
 ## Plugins
 
-# Usage: _zsh_source_first plugin_name candidate_path ...
-# Missing plugins are quiet; a broken plugin is reported, without double-loading.
-function _zsh_source_first() {
-	local _source_plugin=$1 _source_candidate
-	local -a _source_candidates=("${@:2}")
+# Usage: _zsh_source_plugin plugin_name plugin_path
+# Missing plugins are quiet; a broken plugin is reported.
+function _zsh_source_plugin() {
+	local _source_plugin=$1 _source_path=$2
 	# Sourced code should not inherit this helper's routing arguments.
 	set --
-	for _source_candidate in "${_source_candidates[@]}"; do
-		[[ -f $_source_candidate && -r $_source_candidate ]] || continue
-		if source "$_source_candidate"; then
-			return 0
-		fi
-		print -ru2 -- "zsh: plugin $_source_plugin failed to load: $_source_candidate"
-		return 1
-	done
-	return 0
+	[[ -f $_source_path && -r $_source_path ]] || return 0
+	if source "$_source_path"; then
+		return 0
+	fi
+	print -ru2 -- "zsh: plugin $_source_plugin failed to load: $_source_path"
+	return 1
 }
 
 # vi-mode settings and hooks must be defined before the plugin is sourced.
@@ -231,9 +227,8 @@ function zvm_config() {
 }
 
 function _zsh_load_fzf_keybindings() {
-	_zsh_source_first fzf_key_bindings \
-		/run/current-system/sw/share/fzf/key-bindings.zsh \
-		"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh}"
+	_zsh_source_plugin fzf_key_bindings \
+		"${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fzf/shell/key-bindings.zsh"
 }
 
 function _zsh_bind_keys() {
@@ -269,12 +264,11 @@ ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=20
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=242'
 ZSH_AUTOSUGGEST_STRATEGY=(match_prev_cmd history completion)
 
-# Ordered loading: each plugin prefers Nix, then falls back to Homebrew.
+# Homebrew provides the shell plugins.
 _zsh_vi_mode_loaded=0
 if [[ -t 0 ]]; then
-	if _zsh_source_first vi_mode \
-		/run/current-system/sw/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh \
-		"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh}" &&
+	if _zsh_source_plugin vi_mode \
+		"${HOMEBREW_PREFIX:-/opt/homebrew}/opt/zsh-vi-mode/share/zsh-vi-mode/zsh-vi-mode.plugin.zsh" &&
 		(( ${+functions[zvm_init]} )) && [[ $ZVM_INIT_DONE == (true|false) ]]; then
 		_zsh_vi_mode_loaded=1
 	else
@@ -282,9 +276,8 @@ if [[ -t 0 ]]; then
 		precmd_functions=(${precmd_functions:#zvm_init})
 	fi
 
-	_zsh_source_first fzf_completion \
-		/run/current-system/sw/share/fzf/completion.zsh \
-		"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh}"
+	_zsh_source_plugin fzf_completion \
+		"${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fzf/shell/completion.zsh"
 
 	# With vi-mode, zvm_after_init loads bindings after its deferred keymap reset.
 	if (( ! _zsh_vi_mode_loaded )) || [[ $ZVM_INIT_DONE == true ]]; then
@@ -292,14 +285,12 @@ if [[ -t 0 ]]; then
 	fi
 fi
 
-_zsh_source_first autosuggestions \
-	/run/current-system/sw/share/zsh-autosuggestions/zsh-autosuggestions.zsh \
-	"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh}"
+_zsh_source_plugin autosuggestions \
+	"${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # Keep highlighting last for compatibility with older Zsh widget wrappers.
-_zsh_source_first syntax_highlighting \
-	/run/current-system/sw/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
-	"${HOMEBREW_PREFIX:+$HOMEBREW_PREFIX/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh}"
+_zsh_source_plugin syntax_highlighting \
+	"${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
 
 if [[ -t 0 ]] && { (( ! _zsh_vi_mode_loaded )) || [[ $ZVM_INIT_DONE == true ]]; }; then
 	_zsh_bind_keys
