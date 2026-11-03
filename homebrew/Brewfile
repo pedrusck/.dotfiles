@@ -99,7 +99,8 @@ mas "Numbers", id: 361304891
 # cask "zotero" # Collect, organize, cite, and share research sources
 
 # --- Password management ------------------------------------------------------
-# cask "1password" # Password manager that keeps all passwords secure behind one password
+cask "1password" # Password manager that keeps all passwords secure behind one password
+cask "1password-cli" # Command-line interface for 1Password
 mas "Bitwarden", id: 1352778147 # Desktop password and login vault
 brew "gnupg" # GNU Privacy Guard (OpenPGP)
 brew "pass" # Password manager
