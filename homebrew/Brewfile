@@ -67,6 +67,7 @@ mas "DuckDuckGo", id: 663592361
 # cask "firefox" # Web browser
 cask "floorp" # Privacy-focused Firefox-based browser
 cask "helium-browser" # Chromium-based web browser
+cask "librewolf" # Web browser
 mas "uBlock Origin Lite", id: 6745342698
 # cask "zen" # Gecko based web browser
 
