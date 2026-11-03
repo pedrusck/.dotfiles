@@ -7,6 +7,11 @@ localhost = [
 	64342	# Jetbrains MCP localhost port
 ]
 read = [
+	# Neovim minimal mode
+	"~/.config/nvim",
+	"~/.config/nvim/init.lua",
+	"~/.config/nvim/lua",
+	"~/.config/nvim/spell",
 	# OpenCode custom configuration files
 	"~/.config/opencode/cli.json",
 	"~/.config/opencode/opencode.json"

@@ -5,6 +5,18 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 vim.g.have_nerd_font = true
 
+-- [[ Core config ]]
+require("config.options")
+require("config.keymaps")
+require("config.autocmds")
+
+-- OpenCode uses the shared base with plugin-free overrides.
+if vim.env.OPENCODE == "1" or vim.env.OPENCODE_TERMINAL == "1" then
+	vim.opt.loadplugins = false
+	require("config.minimal")
+	return
+end
+
 -- Disable netrw (oil replaces it) -- must be set before plugins load
 vim.g.loaded_netrw = 1
 vim.g.loaded_netrwPlugin = 1
@@ -28,11 +40,6 @@ vim.api.nvim_create_autocmd("PackChanged", {
 		end
 	end,
 })
-
--- [[ Core config ]]
-require("config.options")
-require("config.keymaps")
-require("config.autocmds")
 
 -- [[ Plugins (explicit load order) ]]
 require("plugins.colorscheme")
