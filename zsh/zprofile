@@ -26,8 +26,8 @@ export EDITOR=nvim VISUAL=nvim
 # Prepend mise shims after Homebrew for login shells without interactive hooks.
 # Ordinary `ssh host command` does not load this profile; use an explicit login
 # shell or mise exec when automation needs that environment.
-[[ -d "$HOME/.local/share/mise/shims" ]] && \
-	path=("$HOME/.local/share/mise/shims" $path)
+[[ -d "${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" ]] && \
+	path=("${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" $path)
 
 # PostgreSQL fallback: highest usable Homebrew version, retaining earlier psql.
 () {
