@@ -6,6 +6,8 @@
 # claude-code = "latest" # AI coding assistant; registry alias of claude, provides claude. First use: use the existing provider configuration or authenticate manually: `claude auth login`.
 # copilot-cli = "latest" # GitHub Copilot coding agent; registry alias of copilot, provides copilot. Enable its completion recipe in completions-registry.toml. Optional first use: `copilot login`.
 "github:navikt/cplt" = "latest" # Kernel-enforced sandbox wrapper for coding agents
+opencode = { version = "latest", depends = ["node"] } # OpenCode V2 - the AI coding agent for the terminal
+"npm:@earendil-works/pi-coding-agent" = { version = "latest", depends = ["node"] } # AI agent toolkit
 rtk = "latest" # CLI proxy to minimize LLM token consumption. rtk setup: `rtk init -g --opencode && rtk init -g && rtk init -g --agent pi`
 
 # --- Build and task automation ------------------------------------------------

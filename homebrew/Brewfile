@@ -184,10 +184,6 @@ cask "spotify" # Music streaming service
 ### Android development ###
 cask "jetbrains-toolbox" # JetBrains tools manager
 
-### Large language model ###
-brew "anomalyco/tap/opencode", trusted: true # AI coding agent, built for the terminal
-brew "pi-coding-agent" # AI agent toolkit
-
 ### iOS development ###
 mas "Apple Configurator", id: 1037126344
 # mas "Dev Jobs", id: 1578276279
