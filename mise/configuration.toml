@@ -109,6 +109,8 @@ hyperfine = "latest" # Command-line benchmarking tool
 starship = "latest" # Cross-shell prompt for astronauts
 # zellij = "latest" # Terminal multiplexer. Completion generation is built into sync's registry.
 zoxide = "latest" # Shell extension to navigate your filesystem faster
+"conda:zsh-autosuggestions" = "latest" # Fish-like autosuggestions for Zsh
+"conda:zsh-syntax-highlighting" = "latest" # Fish-like syntax highlighting for Zsh
 
 # --- Structured data tools ----------------------------------------------------
 fx = "latest" # Terminal JSON viewer

@@ -14,8 +14,6 @@ cask "font-commit-mono-nerd-font"
 # brew "rbenv" # Ruby version manager
 
 ### Shell plugin ###
-brew "zsh-autosuggestions" # Fish-like fast/unobtrusive autosuggestions for zsh
-brew "zsh-syntax-highlighting" # Fish shell like syntax highlighting for zsh
 brew "zsh-vi-mode" # Better and friendly vi(vim) mode plugin for ZSH
 
 ### Builder ###
