@@ -1,0 +1,3 @@
+[tools]
+"conda:git-crypt" = "latest"
+gitleaks = "latest"
