@@ -11,3 +11,4 @@ bottom = { completion_name = "btm", bundled = true, zsh = "_btm" }
 # license-plist = { zsh = "license-plist --generate-completion-script zsh" }
 qpdf = { zsh = "qpdf --completion-zsh" }
 skim = { completion_name = "sk", zsh = "sk --shell zsh" }
+# toolbox = { completion_name = "vapor", zsh = "vapor --generate-completion-script zsh" }

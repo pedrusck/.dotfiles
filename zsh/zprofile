@@ -29,9 +29,6 @@ export EDITOR=nvim VISUAL=nvim
 [[ -d "${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" ]] && \
 	path=("${MISE_DATA_DIR:-$HOME/.local/share/mise}/shims" $path)
 
-# Mint (Swift package manager) binaries
-[[ -d $HOME/.mint/bin ]] && path+=("$HOME/.mint/bin")
-
 # Rust/Cargo binaries
 [[ -d $HOME/.cargo/bin ]] && path+=("$HOME/.cargo/bin")
 
