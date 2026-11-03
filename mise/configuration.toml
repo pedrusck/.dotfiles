@@ -1,28 +1,108 @@
 [tools]
-### iOS development
-swiftformat = "latest" # Formatting technology for Swift source code
-swiftgen = "latest" # Swift code generator for assets, storyboards, Localizable.strings, …
-swiftlint = "latest" # Tool to enforce Swift style and conventions
-tuist = "latest"
-xcbeautify = "latest" # Little beautifier tool for xcodebuild
-xcodegen = "latest" # Generate your Xcode project from a spec file and your folder structure
+# Installations trigger the completion-sync hook below; restart Zsh to load them.
 
-### Markdown
-rumdl = "latest"
+# --- AI assistants and tooling ------------------------------------------------
+# claude-code = "latest" # AI coding assistant; registry alias of claude, provides claude. First use: use the existing provider configuration or authenticate manually: `claude auth login`.
+# copilot-cli = "latest" # GitHub Copilot coding agent; registry alias of copilot, provides copilot. Enable its completion recipe in completions-registry.toml. Optional first use: `copilot login`.
+rtk = "latest" # CLI proxy to minimize LLM token consumption. rtk setup: `rtk init -g --opencode && rtk init -g && rtk init -g --agent pi`
+
+# --- Build and task automation ------------------------------------------------
+just = "latest" # Handy way to save and run project-specific commands
+# mask = "latest" # Task runner defined by a Markdown file; no extra setup or official Zsh completion
+protobuf = "latest" # Protocol buffers compiler
+tree-sitter = "latest" # Parser generator tool
+
+# --- Code quality and security ------------------------------------------------
+dependency-check = { version = "latest", depends = ["java"] } # OWASP dependency-check
+gitleaks = "latest" # Audit git repos for secrets
+
+# --- Documents and publishing -------------------------------------------------
+glow = "latest" # Render markdown on the CLI
+rumdl = "latest" # Markdown Linter and Formatter written in Rust
+typst = "latest" # Markup-based typesetting system
+
+# --- Files and search ---------------------------------------------------------
+bat = "latest" # Clone of cat(1) with syntax highlighting and Git integration
+fd = "latest" # Simple, fast and user-friendly alternative to find
+fzf = "latest" # Command-line fuzzy finder written in Go
+hexyl = "latest" # Command-line hex viewer
+ripgrep = "latest" # Search tool like grep and The Silver Searcher
+ripgrep-all = "latest" # Wrapper around ripgrep that adds multiple rich file types
+sd = "latest" # Intuitive find & replace CLI
+skim = "latest" # Fuzzy Finder in rust!
+# superfile = "latest" # Terminal file manager; provides spf, creates config on first launch. Superfile has no official Zsh completion; no separate setup is required.
+television = "latest" # General purpose fuzzy finder TUI
+# yazi = "latest" # Terminal file manager; provides yazi and ya. Completions: sync's built-in registry copies _yazi and _ya from the release.
 
 # --- Languages and toolchains -------------------------------------------------
+# ghcup = { version = "latest", postinstall = '''
+# completion_dir="$MISE_TOOL_INSTALL_PATH/share/zsh/site-functions"
+# mkdir -p "$completion_dir" &&
+# curl -fsSL "https://raw.githubusercontent.com/haskell/ghcup-hs/v${MISE_TOOL_VERSION#v}/scripts/shell-completions/zsh" -o "$completion_dir/_ghcup.tmp" &&
+# mv "$completion_dir/_ghcup.tmp" "$completion_dir/_ghcup"
+# ''' } # Haskell toolchain manager
+# GHCup's Aqua download contains only the executable. Stage the matching upstream completion for the bundled-file recipe in completions-registry.toml. Enable the GHCup toolchain path in zsh/zshrc. Install/select tools manually:
+# ghcup install ghc recommended --set
+# ghcup install cabal recommended --set
+# ghcup install hls recommended --set
+# ghcup install stack recommended --set
 go = "latest" # Open source programming language to build simple/reliable/efficient software
 java = "latest" # Development kit for the Java programming language
 node = "latest" # Platform built on V8 to build network applications
+# pkl = { version = "latest", postinstall = '''
+# completion_dir="$MISE_TOOL_INSTALL_PATH/share/zsh"
+# mkdir -p "$completion_dir" &&
+# pkl shell-completion zsh > "$completion_dir/pkl.zsh.tmp" &&
+# mv "$completion_dir/pkl.zsh.tmp" "$completion_dir/pkl.zsh"
+# ''' } # Configuration language CLI; no other setup required. Pkl's Zsh completion registers via bashcompinit and must be sourced rather than autoloaded as _pkl. Enable the matching source block in zsh/zshrc.
 python = "latest" # Interpreted, interactive, object-oriented programming language
 ruby = "latest" # Powerful, clean, object-oriented scripting language
 rust = "latest" # Safe, concurrent, practical language
+uv = "latest" # Extremely fast Python package installer and resolver, written in Rust
+
+# --- Networking ---------------------------------------------------------------
+curlie = "latest" # Power of curl, ease of use of httpie
+hurl = "latest" # Run and Test HTTP Requests with plain text and curl
+xh = "latest" # Friendly and fast tool for sending HTTP requests
 
 # --- Shell and terminal -------------------------------------------------------
+cheat = "latest" # Create and view interactive cheat sheets for *nix commands
+herdr = "latest" # Agent multiplexer that lives in your terminal
+hyperfine = "latest" # Command-line benchmarking tool
 "github:alltuner/mise-completions-sync" = "latest" # Sync shell completions for mise-managed tools
+# oh-my-posh = "latest" # Cross-shell prompt theme engine; completion command disabled upstream
+starship = "latest" # Cross-shell prompt for astronauts
+# zellij = "latest" # Terminal multiplexer. Completion generation is built into sync's registry.
+zoxide = "latest" # Shell extension to navigate your filesystem faster
 
-### Yaml
-yamlfmt = "latest"
+# --- Structured data tools ----------------------------------------------------
+fx = "latest" # Terminal JSON viewer
+jq = "latest" # Lightweight and flexible command-line JSON processor
+yamlfmt = "latest" # Extensible command-line tool to format YAML files
+yq = "latest" # Process YAML, JSON, XML, CSV and properties documents from the CLI
+
+# --- Swift and Xcode development ----------------------------------------------
+# license-plist = { version = "latest", os = ["macos"] } # iOS dependency license lists; Homebrew: licenseplist. Enable its completion recipe in completions-registry.toml; no extra setup.
+swiftformat = "latest" # Formatting technology for Swift source code
+swiftgen = "latest" # Swift code generator for assets, storyboards, Localizable.strings, …
+swiftlint = "latest" # Tool to enforce Swift style and conventions
+tuist = "latest" # Create, maintain, and interact with Xcode projects at scale
+xcbeautify = "latest" # Little beautifier tool for xcodebuild
+xcodegen = "latest" # Generate your Xcode project from a spec file and your folder structure
+xcodes = { version = "latest", os = ["macos"] } # Command-line tool to install and switch between multiple versions of Xcode
+
+# --- System monitoring and maintenance ----------------------------------------
+bottom = "latest" # Yet another cross-platform graphical process/system monitor
+duf = "latest" # Disk Usage/Free Utility - a better 'df' alternative
+dust = "latest" # More intuitive version of du in rust
+
+# --- Version control ----------------------------------------------------------
+delta = "latest" # Syntax-highlighting pager for git and diff output
+# gh = "latest" # GitHub CLI; gh completion -s zsh is built into sync's registry. Optional first-use authentication: `gh auth login`
+"conda:git-crypt" = "latest" # Transparent file encryption in git
+git-lfs = "latest" # Git extension for versioning large files
+gitui = "latest" # Blazing fast terminal-ui for git written in rust
+lazygit = "latest" # Simple terminal UI for git commands
 
 [hooks]
 postinstall = "if command -v misecompsync >/dev/null 2>&1; then misecompsync --shell zsh --new-only; fi" # Sync completions after tool installations

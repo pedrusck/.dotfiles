@@ -40,9 +40,6 @@ export EDITOR=nvim VISUAL=nvim
 	done
 }
 
-# Haskell user-local binaries
-[[ -d $HOME/.local/bin ]] && path+=("$HOME/.local/bin")
-
 # Mint (Swift package manager) binaries
 [[ -d $HOME/.mint/bin ]] && path+=("$HOME/.mint/bin")
 

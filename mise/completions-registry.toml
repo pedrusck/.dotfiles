@@ -1,2 +1,6 @@
 # Supplement mise-completions-sync's built-in registry with tool completions.
 schema_version = 1
+
+[tools]
+bottom = { completion_name = "btm", bundled = true, zsh = "_btm" }
+skim = { completion_name = "sk", zsh = "sk --shell zsh" }
