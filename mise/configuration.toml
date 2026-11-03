@@ -11,6 +11,7 @@ rtk = "latest" # CLI proxy to minimize LLM token consumption. rtk setup: `rtk in
 # --- Build and task automation ------------------------------------------------
 just = "latest" # Handy way to save and run project-specific commands
 # mask = "latest" # Task runner defined by a Markdown file; no extra setup or official Zsh completion
+"conda:parallel" = "latest" # Shell command parallelization utility
 protobuf = "latest" # Protocol buffers compiler
 tree-sitter = "latest" # Parser generator tool
 
@@ -22,13 +23,16 @@ gitleaks = "latest" # Audit git repos for secrets
 podman = "latest" # Tool for managing OCI containers and pods
 
 # --- Databases ----------------------------------------------------------------
+postgres = "latest" # Object-relational database system
 "github:achristmascarl/rainfrog" = "latest" # Database management TUI for PostgreSQL/MySQL/SQLite
 
 # --- Documents and publishing -------------------------------------------------
+# "conda:ghostscript" = "latest" # Interpreter for PostScript and PDF. Zsh supplies _ghostscript (including gs) via fpath/compinit; no extra setup.
 glow = "latest" # Render markdown on the CLI
 "github:RivoLink/leaf" = { version = "latest", bin = "leaf" } # Terminal Markdown previewer with a GUI-like experience
 pandoc = "latest" # Swiss-army knife of markup format conversion
 # "github:mfontanini/presenterm" = "latest" # Terminal slideshow tool
+"conda:qpdf" = "latest" # Tools for transforming and inspecting PDF files
 rumdl = "latest" # Markdown Linter and Formatter written in Rust
 typst = "latest" # Markup-based typesetting system
 
@@ -70,6 +74,7 @@ television = "latest" # General purpose fuzzy finder TUI
 # ghcup install stack recommended --set
 go = "latest" # Open source programming language to build simple/reliable/efficient software
 java = "latest" # Development kit for the Java programming language
+luajit = "latest" # Just-In-Time Compiler for Lua
 node = "latest" # Platform built on V8 to build network applications
 # pkl = { version = "latest", postinstall = '''
 # completion_dir="$MISE_TOOL_INSTALL_PATH/share/zsh"
@@ -83,6 +88,8 @@ rust = "latest" # Safe, concurrent, practical language
 uv = "latest" # Extremely fast Python package installer and resolver, written in Rust
 
 # --- Media tools --------------------------------------------------------------
+# "conda:ffmpeg" = "latest" # Play, record, convert, and stream audio/video
+# "conda:imagemagick" = "latest" # Image manipulation; Conda supports macOS unlike the registry's Aqua backend
 spotify-player = "latest" # Command driven spotify player
 "github:atanunq/viu" = { version = "latest", bin = "viu" } # Simple terminal image viewer written in Rust
 
@@ -90,6 +97,7 @@ spotify-player = "latest" # Command driven spotify player
 "github:Julien-cpsn/ATAC" = "latest" # A simple API client (postman like) in your terminal
 curlie = "latest" # Power of curl, ease of use of httpie
 hurl = "latest" # Run and Test HTTP Requests with plain text and curl
+# "conda:openconnect" = "latest" # Open client for Cisco AnyConnect VPN. Conda supplies/configures vpnc-script; it runs during VPN connections.
 xh = "latest" # Friendly and fast tool for sending HTTP requests
 
 # --- Shell and terminal -------------------------------------------------------
@@ -125,14 +133,15 @@ xcodes = { version = "latest", os = ["macos"] } # Command-line tool to install a
 bottom = "latest" # Yet another cross-platform graphical process/system monitor
 duf = "latest" # Disk Usage/Free Utility - a better 'df' alternative
 dust = "latest" # More intuitive version of du in rust
+"conda:htop" = "latest" # Improved top (interactive process viewer)
 # "github:tbillington/kondo" = "latest" # Clean non-essential files from software projects. Enable its completion recipe in completions-registry.toml; no extra setup.
 mole = { version = "latest", os = ["macos"] } # Deep clean and optimize your Mac
 
 # --- Version control ----------------------------------------------------------
 delta = "latest" # Syntax-highlighting pager for git and diff output
 # gh = "latest" # GitHub CLI; gh completion -s zsh is built into sync's registry. Optional first-use authentication: `gh auth login`
-"conda:git-crypt" = "latest" # Transparent file encryption in git
 git-lfs = "latest" # Git extension for versioning large files
+"conda:git-crypt" = "latest" # Enable transparent encryption/decryption of files in a git repo
 gitui = "latest" # Blazing fast terminal-ui for git written in rust
 lazygit = "latest" # Simple terminal UI for git commands
 "github:jnsahaj/lumen" = "latest" # AI-powered CLI tool for git commit summaries

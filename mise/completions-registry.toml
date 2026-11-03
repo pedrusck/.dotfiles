@@ -9,4 +9,5 @@ bottom = { completion_name = "btm", bundled = true, zsh = "_btm" }
 # ghcup = { bundled = true, zsh = "_ghcup" }
 # kondo = { zsh = "kondo --completions=zsh" }
 # license-plist = { zsh = "license-plist --generate-completion-script zsh" }
+qpdf = { zsh = "qpdf --completion-zsh" }
 skim = { completion_name = "sk", zsh = "sk --shell zsh" }
