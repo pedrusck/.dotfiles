@@ -16,9 +16,6 @@ cask "font-commit-mono-nerd-font"
 ### Shell plugin ###
 brew "zsh-vi-mode" # Better and friendly vi(vim) mode plugin for ZSH
 
-### Builder ###
-brew "make" # Utility for directing compilation
-
 ### Editor ###
 # cask "zed" # Multiplayer code editor
 
