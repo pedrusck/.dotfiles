@@ -20,6 +20,9 @@ SAVEHIST=1000
 
 ## Environment and paths
 
+# Make standalone mise available in non-login shells before activation.
+[[ -d $HOME/.local/bin ]] && path=("$HOME/.local/bin" $path)
+
 # SourceKit-LSP fallback: select DEVELOPER_DIR before xcode-select, but retain
 # earlier executables on PATH rather than overriding the whole toolchain.
 () {
