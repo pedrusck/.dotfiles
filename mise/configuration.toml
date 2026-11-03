@@ -2,8 +2,10 @@
 # Installations trigger the completion-sync hook below; restart Zsh to load them.
 
 # --- AI assistants and tooling ------------------------------------------------
+# "github:Arthur-Ficial/apfel" = { version = "latest", os = ["macos"] } # Apple Intelligence CLI/server. Requires Apple Silicon, macOS 26+, and Apple Intelligence enabled manually. Enable its completion recipe in completions-registry.toml; no install script.
 # claude-code = "latest" # AI coding assistant; registry alias of claude, provides claude. First use: use the existing provider configuration or authenticate manually: `claude auth login`.
 # copilot-cli = "latest" # GitHub Copilot coding agent; registry alias of copilot, provides copilot. Enable its completion recipe in completions-registry.toml. Optional first use: `copilot login`.
+"github:navikt/cplt" = "latest" # Kernel-enforced sandbox wrapper for coding agents
 rtk = "latest" # CLI proxy to minimize LLM token consumption. rtk setup: `rtk init -g --opencode && rtk init -g && rtk init -g --agent pi`
 
 # --- Build and task automation ------------------------------------------------
@@ -16,8 +18,17 @@ tree-sitter = "latest" # Parser generator tool
 dependency-check = { version = "latest", depends = ["java"] } # OWASP dependency-check
 gitleaks = "latest" # Audit git repos for secrets
 
+# --- Containers ---------------------------------------------------------------
+podman = "latest" # Tool for managing OCI containers and pods
+
+# --- Databases ----------------------------------------------------------------
+"github:achristmascarl/rainfrog" = "latest" # Database management TUI for PostgreSQL/MySQL/SQLite
+
 # --- Documents and publishing -------------------------------------------------
 glow = "latest" # Render markdown on the CLI
+"github:RivoLink/leaf" = { version = "latest", bin = "leaf" } # Terminal Markdown previewer with a GUI-like experience
+pandoc = "latest" # Swiss-army knife of markup format conversion
+# "github:mfontanini/presenterm" = "latest" # Terminal slideshow tool
 rumdl = "latest" # Markdown Linter and Formatter written in Rust
 typst = "latest" # Markup-based typesetting system
 
@@ -33,6 +44,13 @@ skim = "latest" # Fuzzy Finder in rust!
 # superfile = "latest" # Terminal file manager; provides spf, creates config on first launch. Superfile has no official Zsh completion; no separate setup is required.
 television = "latest" # General purpose fuzzy finder TUI
 # yazi = "latest" # Terminal file manager; provides yazi and ya. Completions: sync's built-in registry copies _yazi and _ya from the release.
+
+# --- Keyboards ----------------------------------------------------------------
+"github:zsa/zapp" = "latest" # Flash ZSA keyboards from your terminal
+
+# --- Kotlin development -------------------------------------------------------
+"github:detekt/detekt" = { version = "latest", asset_pattern = "detekt-cli-*.zip", strip_components = 1, bin_path = "bin", depends = ["java"], postinstall = 'ln -sf detekt-cli "$MISE_TOOL_INSTALL_PATH/bin/detekt"' } # Static code analysis for Kotlin
+"github:Kotlin/kdoctor" = { version = "latest", os = ["macos"] } # Environment diagnostics for Kotlin Multiplatform Mobile app development
 
 # --- Languages and toolchains -------------------------------------------------
 # ghcup = { version = "latest", postinstall = '''
@@ -60,7 +78,12 @@ ruby = "latest" # Powerful, clean, object-oriented scripting language
 rust = "latest" # Safe, concurrent, practical language
 uv = "latest" # Extremely fast Python package installer and resolver, written in Rust
 
+# --- Media tools --------------------------------------------------------------
+spotify-player = "latest" # Command driven spotify player
+"github:atanunq/viu" = { version = "latest", bin = "viu" } # Simple terminal image viewer written in Rust
+
 # --- Networking ---------------------------------------------------------------
+"github:Julien-cpsn/ATAC" = "latest" # A simple API client (postman like) in your terminal
 curlie = "latest" # Power of curl, ease of use of httpie
 hurl = "latest" # Run and Test HTTP Requests with plain text and curl
 xh = "latest" # Friendly and fast tool for sending HTTP requests
@@ -78,6 +101,9 @@ zoxide = "latest" # Shell extension to navigate your filesystem faster
 # --- Structured data tools ----------------------------------------------------
 fx = "latest" # Terminal JSON viewer
 jq = "latest" # Lightweight and flexible command-line JSON processor
+"github:yamafaktory/jql" = { version = "latest", version_prefix = "jql-v" } # JSON query language CLI tool
+"github:shshemi/tabiew" = { version = "latest", matching = "tw-", bin = "tw" } # TUI to view and query tabular files (CSV, TSV, Parquet, etc.)
+"github:sibprogrammer/xq" = "latest" # Command-line XML and HTML beautifier and content extractor
 yamlfmt = "latest" # Extensible command-line tool to format YAML files
 yq = "latest" # Process YAML, JSON, XML, CSV and properties documents from the CLI
 
@@ -95,6 +121,8 @@ xcodes = { version = "latest", os = ["macos"] } # Command-line tool to install a
 bottom = "latest" # Yet another cross-platform graphical process/system monitor
 duf = "latest" # Disk Usage/Free Utility - a better 'df' alternative
 dust = "latest" # More intuitive version of du in rust
+# "github:tbillington/kondo" = "latest" # Clean non-essential files from software projects. Enable its completion recipe in completions-registry.toml; no extra setup.
+mole = { version = "latest", os = ["macos"] } # Deep clean and optimize your Mac
 
 # --- Version control ----------------------------------------------------------
 delta = "latest" # Syntax-highlighting pager for git and diff output
@@ -103,6 +131,12 @@ delta = "latest" # Syntax-highlighting pager for git and diff output
 git-lfs = "latest" # Git extension for versioning large files
 gitui = "latest" # Blazing fast terminal-ui for git written in rust
 lazygit = "latest" # Simple terminal UI for git commands
+"github:jnsahaj/lumen" = "latest" # AI-powered CLI tool for git commit summaries
+"github:lusingander/serie" = "latest" # Rich git commit graph in your terminal
+"github:agavra/tuicr" = "latest" # Terminal UI for Code Reviews - review AI-generated diffs like a GitHub PR
+
+# --- Window management --------------------------------------------------------
+# "github:asmvik/yabai" = { version = "latest", os = ["macos"] } # Tiling window manager. No official Zsh completion was found. Manual setup from the repository root: `sh yabai/setup.sh`
 
 [hooks]
 postinstall = "if command -v misecompsync >/dev/null 2>&1; then misecompsync --shell zsh --new-only; fi" # Sync completions after tool installations

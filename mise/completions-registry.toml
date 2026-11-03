@@ -2,5 +2,11 @@
 schema_version = 1
 
 [tools]
+# apfel = { zsh = "apfel completions zsh" }
 bottom = { completion_name = "btm", bundled = true, zsh = "_btm" }
+# copilot = { completion_name = "copilot", zsh = "copilot completion zsh" }
+# copilot-cli = { completion_name = "copilot", zsh = "copilot completion zsh" }
+# ghcup = { bundled = true, zsh = "_ghcup" }
+# kondo = { zsh = "kondo --completions=zsh" }
+# license-plist = { zsh = "license-plist --generate-completion-script zsh" }
 skim = { completion_name = "sk", zsh = "sk --shell zsh" }
