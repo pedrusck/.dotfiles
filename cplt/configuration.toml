@@ -14,5 +14,7 @@ read = [
 	"~/.config/nvim/spell",
 	# OpenCode custom configuration files
 	"~/.config/opencode/cli.json",
-	"~/.config/opencode/opencode.json"
+	"~/.config/opencode/opencode.json",
+	# rumdl formatter configuration
+	"~/.config/rumdl/rumdl.toml"
 ]
