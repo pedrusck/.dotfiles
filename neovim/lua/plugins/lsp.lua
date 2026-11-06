@@ -1,14 +1,16 @@
 vim.pack.add({
 	"https://github.com/mason-org/mason.nvim",
+	"https://github.com/neovim/nvim-lspconfig",
 	"https://github.com/barreiroleo/ltex-extra.nvim",
 })
 
 require("mason").setup()
 
--- Self-bootstrap: install the LSP servers/tools this config enables so a fresh
--- machine works after a single `nvim` launch. Uses mason's registry API directly
--- (no mason-lspconfig / mason-tool-installer dependency). `sourcekit` is
--- intentionally excluded — it ships with Xcode and is invoked via `xcrun`.
+-- Mason installs executables; nvim-lspconfig supplies the server definitions.
+-- Installation is asynchronous: on a fresh machine, reopen the buffer or restart
+-- Neovim after installation finishes. Uses Mason's registry API directly
+-- (no mason-lspconfig / mason-tool-installer dependency). SourceKit ships with
+-- Xcode and is invoked via `xcrun`, so it is intentionally excluded.
 local ensure_installed = {
 	"lua-language-server", -- lua_ls
 	"taplo", -- taplo (TOML)
@@ -77,7 +79,8 @@ vim.keymap.set("n", "<leader>xd", vim.diagnostic.open_float, { desc = "Diagnosti
 vim.keymap.set("n", "<leader>xq", vim.diagnostic.setqflist, { desc = "Diagnostics: quickfix list" })
 vim.keymap.set("n", "<leader>xl", vim.diagnostic.setloclist, { desc = "Diagnostics: location list" })
 
--- Enable all configured LSP servers (configs auto-discovered from lsp/ directory)
+-- Native discovery merges nvim-lspconfig's lsp/ definitions with our after/lsp/
+-- overrides before enabling servers.
 vim.lsp.enable({
 	"kotlin_lsp",
 	"lua_ls",
