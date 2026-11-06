@@ -279,8 +279,19 @@ function _zsh_load_fzf_keybindings() {
 	fi
 }
 
+function _zsh_insert_newline() {
+	LBUFFER+=$'\n'
+}
+zle -N _zsh_insert_newline
+
 function _zsh_bind_keys() {
 	local keymap
+	# Enter inserts a newline; accept both Cmd+Enter encodings.
+	for keymap in emacs viins vicmd; do
+		bindkey -M "$keymap" '^M' _zsh_insert_newline
+		bindkey -M "$keymap" '\e[13;9u' accept-line
+		bindkey -M "$keymap" '\e[27;9;13~' accept-line
+	done
 	for keymap in emacs viins; do
 		(( ${+widgets[autosuggest-accept]} )) && bindkey -M "$keymap" '^y' autosuggest-accept
 		bindkey -M "$keymap" '^k' history-search-backward
