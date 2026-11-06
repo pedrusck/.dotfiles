@@ -6,18 +6,28 @@ interactive terminal splitting (Herdr handles session-persistent, agent-aware
 panes; Amethyst handles OS windows).
 
 This config trusts Ghostty's built-in defaults; the only custom keybinds are in
-`ghostty/config` (Shift+Enter / Alt+Backspace escape sequences, plus three
-`ignore` overrides that cede chords to Amethyst). Everything below is a Ghostty
-default. This doc is repo documentation only; it is **not** symlinked.
+`ghostty/config` (Cmd+Enter / Shift+Enter / Alt+Backspace escape sequences, plus
+three `ignore` overrides that cede chords to Amethyst). Split, tab, and window
+shortcuts below are Ghostty defaults, except Cmd+Enter is reserved for Zsh.
+This doc is repo documentation only; it is **not** symlinked.
 
 > `Cmd` = `⌘` (Ghostty calls it `super`). `Opt` = `⌥` (alt). `Ctrl` = `⌃`.
+
+## Zsh command editing
+
+- `Enter` inserts a newline at the cursor.
+- `Cmd + Enter` submits the entire command buffer, in insert or normal mode.
+
+These actions are bound in `zsh/zshrc`; other applications handle these keys
+independently. Newlines separate shell commands unless continued with shell
+syntax such as a trailing `\`, a pipe, or open quotes.
 
 ## Splits (panes)
 
 These are the ones to learn first.
 
 | Shortcut               | Action                                       |
-|------------------------|----------------------------------------------|
+| ---------------------- | -------------------------------------------- |
 | `Cmd + D`              | New split to the **right**                   |
 | `Cmd + Shift + D`      | New split **down**                           |
 | `Cmd + [`              | Focus **previous** split (order of creation) |
@@ -42,7 +52,7 @@ Run through this once and the split model will stick:
 ## Tabs
 
 | Shortcut             | Action                                                           |
-|----------------------|------------------------------------------------------------------|
+| -------------------- | ---------------------------------------------------------------- |
 | `Cmd + T`            | New tab                                                          |
 | `Cmd + 1`…`Cmd + 8`  | Go to tab 1–8                                                    |
 | `Cmd + 9`            | Go to the **last** tab                                           |
@@ -55,10 +65,9 @@ Run through this once and the split model will stick:
 ## Windows
 
 | Shortcut          | Action                                   |
-|-------------------|------------------------------------------|
+| ----------------- | ---------------------------------------- |
 | `Cmd + N`         | New window                               |
-| `Cmd + Enter`     | Toggle fullscreen                        |
-| `Cmd + Ctrl + F`  | Toggle fullscreen (alt binding)          |
+| `Cmd + Ctrl + F`  | Toggle fullscreen                        |
 | `Cmd + Shift + W` | Close the window (all tabs/splits in it) |
 
 ## Ghostty splits vs. Herdr panes
@@ -66,7 +75,7 @@ Run through this once and the split model will stick:
 There are two ways to split the terminal, and they behave differently:
 
 |                           | **Ghostty splits** (this doc)       | **Herdr panes** (`ctrl+b` prefix)                                       |
-|---------------------------|-------------------------------------|-------------------------------------------------------------------------|
+| ------------------------- | ----------------------------------- | ----------------------------------------------------------------------- |
 | Created with              | `Cmd+D`, `Cmd+Shift+D`, …           | `prefix+v` / `prefix+minus`                                             |
 | Each pane is              | an independent shell                | part of the Herdr session                                               |
 | Survives detach/reattach? | **No**                              | **Yes** (persists in the background)                                    |
@@ -104,5 +113,5 @@ the full Herdr pane reference.
 
 ## Reference
 
-- Ghostty keybind docs: https://ghostty.org/docs/config/keybind
-- Action reference: https://ghostty.org/docs/config/keybind/reference
+- Ghostty keybind docs: <https://ghostty.org/docs/config/keybind>
+- Action reference: <https://ghostty.org/docs/config/keybind/reference>
