@@ -1,134 +1,437 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/jesseduffield/lazygit/v0.66.2/schema/config.json
+
 customCommands:
   - key: "<c-a>"
     context: "commits"
-    description: "Set committer date to author date"
+    description: "Match committer dates to author dates from selected commit"
     prompts:
       - type: "confirm"
         key: "Confirm"
-        title: "Set committer date to author date"
-        body: "Are you sure you want to update the committer date?"
-    command: "git rebase --autostash --keep-empty --no-autosquash --rebase-merges --committer-date-is-author-date {{.SelectedCommit.Hash}}^"
-  - key: '<c-g>'
-    command: "serie"
-    context: 'global'
-    description: 'Show commit graph'
-    output: terminal
-  - key: 'x'
-    context: 'global'
-    description: 'Opens current project in Xcode (dialog if multiple)'
-    loadingText: 'Opening Xcode on current project'
-    output: popup
-    prompts:
-      # Only prompt when there is more than one project/workspace. With a
-      # single match the prompt is skipped and the command opens it directly.
-      - type: 'menuFromCommand'
-        title: 'Select a project or workspace to open in Xcode:'
-        key: 'XcodeProject'
-        # `condition` is evaluated as a Go template, so shell logic must be wrapped
-        # in `runCommand`. runCommand tokenizes with str.ToArgv (no shell) and
-        # errors on backslashes, hence `sh -c` plus two `find` calls instead of
-        # `find \( ... \)`. Resolves to "true" only when there is more than one
-        # project/workspace, so a single match skips the prompt (auto-open).
-        condition: '{{ runCommand "sh -c \"c=$({ find . -name ''*.xcodeproj'' -not -path ''*.xcodeproj/*''; find . -name ''*.xcworkspace'' -not -path ''*.xcodeproj/*''; } | grep -v ''.build/'' | grep -v DerivedData | grep -c .); [ $c -gt 1 ] && echo true\"" }}'
-        command: "find . \\( -name '*.xcodeproj' -o -name '*.xcworkspace' \\) -not -path '*.xcodeproj/*' | grep -v '\\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2-"
-        filter: './(?P<project>.*)'
-        valueFormat: '{{ .project }}'
-        labelFormat: '{{ .project | green }}'
-    command: >-
-      SELECTED="{{.Form.XcodeProject}}"
-      if [ -z "$SELECTED" ]; then
-        SELECTED=$(find . \( -name '*.xcodeproj' -o -name '*.xcworkspace' \) -not -path '*.xcodeproj/*' | grep -v '\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2- | sed 's#^\./##');
-      fi
-      if [ -z "$SELECTED" ]; then
-        echo "No Xcode project or workspace found";
+        title: "Rewrite committer dates"
+        body: |-
+          Rebase from commit {{ .SelectedCommit.Hash }} through HEAD, setting each replayed commit's committer date to its own author date?
+
+          This can include merged side branches and will rewrite commit history. Merge resolutions or manual changes made in merge commits may need to be reapplied. Other branch references will not be automatically updated.
+    # The range starts at the selected commit's first parent, including merged
+    # side branches. --root processes all history reachable from HEAD.
+    # Recreating merges preserves topology, not necessarily manual merge changes.
+    command: |-
+      sh -s -- {{ .SelectedCommit.Hash | quote }} <<'SH'
+      set -eu
+      root=$(git rev-parse --show-toplevel)
+      cd "$root"
+      target=$(git rev-parse --verify --end-of-options "$1^{commit}") || {
+        echo 'Select an available commit before updating committer dates' >&2
+        exit 1
+      }
+      head=$(git rev-parse --verify HEAD^{commit}) || {
+        echo 'The current HEAD must point to a commit' >&2
+        exit 1
+      }
+      for state in rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD sequencer BISECT_LOG; do
+        state_path=$(git rev-parse --git-path "$state")
+        if [ -e "$state_path" ]; then
+          echo 'Finish the current Git operation before updating committer dates' >&2
+          exit 1
+        fi
+      done
+      shallow=$(git rev-parse --is-shallow-repository)
+      case "$shallow" in
+        false) ;;
+        true)
+          echo 'This command requires complete history. Fetch the missing history before retrying' >&2
+          exit 1 ;;
+        *) echo 'Could not determine whether the repository has complete history' >&2; exit 1 ;;
+      esac
+      if git merge-base --is-ancestor "$target" "$head"; then
+        :
       else
-        xed --background "$SELECTED" && echo "Opened $SELECTED in Xcode";
+        status=$?
+        case "$status" in
+          1) echo 'Select a commit in the current HEAD history' >&2 ;;
+          *) echo 'Could not check whether the selected commit is in the current HEAD history' >&2 ;;
+        esac
+        exit "$status"
       fi
+      if git diff --quiet --ignore-submodules=none -- &&
+         git diff --cached --quiet --ignore-submodules=none --; then
+        :
+      else
+        status=$?
+        case "$status" in
+          1) echo 'Commit or stash tracked changes before updating committer dates' >&2 ;;
+          *) echo 'Could not check tracked working-tree and index changes' >&2 ;;
+        esac
+        exit "$status"
+      fi
+      # Inspect parents explicitly: a failed lookup must not become --root.
+      ancestry=$(git rev-list --parents --max-count=1 "$target" --)
+      set -f
+      set -- $ancestry
+      if [ "${1-}" != "$target" ]; then
+        echo 'Could not inspect the selected commit parents' >&2
+        exit 1
+      fi
+      if [ "$#" -eq 1 ]; then
+        set -- --root
+      else
+        parent=$(git rev-parse --verify --end-of-options "$2^{commit}")
+        set -- "$parent"
+      fi
+      git rebase --rebase-merges=no-rebase-cousins \
+        --keep-empty --empty=keep --reapply-cherry-picks \
+        --no-autosquash --no-autostash --no-update-refs --no-fork-point \
+        --committer-date-is-author-date "$@"
+      SH
+    loadingText: 'Updating committer dates'
+    output: log
+    after:
+      checkForConflicts: true
+  # External tools: ; then g opens Serie, preserving Ctrl+G and EurKEY's Option layer.
+  - key: ';'
+    description: 'External tools'
+    commandMenu:
+      - key: 'g'
+        context: 'global'
+        description: 'Show commit graph'
+        command: 'serie'
+        output: terminal
+  # Xcode menu: X then o (open), q (quit), or d (clean DerivedData).
+  # Xcode actions use menu-local keys rather than global x/Ctrl+X bindings.
   - key: 'X'
-    context: 'global'
-    description: 'Quits Xcode (closes all open projects)'
-    loadingText: 'Quitting Xcode'
-    output: popup
-    command: >-
-      osascript -e '
-        if application id "com.apple.dt.Xcode" is running then
-          tell application id "com.apple.dt.Xcode" to quit saving yes
-        end if' &&
-      echo "Xcode has been quit"
-  - key: '<c-x>'
-    context: 'global'
-    description: 'Cleans DerivedData for current project (dialog if multiple)'
-    loadingText: 'Cleaning DerivedData'
-    output: popup
-    prompts:
-      - type: 'menuFromCommand'
-        title: "Select a project or workspace whose DerivedData to clean:"
-        key: 'XcodeProject'
-        # See the `x` command above for why this condition is wrapped in runCommand.
-        condition: '{{ runCommand "sh -c \"c=$({ find . -name ''*.xcodeproj'' -not -path ''*.xcodeproj/*''; find . -name ''*.xcworkspace'' -not -path ''*.xcodeproj/*''; } | grep -v ''.build/'' | grep -v DerivedData | grep -c .); [ $c -gt 1 ] && echo true\"" }}'
-        command: "find . \\( -name '*.xcodeproj' -o -name '*.xcworkspace' \\) -not -path '*.xcodeproj/*' | grep -v '\\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2-"
-        filter: './(?P<project>.*)'
-        valueFormat: '{{ .project }}'
-        labelFormat: '{{ .project | green }}'
-    command: >-
-      SELECTED="{{.Form.XcodeProject}}"
-      if [ -z "$SELECTED" ]; then
-        SELECTED=$(find . \( -name '*.xcodeproj' -o -name '*.xcworkspace' \) -not -path '*.xcodeproj/*' | grep -v '\.build/' | grep -v 'DerivedData' | awk -F/ '{print NF, $0}' | sort -n | cut -d' ' -f2- | sed 's#^\./##');
-      fi
-      if [ -z "$SELECTED" ]; then
-        echo "No Xcode project or workspace found";
-      else
-        PROJ_NAME=$(basename "$SELECTED" | sed -E 's/\.(xcodeproj|xcworkspace)$//');
-        find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name "${PROJ_NAME}-*" -exec rm -rf {} + &&
-        echo "Cleaned DerivedData for $PROJ_NAME";
-      fi
-  - key: '<c-d>'
+    description: 'Xcode'
+    commandMenu:
+      - key: 'o'
+        context: 'global'
+        description: 'Opens current project in Xcode (dialog if multiple)'
+        loadingText: 'Opening Xcode on current project'
+        output: popup
+        outputTitle: 'Open in Xcode'
+        # Keep this selector in sync with DerivedData cleanup: Lazygit's config
+        # migration rejects YAML aliases. runCommand and menu commands use argv
+        # parsing, so explicitly invoke sh and quote the entire script.
+        prompts:
+          - type: 'menuFromCommand'
+            title: 'Select a project or workspace:'
+            key: 'XcodeProject'
+            condition: |-
+              {{ runCommand (printf "sh -c %s" (`
+              set -eu
+              cd "$(git rev-parse --show-toplevel)"
+              matches=$(find . -type d '(' -name .git -o -name .build -o -name DerivedData ')' -prune -o -type d '(' -name '*.xcodeproj' -o -name '*.xcworkspace' ')' -prune -exec echo match ';')
+              case "$matches" in
+                *"
+              "*) echo true ;;
+                *) echo false ;;
+              esac
+              ` | quote)) }}
+            command: |-
+              {{ printf "sh -c %s" (`
+              set -eu
+              cd "$(git rev-parse --show-toplevel)"
+              paths=$(find . -type d '(' -name .git -o -name .build -o -name DerivedData ')' -prune -o -type d '(' -name '*.xcodeproj' -o -name '*.xcworkspace' ')' -prune -exec sh -c '
+                for path do
+                  case "$path" in *"
+              "*) echo "Project paths containing newlines are unsupported" >&2; exit 1 ;; esac
+                done
+              ' sh {} + -print)
+              [ -n "$paths" ] || exit 0
+              printf '%s\n' "$paths" | awk -F/ '{ print NF, $0 }' | LC_ALL=C sort -k1,1n -k2 | cut -d' ' -f2-
+              ` | quote) }}
+            filter: '^\./(?P<project>.+)$'
+            valueFormat: './{{ .project }}'
+            labelFormat: '{{ .project | green }}'
+        # Keep discovery identical in the selector and both final commands. Recheck
+        # the selection here in case projects changed while the menu was open.
+        command: |-
+          sh -s -- {{ .Form.XcodeProject | quote }} <<'SH'
+          set -eu
+          cd "$(git rev-parse --show-toplevel)"
+          selected=$1
+          paths=$(find . -type d '(' -name .git -o -name .build -o -name DerivedData ')' -prune -o -type d '(' -name '*.xcodeproj' -o -name '*.xcworkspace' ')' -prune -exec sh -c '
+            for path do
+              case "$path" in *"
+          "*) echo "Project paths containing newlines are unsupported" >&2; exit 1 ;; esac
+            done
+          ' sh {} + -print)
+          newline='
+          '
+          if [ -z "$selected" ]; then
+            case "$paths" in
+              '') echo 'No Xcode project or workspace found'; exit 0 ;;
+              *"$newline"*) echo 'Projects changed; run the command again to select one' >&2; exit 1 ;;
+              *) selected=$paths ;;
+            esac
+          fi
+          case "$newline$paths$newline" in
+            *"$newline$selected$newline"*) ;;
+            *) echo 'The selected project is no longer available; run the command again' >&2; exit 1 ;;
+          esac
+          xed --background -- "$selected"
+          printf 'Opened %s in Xcode\n' "$selected"
+          SH
+      - key: 'q'
+        context: 'global'
+        description: 'Quits Xcode (closes all open projects)'
+        loadingText: 'Quitting Xcode'
+        output: popup
+        outputTitle: 'Quit Xcode'
+        command: >-
+          osascript -e '
+            if application id "com.apple.dt.Xcode" is running then
+              tell application id "com.apple.dt.Xcode" to quit saving yes
+            end if' &&
+          echo "Xcode has been quit"
+      - key: 'd'
+        context: 'global'
+        description: 'Cleans default-location DerivedData for the selected project path'
+        loadingText: 'Cleaning DerivedData'
+        output: popup
+        outputTitle: 'Clean DerivedData'
+        prompts:
+          - type: 'menuFromCommand'
+            title: 'Select a project or workspace:'
+            key: 'XcodeProject'
+            condition: |-
+              {{ runCommand (printf "sh -c %s" (`
+              set -eu
+              cd "$(git rev-parse --show-toplevel)"
+              matches=$(find . -type d '(' -name .git -o -name .build -o -name DerivedData ')' -prune -o -type d '(' -name '*.xcodeproj' -o -name '*.xcworkspace' ')' -prune -exec echo match ';')
+              case "$matches" in
+                *"
+              "*) echo true ;;
+                *) echo false ;;
+              esac
+              ` | quote)) }}
+            command: |-
+              {{ printf "sh -c %s" (`
+              set -eu
+              cd "$(git rev-parse --show-toplevel)"
+              paths=$(find . -type d '(' -name .git -o -name .build -o -name DerivedData ')' -prune -o -type d '(' -name '*.xcodeproj' -o -name '*.xcworkspace' ')' -prune -exec sh -c '
+                for path do
+                  case "$path" in *"
+              "*) echo "Project paths containing newlines are unsupported" >&2; exit 1 ;; esac
+                done
+              ' sh {} + -print)
+              [ -n "$paths" ] || exit 0
+              printf '%s\n' "$paths" | awk -F/ '{ print NF, $0 }' | LC_ALL=C sort -k1,1n -k2 | cut -d' ' -f2-
+              ` | quote) }}
+            filter: '^\./(?P<project>.+)$'
+            valueFormat: './{{ .project }}'
+            labelFormat: '{{ .project | green }}'
+        command: |-
+          sh -s -- {{ .Form.XcodeProject | quote }} <<'SH'
+          set -eu
+          cd "$(git rev-parse --show-toplevel)"
+          selected=$1
+          paths=$(find . -type d '(' -name .git -o -name .build -o -name DerivedData ')' -prune -o -type d '(' -name '*.xcodeproj' -o -name '*.xcworkspace' ')' -prune -exec sh -c '
+            for path do
+              case "$path" in *"
+          "*) echo "Project paths containing newlines are unsupported" >&2; exit 1 ;; esac
+            done
+          ' sh {} + -print)
+          newline='
+          '
+          if [ -z "$selected" ]; then
+            case "$paths" in
+              '') echo 'No Xcode project or workspace found'; exit 0 ;;
+              *"$newline"*) echo 'Projects changed; run the command again to select one' >&2; exit 1 ;;
+              *) selected=$paths ;;
+            esac
+          fi
+          case "$newline$paths$newline" in
+            *"$newline$selected$newline"*) ;;
+            *) echo 'The selected project is no longer available; run the command again' >&2; exit 1 ;;
+          esac
+          selected=$(realpath "$selected")
+          derived_data="$HOME/Library/Developer/Xcode/DerivedData"
+          removed=0
+          if [ -d "$derived_data" ]; then
+            derived_data=$(realpath "$derived_data")
+            for cache in "$derived_data"/*; do
+              [ -d "$cache" ] && [ ! -L "$cache" ] || continue
+              [ -f "$cache/info.plist" ] && [ ! -L "$cache/info.plist" ] || continue
+              recorded=$(plutil -extract WorkspacePath raw -o - "$cache/info.plist" 2>/dev/null) || continue
+              case "$recorded" in /*) ;; *) continue ;; esac
+              recorded=$(realpath "$recorded" 2>/dev/null) || continue
+              # Xcode can identify a standalone project by its internal workspace.
+              case "$recorded" in
+                *.xcodeproj/project.xcworkspace) recorded=${recorded%/project.xcworkspace} ;;
+              esac
+              [ "$recorded" = "$selected" ] || continue
+              rm -rf -- "$cache"
+              printf 'Removed %s\n' "$cache"
+              removed=$((removed + 1))
+            done
+          fi
+          if [ "$removed" -eq 0 ]; then
+            printf 'No matching DerivedData for %s in %s\n' "$selected" "$derived_data"
+          fi
+          SH
+  - key: '<c-t>'
     context: 'commits'
-    description: 'Change commit date and time'
+    description: 'Change selected commit author and committer timestamps'
     prompts:
       - type: 'input'
-        title: 'Give a new date and time for the commit (default current timestamp):'
+        title: 'Author and committer timestamp (ISO 8601; empty means now):'
         key: 'CommitTimestamp'
-        initialValue: ''
-        suggestions:
-          command: 'Enter a timestamp using the ISO 8601 format'
-    # TODO: Check if a timestamp is being entered otherwise use current timestamp with ISO 8601 format -> `date -Iseconds` but using Go
-    command: >-
-      GIT_COMMITTER_DATE="{{.Form.CommitTimestamp}}" git commit --amend --no-edit --date "{{.Form.CommitTimestamp}}"
+        initialValue: '{{ runCommand (printf "git show --no-patch --no-show-signature --format=%%aI %s --" (.SelectedCommit.Hash | quote)) }}'
+    # Historical timestamp changes replay descendants, changing their hashes and
+    # committer timestamps. The todo's exec is self-contained so continue/abort
+    # works even after the original shell exits. No helper scripts are written to disk.
+    command: |-
+      sh -s -- {{ .SelectedCommit.Hash | quote }} {{ .Form.CommitTimestamp | quote }} <<'SH'
+      set -eu
+      target=$(git rev-parse --verify --end-of-options "$1^{commit}")
+      git merge-base --is-ancestor "$target" HEAD || {
+        echo 'Select a commit in the current HEAD history' >&2
+        exit 1
+      }
+      for state in rebase-merge rebase-apply MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD sequencer BISECT_LOG; do
+        if [ -e "$(git rev-parse --git-path "$state")" ]; then
+          echo 'Finish the current Git operation before changing a timestamp' >&2
+          exit 1
+        fi
+      done
+      timestamp=$2
+      [ -n "$timestamp" ] || timestamp=$(date +%Y-%m-%dT%H:%M:%S%z)
+      ident=$(GIT_AUTHOR_DATE="$timestamp" git var GIT_AUTHOR_IDENT) || {
+        echo 'Invalid timestamp; use an ISO 8601 date including its timezone' >&2
+        exit 1
+      }
+      # Git emits a normalized epoch and UTC offset after the identity.
+      raw_date=${ident##*> }
+      timestamp="@$raw_date"
+      # Both dates must match, including their stored UTC offsets, to skip the edit.
+      existing_dates=$(git show --no-patch --no-show-signature \
+        --format='%ad|%cd' --date=raw "$target" --)
+      if [ "$existing_dates" = "$raw_date|$raw_date" ]; then
+        echo 'Author and committer timestamps already match; nothing to change.'
+        exit 0
+      fi
+      if [ "$target" = "$(git rev-parse HEAD)" ]; then
+        GIT_COMMITTER_DATE="$timestamp" git commit --amend --only --allow-empty --no-edit --date="$timestamp"
+        exit 0
+      fi
+      shallow=$(git rev-parse --is-shallow-repository)
+      case "$shallow" in
+        false) ;;
+        true)
+          echo 'Historical timestamp changes require complete history. Fetch the missing history before retrying' >&2
+          exit 1 ;;
+        *)
+          echo 'Could not determine whether the repository has complete history' >&2
+          exit 1 ;;
+      esac
+      if ! git diff --quiet -- || ! git diff --cached --quiet --; then
+        echo 'Commit or stash tracked changes before editing a historical timestamp' >&2
+        exit 1
+      fi
+      export LG_TIMESTAMP="$timestamp" LG_TARGET="$target"
+      editor=$(cat <<'EDITOR'
+      set -eu
+      set -f
+      todo=$1
+      rewritten=$(
+        matches=0
+        while IFS= read -r line || [ -n "$line" ]; do
+          printf '%s\n' "$line"
+          set -- $line
+          candidate=
+          case "${1-}" in
+            (pick) candidate=${2-} ;;
+            (merge)
+              case "${2-}" in (-C|-c) candidate=${3-} ;; esac
+              ;;
+          esac
+          [ -n "$candidate" ] || continue
+          commit=$(git rev-parse --verify --end-of-options "$candidate^{commit}")
+          [ "$commit" = "$LG_TARGET" ] || continue
+          matches=$((matches + 1))
+          printf "exec GIT_COMMITTER_DATE='%s' git commit --amend --only --allow-empty --no-edit --date='%s'\n" "$LG_TIMESTAMP" "$LG_TIMESTAMP"
+        done < "$todo"
+        if [ "$matches" -ne 1 ]; then
+          echo 'Could not identify the selected commit exactly once in the rebase todo' >&2
+          exit 1
+        fi
+      )
+      printf '%s\n' "$rewritten" > "$todo"
+      EDITOR
+      )
+      shell_quote() {
+        printf "'"
+        printf '%s' "$1" | sed "s/'/'\\\\''/g"
+        printf "'"
+      }
+      export GIT_SEQUENCE_EDITOR="sh -c $(shell_quote "$editor") sh"
+      # Only a successful lookup with no parents identifies a root commit.
+      parents=$(git show --no-patch --no-show-signature \
+        --format=%P "$target" --)
+      if [ -z "$parents" ]; then
+        set -- --root
+      else
+        parent=$(git rev-parse --verify --end-of-options \
+          "${parents%% *}^{commit}")
+        set -- "$parent"
+      fi
+      git -c rebase.instructionFormat=%s -c rebase.abbreviateCommands=false rebase \
+        --interactive --rebase-merges --keep-empty --empty=keep \
+        --no-autosquash --no-autostash --no-update-refs --no-fork-point \
+        --reapply-cherry-picks --reschedule-failed-exec "$@"
+      SH
     loadingText: 'Changing commit timestamp'
-    output: popup
+    output: log
+    after:
+      checkForConflicts: true
 git:
-  autoFetch: true
-  autoRefresh: true
-  disableForcePushing: false
-  fetchAll: true # Pass --all flag when running git fetch. Set to false to fetch only origin (or the current branch's upstream remote if there is one)
-  mainBranches: [master, main]
+  localBranchSortOrder: recency
+  diffContextSize: 5
   diffRenderers:
-    # Inherit the single delta config from ~/.config/git/configuration ([delta]
-    # block: dark, syntax-theme=gruvbox-dark, line-numbers, navigate,
-    # decorations, tabs=4) so the gruvbox diff theme has one source of truth and
-    # can't drift between lazygit and git. --paging=never stays because lazygit
-    # manages paging itself.
-    - colorArg: always
-      command: delta --paging=never
-      useConfig: true
-  # The main branches. We colour commits green if they belong to one of these branches,
-  # so that you can easily see which commits are unique to your branch (coloured in yellow)
+    # Delta reads the shared [delta] Git configuration automatically.
+    # --paging=never lets Lazygit manage paging; Delta's navigate option only
+    # applies outside Lazygit.
+    # Cycle renderers with | (forward) and \ (backward).
+    - command: 'delta --paging=never --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"'
+    - type: rawGit
+      name: color-words
+      args: [--color-words]
+    - type: rawGit
+      name: raw
   parseEmoji: true
+  # Keep signing inside Lazygit rather than suspending to a subprocess.
+  # Signing remains controlled by Git; requires non-terminal passphrase handling.
   overrideGpg: true
 gui:
+  fileTreeSortOrder: foldersFirst
+  showBranchCommitHash: true
+  commitAuthorShortLength: 12
+  sidePanels:
+    - [status]
+    - [files, submodules]
+    - [worktrees]
+    - [branches, remotes, tags]
+    - [commits, reflog]
+    - [stash]
+  showNumstatInFilesView: true
+  showDivergenceFromBaseBranch: arrowAndNumber
+  shortTimeFormat: '15:04'
+  filterMode: fuzzy
+  expandFocusedSidePanel: true
   language: 'en' # one of 'auto' | 'en' | 'zh-CN' | 'zh-TW' | 'pl' | 'nl' | 'ja' | 'ko' | 'ru'
   nerdFontsVersion: "3"
   theme:
     selectedLineBgColor:
       - reverse
-      - bold
     authorColors:
-      # use green for me
+      # Use green for me; other authors receive automatic name-derived colors.
       'Pere Bohigas': 'green'
-      # use white for other authors
-      '*': 'white'
   timeFormat: '02 Jan 2006' # https://pkg.go.dev/time#Time.Format
+keybinding:
+  universal:
+    jumpToBlock: ['1', '2', '3', '4', '5', '6']
+worktree:
+  defaultPath: '~/worktrees'
+promptToReturnFromSubprocess: false
 notARepository: 'quit'
 os:
   editPreset: 'nvim'
