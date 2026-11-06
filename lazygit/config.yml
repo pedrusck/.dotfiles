@@ -406,6 +406,8 @@ gui:
 keybinding:
   universal:
     jumpToBlock: ['1', '2', '3', '4', '5', '6']
+    submitEditorText: '<meta+enter>'
+    confirmInEditor: '<meta+enter>'
 worktree:
   defaultPath: '~/worktrees'
 promptToReturnFromSubprocess: false
