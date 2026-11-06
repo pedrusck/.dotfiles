@@ -4,11 +4,31 @@ set -eu
 
 TOOL_DIRECTORY=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
-mkdir -p "$HOME/.config/nvim"
-ln -sf "$TOOL_DIRECTORY/init.lua" "$HOME/.config/nvim/init.lua"
-ln -sfn "$TOOL_DIRECTORY/lua" "$HOME/.config/nvim/lua"
-ln -sfn "$TOOL_DIRECTORY/lsp" "$HOME/.config/nvim/lsp"
-ln -sfn "$TOOL_DIRECTORY/spell" "$HOME/.config/nvim/spell"
+CONFIG_DIRECTORY="$HOME/.config/nvim"
+
+# Check all destinations before changing links, including the retired lsp link.
+# Only links created for this checkout are managed here; preserve other content.
+for entry in init.lua lua after spell lsp; do
+	destination="$CONFIG_DIRECTORY/$entry"
+	if [ -L "$destination" ]; then
+		[ "$(readlink "$destination")" = "$TOOL_DIRECTORY/$entry" ] && continue
+	elif [ ! -e "$destination" ]; then
+		continue
+	fi
+	printf '%s\n' "Conflicting destination; move it aside before rerunning setup: $destination" >&2
+	exit 1
+done
+
+mkdir -p "$CONFIG_DIRECTORY"
+ln -sf "$TOOL_DIRECTORY/init.lua" "$CONFIG_DIRECTORY/init.lua"
+ln -sfn "$TOOL_DIRECTORY/lua" "$CONFIG_DIRECTORY/lua"
+ln -sfn "$TOOL_DIRECTORY/after" "$CONFIG_DIRECTORY/after"
+ln -sfn "$TOOL_DIRECTORY/spell" "$CONFIG_DIRECTORY/spell"
+
+# Migrate the old repository-owned link, even if its target no longer exists.
+if [ -L "$CONFIG_DIRECTORY/lsp" ]; then
+	rm "$CONFIG_DIRECTORY/lsp"
+fi
 
 # ── Spell dictionaries ──────────────────────────────────────────────
 # Without a base .spl, setting 'spelllang' makes Neovim block on a
