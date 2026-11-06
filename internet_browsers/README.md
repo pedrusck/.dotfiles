@@ -1,4 +1,4 @@
-# Browser bookmark snapshots
+# Browser snapshots
 
 These macOS/Zsh helpers copy one bookmark snapshot and restore it within the
 same browser family. Run any entry point with `--help` for its options.
