@@ -3,6 +3,28 @@
 These macOS/Zsh helpers copy one bookmark snapshot and restore it within the
 same browser family. Run any entry point with `--help` for its options.
 
+## LibreWolf permissions
+
+```sh
+./extract_permissions_librewolf.zsh [--dry-run] [PROFILE_DIRECTORY]
+```
+
+Close LibreWolf first. This macOS/Linux helper saves all profile permissions,
+including cookie exceptions, as `permissions-YYYYMMDD-HHMMSS.secret.sqlite` beside the
+script. It discovers the default profile from `profiles.ini` in native Linux,
+XDG, Flatpak, or macOS locations; a positional profile overrides
+`LIBREWOLF_PROFILE`. Ambiguous fallback profiles require an explicit path.
+
+Existing backups are never overwritten; same-second collisions fail. SQLite
+backup and integrity checking run on a staged copy so the source is untouched.
+Without `sqlite3`, it copies and byte-verifies the database and any WAL/SHM
+sidecars; keep those files together. Persistent regular lock files such as
+`.parentlock` are allowed when `lsof` confirms no process has them open. `lsof`
+is required when these files exist. Open lock files, legacy symlink locks, and
+inspection errors cause an abort. `--dry-run` performs discovery and safety
+checks without writing files. This snapshots the permissions database, not
+enterprise policy configuration.
+
 ## Extract
 
 ```sh
