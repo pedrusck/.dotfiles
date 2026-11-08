@@ -20,6 +20,8 @@
 	},
 	"keybinds": {
 		"input.submit": "super+return",
+		"input.newline": "return,shift+return,ctrl+return,alt+return,ctrl+j",
+		"prompt.autocomplete.select": "none",
 		"diff.open": "<leader>d",
 		"variant.list": "<leader>v",
 		"session.toggle.thinking": "<leader>t",
