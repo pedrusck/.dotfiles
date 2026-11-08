@@ -73,7 +73,7 @@ shell-integration-features = true
 # Send a real newline on Shift+Enter (for TUI chat / coding agents / editors).
 keybind = shift+enter=text:\x1b\r
 
-# Submit the Zsh command buffer; fullscreen remains on Cmd+Ctrl+F.
+# Submit in Zsh and configured prompt/commit editors; fullscreen is Cmd+Ctrl+F.
 keybind = super+enter=text:\x1b[13;9u
 
 # Required configuration for pi the coding agent (see https://pi.dev/docs/latest/terminal-setup)
