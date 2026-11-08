@@ -2,7 +2,7 @@
 
 # Development profile — the tools configured by a bootstrap script
 
-PROFILE_TOOLS="zsh git vim ssh starship browserpass neovim ghostty lazygit tuicr amethyst herdr mise"
+PROFILE_TOOLS="zsh git vim ssh starship browserpass neovim ghostty lazygit gitui tuicr amethyst herdr mise opencode pi_coding_agent"
 
 # Optional mise migrations: enable the matching tool in mise/configuration.toml.
 # These opt-ins run existing setup.sh scripts during bootstrap; they link config
@@ -15,6 +15,6 @@ PROFILE_TOOLS="zsh git vim ssh starship browserpass neovim ghostty lazygit tuicr
 # Link ~/.config/zellij/config.kdl and the custom default layout.
 # PROFILE_TOOLS="$PROFILE_TOOLS zellij"
 
-# Link ~/.claude/settings.json and anthropic_key.sh; also run
-# `herdr integration install claude` when Herdr is available.
+# Initialize local settings.json and link anthropic_key.sh under CLAUDE_CONFIG_DIR
+# (default ~/.claude); also install the Claude integration when Herdr is available.
 # PROFILE_TOOLS="$PROFILE_TOOLS claude_code"
