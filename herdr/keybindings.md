@@ -4,7 +4,7 @@ Herdr is an **agent-aware terminal workspace manager** (a multiplexer like
 tmux): a background server owns real terminal processes, clients attach to
 render them, and panes survive detach / closing the terminal. Herdr **detects
 coding agents** (claude, opencode, pi, …) inside panes and shows each one's
-state (`working`, `blocked`, `done`, `idle`) in a per-workspace sidebar.
+state (`working`, `blocked`, `done`, `idle`, `unknown`) in a per-workspace sidebar.
 
 The configuration here follows the conventions used across these dotfiles:
 gruvbox theme and Vim-style `h/j/k/l` movement, plus detach/reattach
@@ -164,8 +164,14 @@ Other inherited bindings, listed so they aren't accidentally re-bound:
 | `prefix+alt+1..9`             | —                                 | Focus agent 1–9 by index    |
 
 Herdr detects coding agents in panes and tracks their state; these jump focus
-straight to a `working` / `blocked` / `done` agent across workspaces. The agent
-panel is ordered by state priority (`agent_panel_sort = "priority"`).
+between agents shown in the panel across workspaces. The agent panel is ordered
+by state priority (`agent_panel_sort = "priority"`). `unknown` means an agent is
+present but Herdr cannot confidently classify its state.
+
+Each client tracks which completions it has viewed. Viewing a completion on the
+desktop does not clear the phone client's Done badge. CLI/API statuses use the
+server's seen state and can differ from either client; both `idle` and `done`
+mean ready for input.
 
 ### Worktrees (grouped workspaces)
 
@@ -195,25 +201,26 @@ down / up — keeping the Vim feel for quick hops.
 #### File-viewer setup
 
 `herdr/setup.sh` installs [herdr-file-viewer](https://github.com/smarzban/herdr-file-viewer)
-from the upstream repository's default-branch HEAD, without a `--ref` pin. The
-development bootstrap runs this after installing Herdr from the Brewfile. To
-install or reapply it manually, run from the repository root:
+from the upstream repository's default-branch HEAD, without a `--ref` pin. Install
+Herdr and Git using your chosen installation method and make them available on
+`PATH`, then run from the repository root:
 
 ```sh
 sh herdr/setup.sh
 ```
 
-Plugin installation requires Herdr and Git on `PATH` and network access. Setup
-installs noninteractively with `--yes`; reruns replace the managed plugin checkout
-with the latest upstream HEAD while retaining the plugin's separate config and
-state. If Herdr is missing, setup installs the config symlink but silently skips
-the plugin. A failed plugin installation makes setup fail. Herdr refuses to
-overwrite a locally linked development checkout.
+Plugin installation requires network access. Setup links and validates the config,
+then installs noninteractively with `--yes`. If Herdr is missing, setup links the
+config and prints a message explaining how to retry plugin installation. A failed
+validation or plugin installation makes setup fail. Herdr refuses to overwrite a
+locally linked development checkout. See the [repository installation guide](../README.md#for-macos)
+for the complete bootstrap and tool-installation sequence.
 
 The plugin installer downloads a matching prebuilt binary and verifies its SHA-256.
 If that download is unavailable or cannot be verified, its fallback builds from
-source and requires Rust 1.96+ with Cargo. The optional renderers `glow`,
-`git-delta` (the `delta` command), and `bat` are already included in the Brewfile.
+source and requires Rust 1.96+ with Cargo. Install the optional renderers `glow`,
+`delta`, and `bat` using your preferred installation method for styled Markdown,
+diffs, and source code; the viewer also works with plain-text fallbacks.
 
 After launching or attaching to Herdr, verify registration:
 
@@ -227,9 +234,23 @@ The plugin should be enabled, with actions
 `herdr-file-viewer.open-file-viewer-tab`. Reload config with `prefix+shift+e` and
 check `prefix+f` (split) and `prefix+shift+f` (tab).
 
-To update the plugin, rerun setup and verify both actions and shortcuts again.
-The plugin is installed per user on the machine running setup; remote servers
-need their own installation.
+For routine updates, use:
+
+```sh
+herdr plugin update herdr-file-viewer
+```
+
+Add `--yes` for noninteractive updates. Updates preserve the recorded ref and skip
+unchanged commits. This setup tracks the default branch; use an explicit `--ref`
+when installing if you want to pin a revision instead.
+
+Updates and reinstalls create a new installation directory, preserving the
+plugin's separate config and state. Running plugins keep their original files;
+new invocations use the replacement without a config reload. Existing plugin
+processes are not restarted. Reload config when changing the keybindings, then
+verify both actions and shortcuts. The plugin is installed per user on the machine
+running setup; remote servers need their own installation. See
+[plugin installation and updates](https://herdr.dev/tui/docs/plugins/#install-and-link).
 
 ## Theme / visual indicators
 
@@ -240,7 +261,7 @@ need their own installation.
   explicit `dark_name` and `light_name` entries are unnecessary.
 - **Accent:** gruvbox green `#98971a` (`[theme.custom] accent`) — the same color
   Lazygit uses.
-- **Sidebar:** agent state (`working` / `blocked` / `done` / `idle`) is rolled
+- **Sidebar:** agent state (`working` / `blocked` / `done` / `idle` / `unknown`) is rolled
   up per workspace; `agent_panel_sort = "priority"` orders the agent panel by
   state priority rather than by space. Worktree children appear **indented and
   packed as one Space group** under their parent workspace.
@@ -282,22 +303,26 @@ throwaway side-by-side views.
   All three integrations support native conversation restoration when a valid
   session reference has been reported.
 
-  The development profile runs `herdr/setup.sh`. Run `claude_code/setup.sh`,
-  `opencode/setup.sh`, and `pi_coding_agent/setup.sh` separately to configure the
-  agent integrations. Each agent setup prepares its config directory, then
-  installs its bundled integration if Herdr is available.
-  Installation failures propagate; integration installation is skipped silently
-  when Herdr is missing. To apply manually, run from the repository root:
+  The development profile runs `herdr/setup.sh`, `opencode/setup.sh`, and
+  `pi_coding_agent/setup.sh`; `claude_code/setup.sh` is opt-in. Each agent setup
+  prepares its config directory, then installs its bundled integration if Herdr
+  is available. Installation failures propagate. Early setup skips integrations
+  when Herdr is not yet installed, so complete these steps after installing the
+  executables and making them available on `PATH`:
 
   ```sh
-  sh claude_code/setup.sh
-  sh opencode/setup.sh
-  sh pi_coding_agent/setup.sh
+  sh herdr/setup.sh
+  herdr integration install opencode
+  herdr integration install pi
   herdr integration status
   ```
 
-  After upgrading Herdr, refresh just the integrations without reapplying agent
-  settings:
+  Run these from the repository root after provisioning the agent config
+  directories. For optional Claude setup, run `sh claude_code/setup.sh` too.
+  Outside bootstrap, run each selected agent's `setup.sh` to prepare its directory
+  first. See the [repository installation guide](../README.md#for-macos).
+
+  After upgrading Herdr, refresh the integrations for the agents you use:
 
   ```sh
   herdr integration install pi        # Pi Coding Agent
@@ -309,19 +334,27 @@ throwaway side-by-side views.
   Installation state is machine-specific; use the status command to verify it.
   Integrations do not install the agent executables or authenticate them.
 
-  Claude's `settings.json` is copied from the repo template on each setup run,
-  then Herdr installs the hook script and generates the machine-local registration.
-  Rerunning Claude setup reapplies that template; keep shared preferences in
-  `claude_code/settings.json`. With Herdr 0.9.3, the generated `SessionStart`
-  matcher is `^(startup|resume|clear|compact|fork)$`, avoiding Grok's `new` / `load`
-  events. No generated absolute hook path is committed. Claude and Pi setup honor
+  Claude's `settings.json` is a regular machine-local file, initialized from
+  `claude_code/settings.json` when missing. Setup also replaces the legacy absolute
+  symlink created by this repository with a copy of the current template, retaining
+  its preferences without the obsolete generated Herdr hook. Existing regular
+  settings are preserved; rerunning setup does not reapply template preferences.
+  An unrelated settings symlink is left intact and setup stops with a migration
+  message before invoking the integration installer.
+
+  Herdr installs the hook script and generates the machine-local registration.
+  The current Claude integration uses the `SessionStart` matcher
+  `^(startup|resume|clear|compact|fork)$`, avoiding Grok's `new` / `load` events;
+  reinstalling migrates an older wildcard registration. No generated absolute
+  hook path belongs in the shared template. Claude and Pi setup honor
   `CLAUDE_CONFIG_DIR` and `PI_CODING_AGENT_DIR`; use absolute paths for overrides.
+  Claude's initial API-key helper command also follows `CLAUDE_CONFIG_DIR`.
 
   Restart agents after installation. OpenCode also needs its shared servers
   restarted after an integration upgrade. If the installer defers OpenCode V2
   registration for first-start migration, start `opencode2` once and rerun
   `herdr integration install opencode`. See the
-  [integration documentation](https://herdr.dev/docs/integrations/) for supported
+  [integration documentation](https://herdr.dev/tui/docs/integrations/) for supported
   versions and install locations.
 - **Session restore** (enabled by default; no `[session]` override): after a
   server restart, eligible Pi / OpenCode / Claude Code panes relaunch into their
@@ -342,10 +375,23 @@ installed):
 | `hs`        | `herdr status`                | Show client + server status                        |
 | `hk`        | `herdr server stop`           | Stop the running server (kills all panes)          |
 
-Updates have no shell alias — run the commands directly: `herdr update` (or
-`herdr channel set <stable|preview>`). Config reloads also have no alias, but
-can be triggered from inside Herdr with `prefix+shift+e` instead of
-`herdr server reload-config`. Validate the file first with `herdr config check`.
+Update Herdr using the installation mechanism that supplied it. Herdr-managed
+direct installations support `herdr update` and `herdr channel set <stable|preview>`;
+package-managed installations use their own updater and do not use Herdr's preview
+channel. See [installation and updates](https://herdr.dev/tui/docs/install/#update)
+for commands appropriate to your installation.
+
+Check the installed version with `herdr --version` and client/server versions with
+`herdr status`. Updating the executable leaves a compatible running server and its
+panes alive. Reconnect to use the updated client; restart the server later when
+you need server-side changes. A server stop ends its pane processes, so it is a
+separate operation from updating the executable.
+
+Validate config edits with `herdr config check`. The UI action `prefix+shift+e`
+reloads local client settings and the selected server's config. The CLI command
+`herdr server reload-config` targets the CLI's selected server/session; this
+distinction matters with remote clients and saved SSH machines. Startup-only
+settings still need a restart.
 
 Detaching is done from **inside** Herdr with `prefix+q` (or by closing the
 terminal client); there is no detach subcommand. Pane processes keep running in
@@ -366,7 +412,7 @@ after a full server restart. The live per-pane buffer used by `edit_scrollback`
 survives detach, but is not configured for disk-backed restoration. Editors,
 development servers, tests, and other arbitrary processes must be restarted.
 
-See [Herdr's session state and restore guide](https://herdr.dev/docs/session-state/)
+See [Herdr's session state and restore guide](https://herdr.dev/tui/docs/session-state/)
 for the distinction between live persistence, snapshot restore, and native agent
 session restore.
 
@@ -388,18 +434,23 @@ hk                   # stop the server and its pane processes
 
 ## Configuration files
 
-- `herdr/config.toml` → `~/.config/herdr/config.toml` (symlinked by
-  `herdr/setup.sh`). Holds `onboarding = false`, the `gruvbox` theme and green
-  accent, the custom prefix-first `[keys]` remap, and the `[[keys.command]]`
-  blocks (lazygit popup + file-viewer plugin actions, bound via
-  `type = "plugin_action"`).
+- `herdr/setup.sh` symlinks `herdr/config.toml` to `HERDR_CONFIG_PATH` when set,
+  otherwise `$XDG_CONFIG_HOME/herdr/config.toml`, falling back to
+  `~/.config/herdr/config.toml`. Use nonempty paths for overrides and run
+  `herdr --help` to see the resolved location. The file holds `onboarding = false`,
+  the `gruvbox` theme and green accent, the custom prefix-first `[keys]` remap, and
+  the `[[keys.command]]` blocks (lazygit popup + file-viewer plugin actions, bound
+  via `type = "plugin_action"`).
 - This `keybindings.md` is repo documentation only; it is **not** symlinked.
-- Validate the config with `herdr config check`; print the full upstream default
-  with `herdr --default-config`; apply edits to a running server with
-  `herdr server reload-config` or `prefix+shift+e`.
-- Defaults were checked against **Herdr 0.9.3**. After a Herdr upgrade, compare
-  `herdr --default-config` to catch newly added keys or changed defaults. Redundant
-  overrides are omitted, so inherited settings follow upstream defaults.
+- Validate the resolved config with `herdr config check`; to check the repository
+  file explicitly, run `HERDR_CONFIG_PATH="$PWD/herdr/config.toml" herdr config check`
+  from the repository root. Print defaults with `herdr --default-config`. Use
+  `prefix+shift+e` to reload client and selected-server settings, or
+  `herdr server reload-config` for the CLI's selected server/session.
+- Defaults and repository config were checked against **Herdr 0.9.5**. After an
+  upgrade, compare `herdr --default-config` to catch newly added keys or changed
+  defaults. Redundant overrides are omitted, so inherited settings follow upstream
+  defaults.
 - **Left at Herdr defaults** (no config entry):
   - theme auto-switching is off; eligible agent sessions resume after a restart;
   - worktrees use `~/.herdr/worktrees`, and agent notifications wait one second;
@@ -409,8 +460,9 @@ hk                   # stop the server and its pane processes
   - new panes/tabs/workspaces inherit the source pane's cwd
     (`[terminal] new_cwd = "follow"`), and new-pane shells start in
     `shell_mode = "auto"` (login shells on macOS, already the default);
-  - the update channel is `stable` with background version/manifest checks
-    (`herdr update`, switch with `herdr channel set <stable|preview>`);
+  - background version and agent-manifest checks are enabled; direct installations
+    default to the `stable` update channel (update commands depend on installation
+    method, as described above);
   - `[ui] accent`, the `[theme.custom]` row-highlight tokens (`active_row_bg`,
     `selection_bg`, `sidebar_bg`) and the sidebar `row_gap` are all unset, so
     the theme's own colors and Herdr's stock spacing apply;

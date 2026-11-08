@@ -15,11 +15,11 @@
 # Conventions: gruvbox theme, Vim-style h/j/k/l movement, detach/reattach
 # persistence. Prefix stays ctrl+b; [keys] is a deliberate custom remap.
 #
-# Updates: channel defaults to "stable" with background version/manifest checks;
-# run `herdr update` to upgrade, or `herdr channel set <stable|preview>` to switch
-# channels. Left at defaults (no [update] block).
+# Updates: use the installation mechanism that supplied Herdr. Herdr-managed
+# direct installs support `herdr update` and `herdr channel set <stable|preview>`.
+# Background version/manifest checks stay enabled (no [update] block).
 #
-# Reference:  https://herdr.dev/docs/configuration/  and  /docs/config-reference/
+# Reference: https://herdr.dev/tui/docs/configuration/ and /tui/docs/config-reference/
 # Full default:  herdr --default-config      Reload running server:  herdr server reload-config
 # Validate:      herdr config check
 
@@ -37,7 +37,7 @@ accent = "#98971a"
 
 # [terminal] is left entirely at Herdr's defaults:
 #   shell_mode = "auto" -- already the default; uses login shells on macOS so
-#     login-only PATH setup (Homebrew, Mise) runs in new panes. No pin needed.
+#     login-only PATH initialization runs in new panes. No pin needed.
 #   new_cwd = "follow"  -- new panes/tabs/workspaces inherit the source cwd.
 
 [ui]
@@ -77,8 +77,9 @@ rename_workspace = "prefix+shift+r"
 close_workspace = "prefix+shift+x"
 settings = "prefix+shift+s"
 # rename_workspace above takes prefix+shift+r, which is reload_config's default.
-# Moved here so both actions stay reachable (e = reload). Equivalent to the CLI
-# `herdr server reload-config`.
+# Moved here so both actions stay reachable (e = reload). The UI reloads local
+# client settings and the selected server; `herdr server reload-config` targets
+# the CLI's selected server/session.
 reload_config = "prefix+shift+e"
 
 # Agents (agent-aware navigation; a = agent)

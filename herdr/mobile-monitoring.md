@@ -6,13 +6,13 @@ The mobile device displays the terminal while the Herdr server and agents
 continue running on the Mac.
 
 Herdr documents this workflow in
-[Work from your phone](https://herdr.dev/docs/how-to-work/#work-from-your-phone).
+[Work from your phone](https://herdr.dev/tui/docs/how-to-work/#work-from-your-phone).
 
 ## Current setup
 
-Checked on September 30, 2026: the installed client and running server were both
-**Herdr 0.9.3**, with one running session named **`default`**. Runtime state and
-network availability can change; verify them when connecting.
+Verify current versions and sessions on the Mac with `herdr --version`,
+`herdr status`, and `herdr session list`. The installed executable and a running
+server can have different versions after an update.
 
 The configuration in [`config.toml`](config.toml) provides:
 
@@ -24,13 +24,15 @@ The configuration in [`config.toml`](config.toml) provides:
 | Notifications       | `[ui.toast] delivery = "terminal"` requests notifications from the terminal displaying Herdr. |
 | Sound               | Disabled through `[ui.sound] enabled = false`.                                                |
 
-[`setup.sh`](setup.sh) links this configuration to
-`~/.config/herdr/config.toml` and installs the file-viewer plugin. It does not
-configure SSH or remote network access.
+[`setup.sh`](setup.sh) links this configuration to `HERDR_CONFIG_PATH` when set,
+otherwise `$XDG_CONFIG_HOME/herdr/config.toml`, falling back to
+`~/.config/herdr/config.toml`. Run `herdr --help` to inspect the resolved location.
+Setup installs the file-viewer plugin when Herdr is available; it does not
+configure SSH or remote network access. Use the same configuration-path overrides
+in the SSH environment as on the desktop if you have customized them.
 
-At the time of inspection, the standard macOS SSH service was not loaded and no
-port-22 listener was visible to the checks. **SSH access appears to be the
-remaining prerequisite.**
+Verify Remote Login is enabled and test SSH connectivity from the device and
+network you intend to use before attaching to Herdr.
 
 ## Connect from a mobile device
 
@@ -69,12 +71,16 @@ Alternatively, configure the SSH connection in the app and run `herdr` after
 connecting. Substitute the Mac's LAN IP or VPN address when appropriate.
 
 This opens the already-running **default session**, including its workspaces,
-panes, and agents. If the SSH shell cannot find Herdr, use the installation path
-verified on this machine:
+panes, and agents. If the SSH shell cannot find Herdr, check command resolution
+inside that shell:
 
 ```sh
-~/.local/share/mise/shims/herdr
+command -v herdr
 ```
+
+Make the installed executable available on the SSH shell's `PATH`, or invoke its
+verified absolute path. See the [repository installation guide](../README.md#for-macos)
+and [Herdr's PATH troubleshooting](https://herdr.dev/tui/docs/troubleshooting/#the-herdr-command-is-not-found).
 
 For named sessions:
 
@@ -116,7 +122,12 @@ supports multiple clients viewing different workspaces or tabs independently.
 When both clients view **the same tab**, the last client to focus, select, or
 interact with it controls that tab's pane sizes. A phone connection can therefore
 cause terminal content to reflow. See
-[Client and server](https://herdr.dev/docs/concepts/#client-and-server).
+[Client and server](https://herdr.dev/tui/docs/concepts/#client-and-server).
+
+Each client tracks viewed completions independently. Viewing a completed agent
+on the desktop does not clear its Done badge on the phone. CLI/API statuses use
+the server's seen state, so they can differ from either UI. Both `idle` and `done`
+mean ready for input; `unknown` means Herdr cannot confidently classify the state.
 
 ### Inspect without an interactive UI
 
@@ -166,9 +177,9 @@ iPhone/iPad SSH client
 
 ## References
 
-- [Herdr: Work from your phone](https://herdr.dev/docs/how-to-work/#work-from-your-phone)
-- [Herdr: Persistence and remote access](https://herdr.dev/docs/persistence-remote/)
-- [Herdr: Client and server](https://herdr.dev/docs/concepts/#client-and-server)
-- [Herdr: Session state and restore](https://herdr.dev/docs/session-state/)
+- [Herdr: Work from your phone](https://herdr.dev/tui/docs/how-to-work/#work-from-your-phone)
+- [Herdr: Persistence and remote access](https://herdr.dev/tui/docs/persistence-remote/)
+- [Herdr: Client and server](https://herdr.dev/tui/docs/concepts/#client-and-server)
+- [Herdr: Session state and restore](https://herdr.dev/tui/docs/session-state/)
 - [Local configuration](config.toml)
 - [Local keybindings guide](keybindings.md)
