@@ -139,11 +139,22 @@ export PATH="$HOME/.local/bin:$PATH"
 command mise --cd "$HOME" install
 command mise --cd "$HOME" exec -- misecompsync --shell zsh
 command mise --cd "$HOME" exec -- sh "$PWD/herdr/setup.sh"
+command mise --cd "$HOME" exec -- herdr integration install opencode
+command mise --cd "$HOME" exec -- herdr integration install pi
+command mise --cd "$HOME" exec -- herdr integration status
 exec zsh -l
 ```
 
 These commands install missing tools, sync completions, and install Herdr's file
-viewer plugin. `command mise` bypasses any existing shell function tied to an older
+viewer plugin and the development profile's OpenCode and Pi integrations. Bootstrap
+prepares the agent config directories but skips integration installation if Herdr
+is not yet available. If you enabled the optional Claude setup, also run
+`command mise --cd "$HOME" exec -- herdr integration install claude` before checking
+integration status. Restart agents after installation; after an integration upgrade,
+restart shared OpenCode servers as well as their TUIs. See the
+[Herdr setup guide](./herdr/keybindings.md#notifications--agents) for details.
+
+`command mise` bypasses any existing shell function tied to an older
 mise executable. `--cd "$HOME"` avoids the checkout's project context but still
 reads any applicable home-directory configuration. See [Browserpass](#browserpass)
 to register hosts after installing another supported browser.
