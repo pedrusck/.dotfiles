@@ -45,6 +45,9 @@ accent = "#98971a"
 show_agent_labels_on_pane_borders = true
 # Non-default: order the agent panel by state priority instead of by space.
 agent_panel_sort = "priority"
+# Non-default: distinguish agent states by static symbol shape as well as color,
+# which helps in the compact collapsed and mobile sidebars.
+status_indicators = "symbols"
 
 # Background notifications: ask Ghostty (a supported terminal) to show a native
 # desktop notification when a background agent finishes or needs input. Works
@@ -109,6 +112,10 @@ focus_pane_left = ["prefix+h", "ctrl+alt+h"]
 focus_pane_down = ["prefix+j", "ctrl+alt+j"]
 focus_pane_up = ["prefix+k", "ctrl+alt+k"]
 focus_pane_right = ["prefix+l", "ctrl+alt+l"]
+
+# Panes -- previous focus across tabs/workspaces (Vim: Ctrl+w p). Prefix-only
+# avoids reserving another direct chord inside TUIs.
+last_pane = "prefix+p"
 
 # Panes -- swap (Vim: Ctrl+w H/J/K/L)
 swap_pane_left = ["prefix+shift+h", "ctrl+alt+shift+h"]

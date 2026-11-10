@@ -21,6 +21,7 @@ The configuration in [`config.toml`](config.toml) provides:
 | Persistent sessions | Panes continue running after closing Ghostty or disconnecting SSH.                            |
 | Mobile layout       | Inherited default: a single-column layout at **64 terminal columns or fewer**.                |
 | Agent monitoring    | Agent panel sorted by priority, with agent labels enabled on split-pane borders.              |
+| State indicators    | Distinct static symbols as well as colors, readable in the compact mobile layout.             |
 | Notifications       | `[ui.toast] delivery = "terminal"` requests notifications from the terminal displaying Herdr. |
 | Sound               | Disabled through `[ui.sound] enabled = false`.                                                |
 

@@ -106,10 +106,17 @@ prefix-free direct chord is also bound, it is shown in the last column.
 | `prefix+v`                   | `ctrl+alt+v`             | Split right                              | `:vsplit`         |
 | `prefix+h` / `j` / `k` / `l` | `ctrl+alt+h/j/k/l`       | Focus pane left / down / up / right      | `Ctrl+w h/j/k/l`  |
 | `prefix+H` / `J` / `K` / `L` | `ctrl+alt+shift+h/j/k/l` | Swap pane left / down / up / right       | `Ctrl+w H/J/K/L`  |
+| `prefix+p`                   | —                        | Jump back to the last focused pane       | `Ctrl+w p`        |
 | `prefix+z`                   | `ctrl+alt+z`             | Zoom (fullscreen) the focused pane       | —                 |
 | `prefix+w`                   | `ctrl+alt+w`             | Resize mode                              | `Ctrl+w` + resize |
 | `prefix+d`                   | `ctrl+alt+d`             | Close focused pane                       | `:close`          |
 | `prefix+e`                   | `ctrl+alt+e`             | Open pane scrollback in `$EDITOR` (nvim) | —                 |
+
+`prefix+p` (`last_pane`) returns to the previously focused pane even when it is
+in another tab or workspace — for example, after visiting an agent that needs
+attention. It differs from directional focus (`prefix+h/j/k/l`) and from cycling
+through panes in the current tab (`prefix+tab` / `prefix+shift+tab`). It is
+prefix-only, so no direct `ctrl+alt` chord is taken from pane applications.
 
 ### Tabs
 
@@ -261,10 +268,14 @@ running setup; remote servers need their own installation. See
   explicit `dark_name` and `light_name` entries are unnecessary.
 - **Accent:** gruvbox green `#98971a` (`[theme.custom] accent`) — the same color
   Lazygit uses.
-- **Sidebar:** agent state (`working` / `blocked` / `done` / `idle` / `unknown`) is rolled
+- **Sidebar:** agent state (`working` / `blocked` / `done` / `idle` /
+  `unknown`) is rolled
   up per workspace; `agent_panel_sort = "priority"` orders the agent panel by
   state priority rather than by space. Worktree children appear **indented and
   packed as one Space group** under their parent workspace.
+- **State indicators:** `status_indicators = "symbols"` distinguishes states by
+  static symbol shape as well as color, which keeps the compact collapsed and
+  mobile sidebars readable. The symbols are not animated.
 - **Agent rows** (`[ui.sidebar.agents] rows`): a two-row layout of
   `state_icon` + `machine` + `workspace` + `tab`, with `agent` + `state_text` on
   the second row. This preserves location information as the priority-sorted
@@ -437,14 +448,20 @@ hk                   # stop the server and its pane processes
 - `herdr/setup.sh` symlinks `herdr/config.toml` to `HERDR_CONFIG_PATH` when set,
   otherwise `$XDG_CONFIG_HOME/herdr/config.toml`, falling back to
   `~/.config/herdr/config.toml`. Use nonempty paths for overrides and run
-  `herdr --help` to see the resolved location. The file holds `onboarding = false`,
-  the `gruvbox` theme and green accent, the custom prefix-first `[keys]` remap, and
+  `herdr --help` to see the resolved location. The file holds
+  `onboarding = false`, the `gruvbox` theme and green accent, the custom
+  prefix-first `[keys]` remap, and
   the `[[keys.command]]` blocks (lazygit popup + file-viewer plugin actions, bound
   via `type = "plugin_action"`).
 - This `keybindings.md` is repo documentation only; it is **not** symlinked.
-- Validate the resolved config with `herdr config check`; to check the repository
-  file explicitly, run `HERDR_CONFIG_PATH="$PWD/herdr/config.toml" herdr config check`
-  from the repository root. Print defaults with `herdr --default-config`. Use
+- Validate the resolved config with `herdr config check`. To check the
+  repository file explicitly, run from the repository root:
+
+  ```sh
+  HERDR_CONFIG_PATH="$PWD/herdr/config.toml" herdr config check
+  ```
+
+  Print defaults with `herdr --default-config`. Use
   `prefix+shift+e` to reload client and selected-server settings, or
   `herdr server reload-config` for the CLI's selected server/session.
 - Defaults and repository config were checked against **Herdr 0.9.5**. After an
