@@ -20,6 +20,7 @@ tree-sitter = "latest" # Parser generator tool
 # --- Code quality and security ------------------------------------------------
 dependency-check = { version = "latest", depends = ["java"] } # OWASP dependency-check
 gitleaks = "latest" # Audit git repos for secrets
+"conda:gnupg" = "latest" # GNU Privacy Guard for encryption and signing (gpg)
 "pypi:lizard" = { version = "latest", depends = ["python", "uv"] } # Extensible Cyclomatic Complexity Analyzer
 tokei = { version = "latest", depends = ["rust"] } # Program that allows you to count code, quickly
 
