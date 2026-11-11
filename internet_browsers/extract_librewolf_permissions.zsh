@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # Snapshot LibreWolf permissions (including cookie exceptions) on macOS/Linux.
-# Usage: extract_managed_exceptions_librewolf.zsh [--dry-run] [PROFILE_DIRECTORY]
+# Usage: extract_librewolf_permissions.zsh [--dry-run] [PROFILE_DIRECTORY]
 # LIBREWOLF_PROFILE supplies a profile when no positional override is given.
 # Backups are saved beside this script, including when invoked through a symlink.
 
@@ -15,7 +15,7 @@ function die() {
 }
 
 function usage() {
-	print -r -- 'Usage: extract_managed_exceptions_librewolf.zsh [OPTIONS] [PROFILE_DIRECTORY]
+	print -r -- 'Usage: extract_librewolf_permissions.zsh [OPTIONS] [PROFILE_DIRECTORY]
   --dry-run     Show the source, destination, and copy method without writing
   -h, --help    Show help
   --            End options (for profile paths starting with a dash)
@@ -25,7 +25,7 @@ default profile in the first existing native Linux, XDG, Flatpak, or macOS root.
 LibreWolf must be closed; process or profile lock detection aborts the snapshot.
 Persistent regular lock files are checked with lsof, not by existence alone.
 
-Output: permissions-YYYYMMDD-HHMMSS.secret.sqlite beside the resolved script.
+Output: librewolf_permissions-YYYYMMDD_HHMMSS.secret.sqlite beside the resolved script.
 An existing same-second backup is never overwritten; retry in the next second.
 SQLite, when available, merges WAL data and checks integrity on a private copy.
 Otherwise, database/WAL/SHM files are copied together and byte-verified. Keep
@@ -232,8 +232,8 @@ function main() {
 	fi
 	profile=$(find_profile "$override") || return 1
 	check_not_running "$profile"
-	stamp=$(date '+%Y%m%d-%H%M%S') || die 'could not generate backup timestamp'
-	dest="$SCRIPT_DIR/permissions-$stamp.secret.sqlite"
+	stamp=$(date '+%Y%m%d_%H%M%S') || die 'could not generate backup timestamp'
+	dest="$SCRIPT_DIR/librewolf_permissions-$stamp.secret.sqlite"
 	for suffix in '' -wal -shm; do
 		[[ ! -e "$dest$suffix" && ! -L "$dest$suffix" ]] || die "backup already exists: $dest$suffix; retry in the next second"
 	done
