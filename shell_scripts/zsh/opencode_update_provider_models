@@ -22,12 +22,16 @@ setopt pipefail extendedglob
 #
 # Behavior:
 #	Fetches models from the provider endpoint and updates the configuration file.
-#	Prefers the LiteLLM-style `<endpoint>/model/info` route (rich metadata: costs,
-#	limits, modalities, capability flags) mapped onto OpenCode's native V2 schema, keeping
-#	chat models only. If unavailable, falls back to the plain `<endpoint>/models` route
-#	(names only).
+#	Uses `<endpoint>/models` for inventory and enriched metadata, supplemented by
+#	LiteLLM `/model/info`. Maps prices, tiers, limits and reasoning to native V2.
+#	Embeddings are excluded; image models stay disabled until explicitly configured
+#	with an image runtime. Responses models use the native Responses runtime.
 #
-#	The provider's models key is completely rewritten (no per-model update).
+#	Each successful refresh replaces metadata using only the current responses.
+#	Missing/null metadata is omitted, including previously edited metadata.
+#	Request settings, custom names and package overrides are preserved. Reasoning
+#	effort variants are retained only when confirmed by current metadata.
+#	Models absent from the inventory are removed. No companion files are needed.
 #	Migrates this provider's legacy settings to native V2, preserving native overrides.
 #	If the config file doesn't exist, it will be created.
 #
@@ -93,6 +97,7 @@ if (( $# < 2 || $# > 3 )); then
 fi
 
 local provider_name=$1 api_endpoint=$2 config_file=${3:-opencode.json}
+api_endpoint=${api_endpoint%/}
 
 if [[ -z $provider_name ]]; then
 	print -ru2 -- "Error: PROVIDER_NAME cannot be empty"
@@ -152,70 +157,144 @@ def format_name:
 	| gsub("(?<pre>^| )(?<num>[0-9.]+)b(?<post> |$)"; "\(.pre)\(.num)B\(.post)");
 '
 
-# Transform API response to opencode model schema
+# Transform the current discovery snapshot to OpenCode V2. Missing/null values
+# are unknown, not false or zero. Only identity and request customizations carry
+# over; historical metadata (including manual edits) is discarded.
 local JQ_TRANSFORM_MODELS='
-def to_num: if type == "string" then (tonumber // 0) else (. // 0) end;
-def fmt: ((to_num * 1000000 * 10000 | floor) / 10000);
-
-def rich:
-	# Keep chat models only (null/missing mode treated as chat)
-	map(select((.model_info.mode // "chat") == "chat"))
-	| map(
-		.model_name as $name
-		| (.model_info // {}) as $info
-		|
-		(["text"]
-			+ (if $info.supports_vision then ["image"] else [] end)
-			+ (if $info.supports_audio_input then ["audio"] else [] end)
-			+ (if $info.supports_pdf_input then ["pdf"] else [] end)) as $input_mod
-		| (["text"] + (if $info.supports_audio_output then ["audio"] else [] end)) as $output_mod
-		|
-		# V2 requires both `input` and `output` on each cost entry;
-		# emit nothing rather than a partial object that fails validation.
-		(if ($info.input_cost_per_token != null and $info.output_cost_per_token != null)
-			then ({input: ($info.input_cost_per_token | fmt), output: ($info.output_cost_per_token | fmt)}
-				+ (if ($info.cache_read_input_token_cost != null or $info.cache_creation_input_token_cost != null)
-					then {cache:
-						((if $info.cache_read_input_token_cost != null then {read: ($info.cache_read_input_token_cost | fmt)} else {} end)
-						+ (if $info.cache_creation_input_token_cost != null then {write: ($info.cache_creation_input_token_cost | fmt)} else {} end))}
-					else {} end))
-			else {} end) as $cost
-		|
-		# Preserve the existing all-or-nothing limit inference. V2 also accepts
-		# partial limits on models configured by the user.
-		($info.max_input_tokens // $info.max_tokens) as $ctx
-		| ($info.max_output_tokens // $info.max_tokens) as $out
-		| (if ($ctx != null and $out != null)
-			then ({context: $ctx}
-				+ (if $info.max_input_tokens != null then {input: $info.max_input_tokens} else {} end)
-				+ {output: $out})
-			else {} end) as $limit
-		|
-		(($info.supports_function_calling == true) or ($info.supports_tool_choice == true)) as $tool_call
-		| ($info.supports_reasoning == true) as $reasoning
-		|
-		{
-			id: $name,
-			name: ($name | format_name),
-			capabilities: {tools: $tool_call, input: $input_mod, output: $output_mod}
-		}
-		+ (if ($cost | length) > 0 then {cost: $cost} else {} end)
-		+ (if ($limit | length) > 0 then {limit: $limit} else {} end)
-		# V2 ignores the legacy reasoning/attachment/temperature booleans.
-		# Reasoning models retain their low/high effort variants.
-		+ (if $reasoning then {variants: [
-			{id: "low", settings: {reasoningEffort: "low"}},
-			{id: "high", settings: {reasoningEffort: "high"}}
-		]} else {} end)
-	);
-
-def basic: map({id: .id, name: (.id | format_name)});
-
-.data
-| (if $mode == "rich" then rich else basic end)
-| sort_by(.name)
-| map({(.id): (del(.id))})
-| add // {}
+def number:
+	(if type == "string" then tonumber else . end)
+	| if type != "number" then error("Expected numeric metadata")
+	  elif (isnan or isinfinite or . < 0) then error("Invalid numeric metadata") else . end;
+def tokens: number | if . > 0 and . == floor and . <= 9007199254740991 then . else error("Invalid token limit") end;
+def rate: number * 1000000 | if isinfinite then error("Price overflow") else . end;
+def boolean: if type == "boolean" then . else error("Invalid capability flag") end;
+def known: with_entries(select(.value != null));
+def rows($key):
+	if type != "array" then error("Expected model array") else . end
+	| map(if type != "object" then error("Expected model object")
+		elif (.[$key] | type) != "string" then error("Missing model ID")
+		elif (.[$key] | length) == 0 or (.[$key] | contains("#")) then error("Invalid model ID") else . end)
+	| group_by(.[$key])
+	| map(unique | if length == 1 then .[0] else error("Conflicting duplicate model IDs") end);
+def prices($hour):
+	. as $p
+	| ({input: $p.prompt, output: $p.completion} | known | map_values(rate))
+	+ ({read: $p.input_cache_read,
+		write: (if $hour then $p.input_cache_write_1h else $p.input_cache_write end)}
+		| known | map_values(rate) | if length > 0 then {cache: .} else {} end);
+def costs($p; $hour):
+	(if $p.tiers == null then [] elif ($p.tiers | type) != "array" then error("Invalid pricing tiers") else
+		$p.tiers | map(. as $t | ($t.above_tokens | tokens) as $size
+			| ($t | prices($hour)) + {tier: {type: "context", size: $size}})
+		| sort_by(.tier.size)
+		| if (map(.tier.size) | unique | length) == length then . else error("Duplicate pricing tier") end
+		end) as $tiers
+	# Every cost entry needs its own input/output rates. Do not fill absent
+	# tier rates or cache prices from the base entry or a previous refresh.
+	| [($p | prices($hour)), $tiers[]]
+	| map(select(has("input") and has("output")))
+	| if length == 0 then null
+	  elif length == 1 and .[0].tier == null then .[0] else . end;
+def raw_prices:
+	. as $i
+	| {prompt: .input_cost_per_token, completion: .output_cost_per_token,
+		input_cache_read: .cache_read_input_token_cost,
+		input_cache_write: .cache_creation_input_token_cost,
+		input_cache_write_1h: .cache_creation_input_token_cost_above_1hr} | known
+	| . + {tiers: [$i | keys[]
+		| capture("^input_cost_per_token_above_(?<n>[0-9]+)(?<unit>k|m)?_tokens$")
+		| ("_above_" + .n + (.unit // "") + "_tokens") as $suffix
+		| {above_tokens: ((.n | tonumber) * (if .unit == "k" then 1000 elif .unit == "m" then 1000000 else 1 end)),
+			prompt: $i["input_cost_per_token" + $suffix], completion: $i["output_cost_per_token" + $suffix],
+			input_cache_read: $i["cache_read_input_token_cost" + $suffix],
+			input_cache_write: $i["cache_creation_input_token_cost" + $suffix],
+			input_cache_write_1h: $i["cache_creation_input_token_cost_above_1hr" + $suffix]} | known]}
+	| if .tiers == [] then del(.tiers) else . end;
+def reasoning($r; $info):
+	if $r.effort_levels != null then
+		$r.effort_levels
+		| if type != "array" then error("Invalid reasoning efforts")
+		  elif all(.[]; type == "string" and length > 0) | not then error("Invalid reasoning effort") else . end
+		| if (unique | length) != length then error("Duplicate reasoning efforts") else . end
+		| {supported: true, toggle: (index("none") != null), effort: [.[] | select(. != "none")]}
+	elif $info.supports_reasoning != null then
+		($info.supports_reasoning | boolean) as $supported
+		| if $supported then
+			{supported: true}
+			+ (if $info.supports_none_reasoning_effort != null then {toggle: ($info.supports_none_reasoning_effort | boolean)} else {} end)
+			+ (["minimal", "low", "medium", "high", "xhigh", "max"]
+				| map(. as $level | select($info["supports_" + $level + "_reasoning_effort"] == true))
+				| if length > 0 then {effort: .} else {} end)
+		else {supported: false} end
+	else null end;
+def media($flags):
+	if ($flags | length) == 0 then null else
+		["text"] + [$flags | to_entries[] | select(.value | boolean) | .key]
+	end;
+# These are metadata fields, not retained request configuration. Use the same
+# boundary for aliases so they cannot reintroduce historical target metadata.
+def customizations: del(.cost, .limit, .capabilities, .type, .disabled, .family, .releaseDate);
+def current_variants($reasoning):
+	if .variants != null then
+		.variants |= map(select(
+			[.settings.reasoningEffort, .body.reasoning_effort,
+				(if (.body.reasoning | type) == "object" then .body.reasoning.effort else null end)]
+			| map(select(. != null))
+			| all(.[]; . as $effort | $reasoning.supported == true and
+				(if $effort == "none" then $reasoning.toggle == true
+				 else (($reasoning.effort // []) | index($effort)) != null end))))
+	else . end;
+def model($row; $info; $old):
+	($row.id // $row.model_name) as $id
+	| ($row.mode // $info.mode) as $mode
+	| if $mode != null and ($mode | type) != "string" then error("Invalid model mode") else . end
+	| if ($info | type) != "object" then error("Invalid model_info") else . end
+	| if any($info | to_entries[]; (.key | startswith("supports_")) and .value != null and (.value | type) != "boolean")
+		then error("Invalid capability flag") else . end
+	| if $mode == "embedding" then empty else
+	($old.settings.cache.ttl // $provider_settings.cache.ttl // "5m" | IN("1h", "60m", "3600s", "3600000ms")) as $hour
+	| (if $row.pricing != null then
+		if ($row.pricing | type) == "object" then $row.pricing else error("Invalid pricing") end
+		else $info | raw_prices end) as $pricing
+	| (costs($pricing; $hour)) as $cost
+	| ({context: ($row.context_length // $info.context_length),
+		input: ($row.max_input_tokens // $info.max_input_tokens),
+		output: ($row.max_output_tokens // $info.max_output_tokens)} | known | map_values(tokens)) as $limit
+	| (reasoning($row.reasoning // $info.reasoning // {}; $info)) as $reasoning
+	| ({image: $info.supports_vision, audio: $info.supports_audio_input, pdf: $info.supports_pdf_input} | known) as $inputs
+	| ({audio: $info.supports_audio_output} | known) as $outputs
+	| ({input: media($inputs), output: media($outputs), reasoning: $reasoning} | known) as $caps
+	| ($caps + (if $info.supports_function_calling != null then {tools: ($info.supports_function_calling | boolean)}
+		elif $info.supports_tool_choice != null then {tools: ($info.supports_tool_choice | boolean)} else {} end)) as $caps
+	| ({name: ($id | format_name)} * ($old | customizations))
+	| if $cost != null then .cost = $cost else . end
+	| if $limit != {} then .limit = $limit else . end
+	| if $caps != {} then .capabilities = $caps else . end
+	| current_variants($reasoning)
+	| if $mode == "responses" then .type = "chat"
+		| .package //= "@opencode/ai/providers/openai-compatible/responses"
+	  elif $mode == "image_generation" then .type = "image"
+		| .disabled = ($old.package == null)
+	  elif $mode == "chat" then .type = "chat"
+	  elif $mode != null and $mode != "chat" then .disabled = true
+	  else . end
+	| {key: $id, value: .}
+	end;
+(.data | rows("id")) as $inventory
+| ($inventory | map({key: .id, value: .}) | from_entries) as $records
+| (.info | map({model_name, model_info: ((.model_info // {}) | with_entries(select(
+	.key | test("^(mode|context_length|max_input_tokens|max_output_tokens|reasoning|supports_.*|.*cost.*)$"))))})
+	| rows("model_name") | map({key: .model_name, value: .model_info}) | from_entries) as $info
+| [$inventory[] | . as $row | model($row; $info[$row.id] // {}; $previous[$row.id] // {})]
+| from_entries as $models
+# Preserve configured aliases only while their target is in the new inventory.
+| reduce ($previous | to_entries[] | .key as $key | select(.value.modelID != null and ($models | has($key) | not))) as $alias
+	($models; $alias.value.modelID as $target | if $models[$target] != null then
+		# Rebuild from the same fresh record, applying the effective alias request
+		# settings (including cache lifetime) before calculating its metadata.
+		.[$alias.key] = (model($records[$target]; $info[$target] // {};
+			$models[$target] * ($alias.value | customizations)) | .value) else . end)
+| to_entries | sort_by(.value.name, .key) | from_entries
 '
 
 # ── Provider helper functions ───────────────────────────────────────
@@ -228,40 +307,47 @@ slugify_provider() {  # display_name -> stdout
 	print -- ${${slug##_}%%_}
 }
 
-# Fetch models from API endpoint (tries rich metadata first, falls back to basic)
-# Outputs JSON: {"mode": "rich"|"basic", "response": <api_response>}
+# Inventory is authoritative even when empty. A successful malformed response is
+# an error, not a reason to silently publish a different inventory.
 fetch_models() {  # endpoint tmp_file api_key
 	local endpoint=$1 tmp=$2 key=$3
-	local http_code mode=basic response
+	local http_code response=null info='[]' route
+	integer info_available=0
+	local -a routes=( "${endpoint%/v1}/model/info" "$endpoint/model/info" )
+	routes=( ${(u)routes} )
 
-	print -ru2 -- "Fetching rich model metadata from: $endpoint/model/info"
-	if http_code=$(fetch_route "$endpoint/model/info" "$tmp" "$key") &&
-		[[ $http_code -ge 200 && $http_code -lt 300 ]] && jq -e '.data[0].model_info' "$tmp" &>/dev/null; then
-		mode=rich
-		print -ru2 -- "Using rich metadata (/model/info)"
-		vlog "Response size: $(wc -c < "$tmp" | tr -d ' ') bytes"
-	else
-		print -ru2 -- "Rich metadata unavailable (HTTP $http_code); falling back to: $endpoint/models"
-		http_code=$(fetch_route "$endpoint/models" "$tmp" "$key") || return $?
-		if [[ $http_code -lt 200 || $http_code -ge 300 ]]; then
-			print -ru2 -- "Error: endpoint returned HTTP $http_code"
-			print -ru2 -- "$(<$tmp)"
+	print -ru2 -- "Fetching model inventory from: $endpoint/models"
+	if http_code=$(fetch_route "$endpoint/models" "$tmp" "$key") &&
+		[[ $http_code -ge 200 && $http_code -lt 300 ]]; then
+		if ! response=$(jq -ce 'if (.data | type) == "array" then .data else error("Expected data array") end' "$tmp"); then
+			print -ru2 -- "Error: invalid model inventory"
 			return 1
 		fi
-		vlog "Response size: $(wc -c < "$tmp" | tr -d ' ') bytes"
-	fi
-
-	response=$(<$tmp)
-	vlog "Selected metadata mode: $mode"
-
-	if ! jq -e '.data' <<<"$response" &>/dev/null; then
-		print -ru2 -- "Error: invalid response (not valid JSON or missing 'data' field)"
-		print -ru2 -- "Response: $response"
+	elif [[ $http_code != 404 && $http_code != 405 ]]; then
+		print -ru2 -- "Error: model inventory unavailable (HTTP $http_code)"
 		return 1
 	fi
 
-	vlog "Response validation: valid JSON with 'data' field"
-	jq -c --arg mode "$mode" '{mode: $mode, response: .}' <<<"$response"
+	for route in $routes; do
+		if http_code=$(fetch_route "$route" "$tmp" "$key") &&
+			[[ $http_code -ge 200 && $http_code -lt 300 ]]; then
+			if ! info=$(jq -ce 'if (.data | type) == "array" then .data else error("Expected data array") end' "$tmp"); then
+				print -ru2 -- "Error: invalid model metadata"
+				return 1
+			fi
+			vlog "Supplementary metadata: $route"
+			info_available=1
+			break
+		fi
+	done
+	if [[ $response == null ]]; then
+		if (( ! info_available )); then
+			print -ru2 -- "Error: no model discovery route available"
+			return 1
+		fi
+		response=$(jq -c 'map({id: .model_name})' <<<"$info") || return $?
+	fi
+	jq -cn --argjson data "$response" --argjson info "$info" '{data: $data, info: $info}'
 }
 
 # ── Config validation ───────────────────────────────────────────────
@@ -273,6 +359,8 @@ fetch_models() {  # endpoint tmp_file api_key
 local JQ_VALIDATE_CONFIG='
 def is_type($t):
 	if $t == "integer" then type == "number" and . == floor
+	elif $t == "tokens" then type == "number" and . == floor and . > 0 and . <= 9007199254740991
+	elif $t == "price" then type == "number" and . >= 0
 	elif $t == "strings" then type == "array" and all(.[]; type == "string")
 	elif $t == "headers" then type == "object" and all(.[]; type == "string")
 	elif $t == "cost" then type == "object" or type == "array"
@@ -291,34 +379,46 @@ def settings($p):
 		  (select(type == "object") | select(.type | IN("native", "summary") | not) | "Invalid compaction at \($p).compaction"));
 def request($p): nested("settings"; "object") | settings("\($p).settings");
 def cost($p):
-	fields($p; {input: "number", output: "number", cache: "object", tier: "object"}),
+	fields($p; {input: "price", output: "price", cache: "object", tier: "object"}),
 	(select(type == "object") | . as $c | ["input", "output"][] | . as $k
 		| select($c | has($k) | not) | "Missing key \($p).\($k)"),
-	(nested("cache"; "object") | fields("\($p).cache"; {read: "number", write: "number"})),
+	(nested("cache"; "object") | fields("\($p).cache"; {read: "price", write: "price"})),
 	(nested("tier"; "object")
-		| fields("\($p).tier"; {type: "string", size: "integer"}),
+		| fields("\($p).tier"; {type: "string", size: "tokens"}),
 		  (select(.type != "context" or (has("size") | not)) | "Invalid tier at \($p).tier"));
+def compatibility($p; $model):
+	fields($p; {reasoningField: "string", requireReasoning: "boolean", maxTokensField: "string",
+		requireFinishReason: "boolean", requireAssistantAfterTool: "boolean", supportsPromptCacheKey: "boolean",
+		streamUsage: "boolean", cacheFormat: "string", mediaInput: "string"}
+		+ (if $model then {supportsThinkingBlockBinding: "boolean", supportsEffortUpdates: "boolean"} else {} end)),
+	(select(has("maxTokensField")) | select(.maxTokensField | IN("max_tokens", "max_completion_tokens") | not)
+		| "Invalid maxTokensField at \($p)"),
+	(select(has("cacheFormat")) | select(.cacheFormat | IN("anthropic", "alibaba") | not) | "Invalid cacheFormat at \($p)");
+def reasoning($p):
+	fields($p; {supported: "boolean", toggle: "boolean", effort: "strings", budget: "object"}),
+	(select(type == "object") | select((has("supported") | not) or (.supported == false and keys != ["supported"]))
+		| "Invalid reasoning at \($p)"),
+	(nested("budget"; "object") | fields("\($p).budget"; {min: "tokens", max: "tokens"}));
 def model($p):
-	fields($p; {modelID: "string", name: "string", family: "string", package: "string",
+	fields($p; {modelID: "string", name: "string", family: "string", package: "string", type: "string", releaseDate: "string",
 		settings: "object", headers: "headers", body: "object", capabilities: "object",
 		compatibility: "object", variants: "array", cost: "cost", limit: "object", disabled: "boolean"}),
 	request($p),
-	(nested("capabilities"; "object") | fields("\($p).capabilities"; {tools: "boolean", input: "strings", output: "strings"})),
-	(nested("limit"; "object") | fields("\($p).limit"; {context: "integer", input: "integer", output: "integer"})),
-	(nested("compatibility"; "object")
-		| fields("\($p).compatibility"; {reasoningField: "string", requireReasoning: "boolean", maxTokensField: "string",
-			requireFinishReason: "boolean", requireAssistantAfterTool: "boolean", supportsPromptCacheKey: "boolean",
-			supportsThinkingBlockBinding: "boolean", supportsEffortUpdates: "boolean"}),
-		  (select(has("maxTokensField")) | select(.maxTokensField | IN("max_tokens", "max_completion_tokens") | not)
-			| "Invalid maxTokensField at \($p).compatibility")),
+	(nested("capabilities"; "object")
+		| fields("\($p).capabilities"; {tools: "boolean", input: "strings", output: "strings", freeform: "strings", temperature: "boolean", reasoning: "object"}),
+		  (nested("reasoning"; "object") | reasoning("\($p).capabilities.reasoning"))),
+	(nested("limit"; "object") | fields("\($p).limit"; {context: "tokens", input: "tokens", output: "tokens"})),
+	(nested("compatibility"; "object") | compatibility("\($p).compatibility"; true)),
+	(nested("variants"; "array") | select((map(.id) | unique | length) != length) | "Duplicate variant IDs at \($p)"),
 	(nested("variants"; "array") | to_entries[] | "\($p).variants.\(.key)" as $v | .value
 		| fields($v; {id: "string", settings: "object", headers: "headers", body: "object"}),
-		  (select(type == "object" and (has("id") | not)) | "Missing key \($v).id"), request($v)),
+		  (select(type == "object" and ((has("id") | not) or .id == "")) | "Missing key \($v).id"), request($v)),
 	(nested("cost"; "cost") | if type == "array" then to_entries[] | .key as $i | .value | cost("\($p).cost.\($i)") else cost("\($p).cost") end);
 def provider($p):
 	fields($p; {name: "string", canonical: "string", env: "strings", package: "string",
-		settings: "object", headers: "headers", body: "object", models: "object"}),
+		settings: "object", headers: "headers", body: "object", models: "object", compatibility: "object"}),
 	request($p),
+	(nested("compatibility"; "object") | compatibility("\($p).compatibility"; false)),
 	(nested("settings"; "object")
 		| (to_entries[] | select(.key | IN("timeout", "headerTimeout", "chunkTimeout"))
 			| select(.value != false and (.value | type) != "number") | "Invalid timeout at \($p).settings.\(.key)"),
@@ -390,8 +490,19 @@ validate_config() {  # candidate_file
 # Returns: 0 if updated, 1 on error, 2 if no changes
 update_config() {  # config_file provider_key display_name base_url new_models
 	local config=$1 provider_key=$2 display_name=$3 base_url=$4 new_models=$5
-	# Keep a .json suffix so validation sees the same extension as the real file.
-	local candidate="$config.tmp.json"
+	local work candidate input=$config
+	work=$(command mktemp -d "${config:h}/.opencode-models.XXXXXX") || return $?
+	# Keep the candidate beside the destination so relative file substitutions,
+	# plugins and other config paths resolve exactly as in the live document.
+	candidate="$work.json"
+	{
+	if [[ -f $config ]]; then
+		# Retain permissions while writing to a private same-filesystem candidate.
+		command cp -p -- "$config" "$candidate" || return $?
+	else
+		input="$work/initial.json"
+		jq -n '{"$schema": "https://opencode.ai/config.json", "providers": {}}' > "$input" || return $?
+	fi
 
 	vlog "Writing config to temporary file: $candidate"
 	if ! jq --tab \
@@ -404,8 +515,11 @@ update_config() {  # config_file provider_key display_name base_url new_models
 		# as V2 does, separating HTTP headers/body from runtime settings.
 		def migrate_provider:
 			(.options // {}) as $options
+			| .npm as $npm
 			| del(.models, .npm, .api, .options, .id, .whitelist, .blacklist)
-			+ {settings: ($options | del(.headers, .body))}
+			+ {settings: ($options | del(.headers, .body, .setCacheKey))}
+			+ (if $npm != null then {package: (if $npm | startswith("@ai-sdk/") then "aisdk:" + $npm else $npm end)} else {} end)
+			+ (if $options.setCacheKey != null then {compatibility: {supportsPromptCacheKey: $options.setCacheKey}} else {} end)
 			+ (if $options | has("headers") then {headers: $options.headers} else {} end)
 			+ (if $options | has("body") then {body: $options.body} else {} end);
 		def merge_headers($old; $new):
@@ -418,13 +532,13 @@ update_config() {  # config_file provider_key display_name base_url new_models
 			  then .headers = merge_headers($legacy.headers; $native.headers) else . end)
 		| .providers[$provider].models = $new_models
 		| .providers[$provider].name = $display_name
-		| .providers[$provider].package = "aisdk:@ai-sdk/openai-compatible"
+		| .providers[$provider].package //= "@opencode/ai/providers/openai-compatible"
 		| .providers[$provider].settings.baseURL = $base_url
 		| if (.provider // {} | has($provider)) then
 			del(.provider[$provider]) | if .provider == {} then del(.provider) else . end
 		  else . end
 		' \
-		"$config" > "$candidate"; then
+		"$input" > "$candidate"; then
 		print -ru2 -- "Error: failed to write configuration"
 		rm -f "$candidate"
 		return 1
@@ -437,7 +551,7 @@ update_config() {  # config_file provider_key display_name base_url new_models
 	fi
 
 	vlog "Checking for changes against existing config..."
-	if cmp -s "$candidate" "$config"; then
+	if [[ -f $config ]] && cmp -s "$candidate" "$config"; then
 		vlog "No changes detected, removing temporary file"
 		rm -f "$candidate"
 		return 2
@@ -448,6 +562,10 @@ update_config() {  # config_file provider_key display_name base_url new_models
 		command rm -f -- "$candidate"
 		return 1
 	}
+	} always {
+		command rm -f -- "$candidate"
+		command rm -rf -- "$work"
+	}
 }
 
 # Print formatted model summary to stderr
@@ -456,7 +574,8 @@ print_model_summary() {  # config_file provider_key
 		.providers[$provider].models | to_entries[]
 		| .value as $m
 		| ([ (if $m.capabilities.tools then "tools" else empty end),
-			 (if any($m.variants[]?; .settings.reasoningEffort != null) then "reasoning" else empty end),
+			 (if $m.capabilities.reasoning.supported then "reasoning" else empty end),
+			 (if $m.disabled then "disabled" else empty end),
 			 (if ($m.capabilities.input // []) | index("image") then "vision" else empty end)
 		  ] | if length > 0 then " [" + join(",") + "]" else "" end) as $flags
 		| "\t\($m.name) (\(.key))\($flags)"
@@ -466,10 +585,14 @@ print_model_summary() {  # config_file provider_key
 # ── Main provider processing ────────────────────────────────────────
 process_provider() {
 	local display=$1 endpoint=$2 key=$3 config=$4
-	local provider_key fetch_result fetch_mode models_response new_models tmp
+	local provider_key fetch_result new_models tmp previous='{}' provider_settings='{}'
 	integer model_count
 
 	provider_key=$(slugify_provider "$display")
+	if [[ -z $provider_key ]]; then
+		print -ru2 -- "Error: provider name must contain an ASCII letter or digit"
+		return 1
+	fi
 	vlog "Generated provider key: '$provider_key' from '$display'"
 
 	tmp=$(command mktemp "${TMPDIR:-/tmp}/opencode_models.XXXXXX") || return $?
@@ -481,19 +604,28 @@ process_provider() {
 	if ! fetch_result=$(fetch_models "$endpoint" "$tmp" "$key"); then
 		return 1
 	fi
-	fetch_mode=$(jq -r '.mode' <<<"$fetch_result") || return $?
-	models_response=$(jq -c '.response' <<<"$fetch_result") || return $?
+	if [[ -f $config ]]; then
+		previous=$(jq -ce --arg provider "$provider_key" '.providers[$provider].models // {}' "$config") || return $?
+		provider_settings=$(jq -ce --arg provider "$provider_key" '(.provider[$provider].options // {}) * (.providers[$provider].settings // {})' "$config") || return $?
+	fi
+
+	# OpenCode token costs cannot represent independent media/query/service-tier
+	# charges. Report their presence without guessing a text-token equivalent.
+	if jq -e 'any(.info[].model_info // {} | to_entries[]; .value != null and
+		(.key | test("cost.*(image|audio|query|priority|batches|flex)|search_context_cost")))' <<<"$fetch_result" >/dev/null; then
+		print -ru2 -- "Note: media, query and service-tier charges are not included in text-token cost estimates"
+	fi
 
 	# Transform to opencode schema
 	vlog "Transforming API response to opencode schema..."
-	if ! new_models=$(jq --arg mode "$fetch_mode" \
-		"${JQ_FORMAT_NAME}${JQ_TRANSFORM_MODELS}" <<<"$models_response"); then
+	if ! new_models=$(jq --argjson previous "$previous" --argjson provider_settings "$provider_settings" \
+		"${JQ_FORMAT_NAME}${JQ_TRANSFORM_MODELS}" <<<"$fetch_result"); then
 		print -ru2 -- "Error: failed to parse model data"
 		return 1
 	fi
 
 	model_count=$(jq 'length' <<<"$new_models") || return $?
-	vlog "Transformed $model_count models (mode: $fetch_mode)"
+	vlog "Transformed $model_count models"
 	(( model_count == 0 )) && print -ru2 -- "Warning: no models found at endpoint"
 
 	# Update config atomically
@@ -506,7 +638,7 @@ process_provider() {
 		*) return 1 ;;
 	esac
 
-	print -ru2 -- "Successfully updated provider: $display ($model_count models, $fetch_mode metadata)"
+	print -ru2 -- "Successfully updated provider: $display ($model_count models)"
 
 	if (( model_count > 0 )); then
 		print -ru2 -- "Models:"
@@ -521,21 +653,11 @@ process_provider() {
 
 # ── Main ────────────────────────────────────────────────────────────
 
-# Bootstrap config file if it doesn't exist.
+# Resolve symlinks before atomic replacement. Bootstrap only after discovery and
+# validation succeed, so a failed first refresh leaves no configuration behind.
+config_file=${config_file:A}
 vlog "Checking config file: $config_file"
-if [[ ! -f $config_file ]]; then
-	print -ru2 -- "Configuration file '$config_file' not found; creating it"
-	jq -n --tab '{
-		"$schema": "https://opencode.ai/config.json",
-		"update": "auto",
-		"providers": {}
-	}' > "$config_file" || return $?
-	vlog "Created new config file with default schema"
-else
-	vlog "Config file exists"
-fi
-
-if [[ ! -w $config_file ]]; then
+if [[ -e $config_file && ! -w $config_file ]] || [[ ! -d ${config_file:h} || ! -w ${config_file:h} ]]; then
 	print -ru2 -- "Error: configuration file '$config_file' is not writable"
 	return 1
 fi
