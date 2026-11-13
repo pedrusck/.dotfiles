@@ -49,9 +49,11 @@ opt.confirm = true
 opt.hidden = true
 
 -- Clipboard: schedule after UiEnter to avoid startup slowdown
-vim.schedule(function()
-	opt.clipboard = "unnamedplus"
-end)
+vim.schedule(
+	function()
+		opt.clipboard = "unnamedplus"
+	end
+)
 
 -- Spell
 opt.spell = true

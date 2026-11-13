@@ -28,9 +28,6 @@ map("n", "<C-j>", "<C-w><C-j>", { desc = "Focus window down" })
 map("n", "<C-k>", "<C-w><C-k>", { desc = "Focus window up" })
 map("n", "<C-l>", "<C-w><C-l>", { desc = "Focus window right" })
 
--- Open URL in browser
-map("n", "gx", '<Cmd>call jobstart(["open", expand("<cfile>")], {"detach": v:true})<CR>')
-
 -- Buffer navigation (<leader>b* = buffer group)
 map("n", "<leader>bp", ":bprev<CR>", { silent = true, desc = "Buffer: previous" })
 map("n", "<leader>bn", ":bnext<CR>", { silent = true, desc = "Buffer: next" })

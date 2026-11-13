@@ -50,16 +50,16 @@ go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 
 ## General editing & movement
 
-| Key                         | Mode | Action                                    |
-| --------------------------- | ---- | ----------------------------------------- |
-| `<Esc>`                     | n    | Clear search highlights                   |
-| `J` / `K`                   | v    | Move selection down / up                  |
-| `<leader>mj` / `<leader>mk` | n    | Move line down / up                       |
-| `<C-d>` / `<C-u>`           | n    | Half-page down / up (centered)            |
-| `n` / `N`                   | n    | Next / previous search result (centered)  |
-| `<leader>p`                 | x    | Paste over selection without yanking      |
-| `gx`                        | n    | Open URL/file under cursor (macOS `open`) |
-| `<Esc><Esc>`                | t    | Exit terminal mode                        |
+| Key                         | Mode | Action                                               |
+| --------------------------- | ---- | ---------------------------------------------------- |
+| `<Esc>`                     | n    | Clear search highlights                              |
+| `J` / `K`                   | v    | Move selection down / up                             |
+| `<leader>mj` / `<leader>mk` | n    | Move line down / up                                  |
+| `<C-d>` / `<C-u>`           | n    | Half-page down / up (centered)                       |
+| `n` / `N`                   | n    | Next / previous search result (centered)             |
+| `<leader>p`                 | x    | Paste over selection without yanking                 |
+| `gx`                        | n, x | Open URL/file under cursor (built-in, `vim.ui.open`) |
+| `<Esc><Esc>`                | t    | Exit terminal mode                                   |
 
 ## Windows & buffers
 
@@ -210,10 +210,30 @@ mini.ai extends textobjects with `n` / `l` for next / last (e.g. `van(`,
 
 ## Configuration files
 
-- `neovim/init.lua` → `~/.config/nvim/init.lua`; `neovim/lua`, `neovim/lsp` and
-  `neovim/spell` are symlinked into `~/.config/nvim/` by `neovim/setup.sh`.
-- Layout: `init.lua` (leaders, build hooks, require order); `lua/config/`
-  (`options`, `keymaps`, `autocmds`); `lua/plugins/` (one file per domain, with
-  `lang/` for per-language setup); `lsp/` (native `vim.lsp.config` per server,
-  auto-discovered).
+- `neovim/init.lua` → `~/.config/nvim/init.lua`; `neovim/lua`, `neovim/after`
+  and `neovim/spell` are symlinked into `~/.config/nvim/` by `neovim/setup.sh`.
+- Layout: `init.lua` (leaders, plugin module load order); `lua/config/`
+  (`options`, `keymaps`, `autocmds`, plugin-agnostic `pack` helpers, `minimal`);
+  `lua/plugins/` (one file per domain, with `lang/` for per-language setup, plus
+  shared `specs` and build `hooks`); `after/lsp/` (overrides merged over
+  nvim-lspconfig's server definitions).
 - This `keybindings.md` is repo documentation only; it is **not** symlinked.
+
+## Plugins (`vim.pack`)
+
+- Plugins follow their latest semver release where one is maintained. The
+  exceptions (default branch or a named branch) carry a comment next to their
+  spec explaining why.
+- Each plugin module lists its own hard dependencies. A plugin that fails to
+  install or load is reported as a warning and the rest of the config still
+  loads; without gruvbox the built-in `retrobox` theme is used.
+- Loaded after startup (`vim.schedule`): which-key, todo-comments, undotree,
+  vim-table-mode, and Mason's registry refresh / missing server installation.
+- Update with `:PackUpdate` (all plugins) or `:PackUpdate vimtex oil.nvim`
+  (selected plugins, names tab-complete). Review the changes, then `:w` to apply
+  or `:q` to cancel, and `:restart` to load the updated code. Each plugin keeps
+  its configured branch, tag or version range.
+- Inspect with `:lua vim.pack.update(nil, { offline = true })`; diagnose with
+  `:checkhealth vim.pack`. Build hooks (telescope-fzf-native `make`,
+  nvim-treesitter `:TSUpdate`) live in `lua/plugins/hooks.lua`; specs shared by
+  several modules (plenary, mini.nvim) in `lua/plugins/specs.lua`.

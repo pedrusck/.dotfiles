@@ -4,6 +4,6 @@ return {
 		"settings.gradle",
 		"settings.gradle.kts",
 		"build.gradle",
-		"build.gradle.kts",
-	},
+		"build.gradle.kts"
+	}
 }

@@ -1,8 +1,8 @@
-vim.pack.add({
-	"https://github.com/lewis6991/gitsigns.nvim",
-})
+vim.pack.add {
+	{ src = "https://github.com/lewis6991/gitsigns.nvim", version = vim.version.range("2.x") }
+}
 
-require("gitsigns").setup({
+require("gitsigns").setup {
 	signs = {
 		add = { text = "│" },
 		change = { text = "│" },
@@ -34,5 +34,5 @@ require("gitsigns").setup({
 		relative = "cursor",
 		row = 0,
 		col = 1,
-	},
-})
+	}
+}

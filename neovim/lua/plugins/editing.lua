@@ -1,14 +1,16 @@
--- mini.nvim is added once here; submodules are set up here (ai, surround) and
--- in ui.lua (icons, statusline). mini.icons is set up here (early, before
--- navigation/statusline render icons) and mocks nvim-web-devicons.
-vim.pack.add({ "https://github.com/nvim-mini/mini.nvim" })
+-- mini.nvim is shared with ui.lua (statusline); both add it with the same spec.
+-- mini.icons is set up here, early, so telescope/oil/statusline render icons, and
+-- mocks nvim-web-devicons. Icons are optional for those consumers.
+local specs = require("plugins.specs")
+
+vim.pack.add { specs.mini }
 
 -- Icons (must be available before telescope/oil/statusline render)
 require("mini.icons").setup()
 MiniIcons.mock_nvim_web_devicons()
 
 -- Better Around/Inside textobjects
-require("mini.ai").setup({ n_lines = 500 })
+require("mini.ai").setup { n_lines = 500 }
 
 -- Add/delete/replace surroundings (brackets, quotes, etc.)
 require("mini.surround").setup()

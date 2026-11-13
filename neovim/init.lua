@@ -17,44 +17,39 @@ if vim.env.OPENCODE == "1" or vim.env.OPENCODE_TERMINAL == "1" then
 	return
 end
 
--- Disable netrw (oil replaces it) -- must be set before plugins load
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
+local pack = require("config.pack")
 
 -- [[ vim.pack build hooks ]]
 -- Created before any vim.pack.add() calls (in lua/plugins/*) so they fire on install too
-vim.api.nvim_create_autocmd("PackChanged", {
-	callback = function(ev)
-		local name, kind = ev.data.spec.name, ev.data.kind
-		local plugin_dir = vim.fn.stdpath("data") .. "/site/pack/core/opt/" .. name
-
-		if name == "nvim-treesitter" and (kind == "install" or kind == "update") then
-			if not ev.data.active then
-				vim.cmd.packadd("nvim-treesitter")
-			end
-			vim.cmd("TSUpdate")
-		end
-
-		if name == "telescope-fzf-native.nvim" and (kind == "install" or kind == "update") then
-			vim.system({ "make" }, { cwd = plugin_dir }):wait()
-		end
-	end,
-})
+pack.setup_hooks(require("plugins.hooks").callbacks)
+pack.setup_commands()
 
 -- [[ Plugins (explicit load order) ]]
-require("plugins.colorscheme")
-require("plugins.treesitter")
-require("plugins.completion")
-require("plugins.lsp")
+-- Each module lists its own hard dependencies; a failing module is reported as a
+-- warning and the remaining ones still load. oil (navigation) disables netrw itself.
+local modules = {
+	"plugins.treesitter",
+	-- completion before lsp so blink.cmp's capabilities apply to servers
+	"plugins.completion",
+	"plugins.lsp",
 
--- Language-specific
-require("plugins.lang.latex")
-require("plugins.lang.haskell")
-require("plugins.lang.swift")
+	-- Language-specific
+	"plugins.lang.latex",
+	"plugins.lang.haskell",
+	"plugins.lang.swift",
 
--- editing sets up mini.nvim + mini.icons before icon consumers (navigation, ui)
-require("plugins.editing")
-require("plugins.navigation")
-require("plugins.git")
-require("plugins.ui")
-require("plugins.markdown")
+	-- editing sets up mini.icons before icon consumers (navigation, ui)
+	"plugins.editing",
+	"plugins.navigation",
+	"plugins.git",
+	"plugins.ui",
+	"plugins.markdown"
+}
+
+if not pack.load("plugins.colorscheme") then
+	vim.cmd.colorscheme("retrobox")
+end
+
+for _, mod in ipairs(modules) do
+	pack.load(mod)
+end

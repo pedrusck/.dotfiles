@@ -2,7 +2,7 @@
 -- Disabling plugins does not exclude installed queries from runtime lookups.
 -- Use bundled resources instead of user-site files blocked by the sandbox.
 local site = vim.fn.stdpath("data") .. "/site"
-vim.opt.runtimepath:remove({ site, site .. "/after" })
+vim.opt.runtimepath:remove { site, site .. "/after" }
 
 vim.opt.showmode = true
 vim.cmd.colorscheme("retrobox")

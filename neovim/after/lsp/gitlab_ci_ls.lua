@@ -1,3 +1,3 @@
 return {
-	filetypes = { "yaml.gitlab" },
+	filetypes = { "yaml.gitlab" }
 }
