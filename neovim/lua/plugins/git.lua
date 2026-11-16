@@ -3,6 +3,14 @@ vim.pack.add {
 }
 
 require("gitsigns").setup {
+	-- Raw Git baselines contain ciphertext for git-crypt files, while buffers
+	-- contain plaintext. Let Git attributes identify those files in any repo.
+	-- After attribute changes, :Gitsigns detach then :Gitsigns attach rechecks.
+	on_attach = function(bufnr)
+		if require("config.git_attributes").is_git_crypt_file(bufnr) then
+			return false
+		end
+	end,
 	signs = {
 		add = { text = "│" },
 		change = { text = "│" },
