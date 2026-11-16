@@ -344,6 +344,168 @@ For graphical passphrase prompts, use a GUI pinentry such as the Brewfile's
 `gpgconf --kill gpg-agent`. If GPG cannot be found, set its absolute path using
 the extension's `gpgPath` option or `.browserpass.json` in the password store.
 
+### Local MCP servers for OpenCode
+
+`opencode/opencode.secret.json` configures Figma Desktop, JetBrains, Neovim,
+Obsidian, Pencil Desktop, Podman, and Xcode, all disabled by default.
+Prepare them outside cplt, keep the target apps open, and connect via `/mcps`.
+Node.js, Neovim, and Podman are declared in `mise/configuration.toml`;
+`npx` downloads the Neovim and Podman bridges on first use.
+
+#### Figma Desktop
+
+With a supported Dev or Full seat, open a Design file in Figma Desktop.
+Deselect everything, enter **Dev Mode** (`Shift+D`), then select
+**MCP server → Enable desktop MCP server** in the sidebar.
+Select the frame or layer to inspect.
+
+`figma_desktop` uses `http://127.0.0.1:3845/mcp`.
+[Setup and seat requirements][figma-mcp-setup].
+
+#### JetBrains
+
+Open the project in a JetBrains IDE (2025.2+) with the MCP Server plugin
+enabled. Select **Settings → AI → MCP Server → Enable MCP Server**.
+
+`jetbrains` uses `http://127.0.0.1:64342/stream`. Check it against
+**Copy HTTP Stream Config**; update OpenCode and cplt if the port differs.
+Include the project path in prompts when several projects are open.
+[Documentation][jetbrains-mcp-setup].
+
+#### Pencil Desktop
+
+Install Pencil at `/Applications/Pencil.app`, open the intended `.pen` file,
+and enable OpenCode in **Settings → MCP** where available.
+
+`pencil_desktop` launches the bundled Apple Silicon bridge over stdio.
+If an update moves the executable, use the app's generated MCP configuration
+to update its path. Sandbox access requires both the executable and app socket.
+[Documentation][pencil-mcp-setup].
+
+#### Xcode
+
+Open the project in a full Xcode installation with `mcpbridge`.
+Under **Settings → Intelligence → Model Context Protocol**, set
+**Allow External Agents to Use Xcode Tools** to **While Xcode is Open** or
+**Always**. Approve any connection prompt.
+
+`xcode` runs `xcrun mcpbridge`. Verify discovery:
+
+```sh
+xcode-select -p
+xcrun --find mcpbridge
+```
+
+If necessary, select the correct installation and launch a new sandbox:
+
+```sh
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+```
+
+[Apple's setup guide][xcode-mcp-setup].
+
+[figma-mcp-setup]: https://developers.figma.com/docs/figma-mcp-server/local-server-installation/
+[jetbrains-mcp-setup]: https://www.jetbrains.com/help/idea/mcp-server.html
+[pencil-mcp-setup]: https://docs.pencil.dev/getting-started/ai-integration
+[xcode-mcp-setup]: https://developer.apple.com/documentation/xcode/giving-external-agents-access-to-xcode
+
+#### Obsidian
+
+1. Enable **Settings → General → Advanced → Command line interface**.
+2. Install and enable the community
+   [REST and MCP server](https://github.com/dsebastien/obsidian-cli-rest) plugin
+   in the vault, with its MCP interface on localhost port `27124`.
+3. Copy the auto-generated key from the plugin's **Security** settings.
+   Export it without saving it in shell history:
+
+   ```zsh
+   read -rs 'OBSIDIAN_MCP_API_KEY?Obsidian MCP API key: '
+   print
+   export OBSIDIAN_MCP_API_KEY
+   ```
+
+`obsidian` uses `http://127.0.0.1:27124/mcp` with bearer authentication.
+Both Zsh launchers forward the key. An existing shared server will not inherit
+a new export; supply it at server startup or use `opencode --standalone`.
+
+#### Neovim
+
+Start the editor targeted by the
+[Neovim bridge](https://github.com/bigcodegen/mcp-neovim-server):
+
+```sh
+mkdir -p "$HOME/.local/state/nvim"
+nvim --listen "$HOME/.local/state/nvim/mcp.sock"
+```
+
+The configured `NVIM_SOCKET_PATH` targets this one instance.
+Start OpenCode in another terminal; use ordinary `nvim` for other instances.
+
+#### Podman on macOS
+
+Check machines and connections:
+
+```sh
+podman machine list
+podman system connection list
+```
+
+Run `podman machine init` only if none exists. Start the chosen machine with
+`podman machine start MACHINE_NAME`, verify `podman info`, then link its socket
+(adjust the name):
+
+```sh
+machine=podman-machine-default
+podman_socket=$(podman machine inspect "$machine" \
+  --format '{{.ConnectionInfo.PodmanSocket.Path}}') &&
+  test -S "$podman_socket" &&
+  mkdir -p "$HOME/.local/state/podman" &&
+  ln -sfn "$podman_socket" "$HOME/.local/state/podman/mcp.sock"
+```
+
+The [Podman bridge](https://github.com/manusa/podman-mcp-server) uses
+`--podman-impl api` and `CONTAINER_HOST` to target this socket directly.
+Refresh the link if the socket changes.
+
+#### cplt activation and verification
+
+The personal/company profiles in `cplt/` grant:
+
+- Localhost ports `3845` (Figma), `64342` (JetBrains), and `27124` (Obsidian).
+- The designated Neovim/Podman sockets and selected Xcode executable tree.
+- Execution in `~/Library/Caches/opencode-mcp/npm`, the bridges' npm cache,
+  via `sandbox.allow_cache_exec = ["opencode-mcp/npm"]`.
+
+Start Neovim/Podman and create the socket link **before** launching cplt.
+Changed socket targets or permissions require a new sandbox.
+
+`cplt/setup.sh` links a minimal global config and personal/company `cplt.toml`
+files under their project roots. Ensure the active configuration includes the
+profile's MCP grants; the global file alone does not. Preserve local settings
+before running setup. `CPLT_CONFIG` replaces the global config.
+
+`opencode/setup.sh` links the global OpenCode config. Open a new terminal for
+the updated Zsh launchers, export the Obsidian key, and launch OpenCode.
+Run `opencode mcp list`, connect via `/mcps`, and perform read-only checks:
+
+| Server           | Check                                               |
+| ---------------- | --------------------------------------------------- |
+| Figma Desktop    | Read metadata or a screenshot of the selected node. |
+| JetBrains        | List project modules or inspect file problems.      |
+| Pencil Desktop   | Inspect editor/app state and the active document.   |
+| Xcode            | List open windows or inspect the project navigator. |
+| Obsidian         | Search for a known note in the intended vault.      |
+| Neovim           | Retrieve editor status and list open buffers.       |
+| Podman           | List containers and compare with the command below. |
+
+```sh
+podman --remote --url "unix://$HOME/.local/state/podman/mcp.sock" ps
+```
+
+Repeat with each launcher used. Authentication errors usually indicate a
+missing/mismatched key; missing sockets indicate stopped apps or a stale link.
+For `Operation not permitted`, check the active cplt grants.
+
 ## Encrypted files
 
 Files matching `*.secret` and `*.secret.*` are encrypted with

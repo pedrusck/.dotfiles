@@ -4,6 +4,7 @@ exec = [
 ]
 localhost = [
 	3845,	# Figma MCP localhost port
+	27124,	# Obsidian MCP localhost port
 	64342	# Jetbrains MCP localhost port
 ]
 read = [
@@ -18,3 +19,10 @@ read = [
 	# rumdl formatter configuration
 	"~/.config/rumdl/rumdl.toml"
 ]
+socket = [
+	"~/.local/state/nvim/mcp.sock",	# Designated Neovim instance
+	"~/.local/state/podman/mcp.sock"	# Link to the running Podman machine socket
+]
+
+[sandbox]
+allow_cache_exec = ["opencode-mcp/npm"] # npx MCP launchers and the Podman native binary (macOS Library/Caches)
