@@ -37,7 +37,7 @@ theme = "gruvbox.toml"
 # editor = '"C:\Program Files\Notepad++\notepad++.exe" --some-flag'
 #
 # Priority: --editor flag > LEAF_EDITOR > this setting > nano (notepad on Windows)
-editor = "vim"
+editor = "nvim"
 
 # Maximum content width (number of columns)
 # Limits how wide the rendered content can be.
