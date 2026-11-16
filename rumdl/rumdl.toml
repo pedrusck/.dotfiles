@@ -1,3 +1,6 @@
+[MD013]
+line-length = 0
+
 [MD060]
 enabled = true
 style = "aligned"
