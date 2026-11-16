@@ -26,3 +26,7 @@ printf '%s\n' "$completion_script" > "$completion_dir/_mise"
 mkdir -p "$HOME/Developer/adesso_projects"
 ln -sf "$TOOL_DIRECTORY/company_configuration.secret.toml" "$HOME/Developer/adesso_projects/mise.toml"
 "$MISE_EXECUTABLE" trust "$HOME/Developer/adesso_projects/mise.toml"
+
+mkdir -p "$HOME/Developer/personal_projects"
+ln -sf "$TOOL_DIRECTORY/personal_configuration.secret.toml" "$HOME/Developer/personal_projects/mise.toml"
+"$MISE_EXECUTABLE" trust "$HOME/Developer/personal_projects/mise.toml"
