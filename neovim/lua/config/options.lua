@@ -25,6 +25,7 @@ opt.scrolloff = 10
 opt.signcolumn = "yes"
 opt.showmode = false
 opt.termguicolors = true
+opt.wrap = true
 opt.breakindent = true
 opt.linebreak = true
 opt.showbreak = "↪ "
@@ -40,6 +41,9 @@ opt.splitbelow = true
 opt.splitright = true
 
 -- Files
+opt.textwidth = 0
+opt.wrapmargin = 0
+opt.formatoptions:remove { "t", "c", "a" }
 opt.undofile = true
 opt.undodir = os.getenv("HOME") .. "/.vim/undo"
 opt.autoread = true

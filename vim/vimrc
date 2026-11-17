@@ -50,6 +50,18 @@ set cursorline
 " Show the matching brace when you insert one
 " set showmatch
 
+" Soft-wrap long lines without inserting line breaks
+set wrap
+set textwidth=0
+set wrapmargin=0
+set formatoptions-=t formatoptions-=c formatoptions-=a
+
+" Keep filetype plugins from enabling automatic hard wrapping
+augroup SoftWrap
+	autocmd!
+	autocmd FileType,BufWinEnter * setlocal wrap textwidth=0 wrapmargin=0 formatoptions-=t formatoptions-=c formatoptions-=a
+augroup END
+
 " Enable indentation of wrapped lines
 set breakindent
 
@@ -68,12 +80,6 @@ set shiftround
 " Enable folding
 set foldmethod=indent
 set foldlevel=99
-
-" Set maximum line length
-"set textwidth=90
-
-" Highlight the column after the maximum line length
-"set colorcolumn=+1
 
 " Enable folding with the space bar
 " nnoremap <space> za
