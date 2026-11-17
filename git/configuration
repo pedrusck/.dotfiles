@@ -23,9 +23,11 @@
 	dark = true      # use dark mode for terminals with a dark background
 	inspect-raw-lines = false
 	line-numbers = true
+	max-line-length = 0
 	navigate = true    # use n and N to move between diff sections
 	syntax-theme = gruvbox-dark
 	tabs = 4
+	wrap-max-lines = unlimited
 
 [diff]
 	algorithm = histogram
