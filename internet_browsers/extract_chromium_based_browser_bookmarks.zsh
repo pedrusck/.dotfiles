@@ -58,8 +58,7 @@ function parse_extract_options() {
 	[[ -z $PROFILE || -d $PROFILE ]] || { fail "profile not found: $PROFILE"; return 1; }
 }
 
-# Capture the on-disk file, retrying if it changes during the copy. This does not
-# flush pending browser writes or validate the bookmark format.
+# Capture the on-disk file, retrying if it changes during the copy. This does not flush pending browser writes or validate the bookmark format.
 function copy_snapshot() {
 	local source=$1 destination=$2
 	local -i attempt

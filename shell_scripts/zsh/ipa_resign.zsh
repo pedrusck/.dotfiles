@@ -4,8 +4,7 @@
 # Standalone Zsh port of XReSign.app/Contents/Resources/xresign.sh.
 
 emulate -R zsh
-# Match the /bin/sh expansion rules used by the application, including its
-# unquoted custom-entitlements copy and unmatched globs. Do not enable errexit:
+# Match the /bin/sh expansion rules used by the application, including its unquoted custom-entitlements copy and unmatched globs. Do not enable errexit:
 # the original script continues after command failures, including codesign.
 setopt SH_WORD_SPLIT GLOB_SUBST NONOMATCH
 
@@ -59,8 +58,7 @@ if [[ -z "$SOURCEIPA" || -z "$DEVELOPER" ]]; then
     exit 1
 fi
 
-# File-picker URLs in the application are absolute. Resolve relative CLI input
-# before the packaging step changes directory.
+# File-picker URLs in the application are absolute. Resolve relative CLI input before the packaging step changes directory.
 SOURCEIPA=${SOURCEIPA:a}
 
 print -r -- 'Start (re)sign the app...'
@@ -106,8 +104,7 @@ else
     /usr/libexec/PlistBuddy -c "Set:CFBundleShortVersionString $VERSIONNUMBER" "$APP_PATH/Info.plist"
 fi
 
-# Keep BSD find's depth-first filesystem order. Sorting or changing to a single
-# signing pass would change extension numbering and/or enclosing signatures.
+# Keep BSD find's depth-first filesystem order. Sorting or changing to a single signing pass would change extension numbering and/or enclosing signatures.
 print -r -- "Get list of components and sign with certificate: $DEVELOPER"
 find -d "$APP_PATH" \( -name '*.app' -o -name '*.appex' -o -name '*.framework' -o -name '*.dylib' \) > "$TMPDIR/components.txt"
 
@@ -168,6 +165,5 @@ mv "$filename" "$OUTDIR"
 
 print -r -- 'Clear temporary files'
 rm -rf "$APPDIR"
-# Like the application, retain tmp/components.txt, tmp/provisioning.plist
-# (when generated) and tmp/entitlements.plist.
+# Like the application, retain tmp/components.txt, tmp/provisioning.plist (when generated) and tmp/entitlements.plist.
 print -r -- 'IPA Resign FINISHED'

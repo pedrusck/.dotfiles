@@ -1,19 +1,12 @@
 # Zellij Configuration
 
-Zellij is a **session-persistence layer** (detach / reattach so your processes
-survive closing the Ghostty window) with a single, conflict-free **modal gateway**
-for managing co-persisting panes the Vim way.
+Zellij is a **session-persistence layer** (detach / reattach so your processes survive closing the Ghostty window) with a single, conflict-free **modal gateway** for managing co-persisting panes the Vim way.
 
 ## The one gateway: `Ctrl+g`
 
-`Ctrl+g` is the **only** key bound in Locked mode (the always-active base mode).
-It is free across macOS, EurKEY, the shell and Neovim, so it is the single
-intentionally-consumed key. Every other `Ctrl+key` chord passes straight through
-to Neovim / the shell / TUI apps.
+`Ctrl+g` is the **only** key bound in Locked mode (the always-active base mode). It is free across macOS, EurKEY, the shell and Neovim, so it is the single intentionally-consumed key. Every other `Ctrl+key` chord passes straight through to Neovim / the shell / TUI apps.
 
-Pressing `Ctrl+g` enters **Zellij mode**. Every action there is **one-shot**: it
-performs the action and immediately returns to Locked. Panes created this way are
-real Zellij panes, so they **co-persist** in the session.
+Pressing `Ctrl+g` enters **Zellij mode**. Every action there is **one-shot**: it performs the action and immediately returns to Locked. Panes created this way are real Zellij panes, so they **co-persist** in the session.
 
 | Key                   | Action                                    | Vim parallel     |
 | --------------------- | ----------------------------------------- | ---------------- |
@@ -32,20 +25,15 @@ real Zellij panes, so they **co-persist** in the session.
 | `w`                   | Session-manager (switch / create / kill)  | —                |
 | `Esc` / `Ctrl+g`      | Exit back to Locked                       | —                |
 
-Tabs are shown in the slim compact-bar at the bottom, so you can see which tab is
-active. Tab actions are one-shot too: repeat the gateway to switch several tabs,
-e.g. `Ctrl+g ]`, `Ctrl+g ]`.
+Tabs are shown in the slim compact-bar at the bottom, so you can see which tab is active. Tab actions are one-shot too: repeat the gateway to switch several tabs, e.g. `Ctrl+g ]`, `Ctrl+g ]`.
 
-Because every key is one-shot, to make several focus hops or resize steps you
-repeat the gateway, e.g. `Ctrl+g l`, `Ctrl+g l`, or `Ctrl+g +`, `Ctrl+g +`.
+Because every key is one-shot, to make several focus hops or resize steps you repeat the gateway, e.g. `Ctrl+g l`, `Ctrl+g l`, or `Ctrl+g +`, `Ctrl+g +`.
 
 ## Visual indicators
 
 There are two cues:
 
-1. **Session name** — shown in a **slim one-row `compact-bar`** at the bottom. In
-   Zellij the session name is rendered by a bar plugin, not by the pane frame, so
-   this single row is the minimal chrome needed to keep the session name visible.
+1. **Session name** — shown in a **slim one-row `compact-bar`** at the bottom. In Zellij the session name is rendered by a bar plugin, not by the pane frame, so this single row is the minimal chrome needed to keep the session name visible.
 2. **Pane frame color** — a **rounded frame** whose color marks focus and mode:
 
 | Color                                              | Meaning                               |
@@ -54,13 +42,9 @@ There are two cues:
 | **gray** `#928374` (gruvbox light gray)            | other (unfocused) panes               |
 | **orange** `#d65d0e` (gruvbox orange)              | shown while **Zellij mode is active** |
 
-So when you press `Ctrl+g` the border turns orange (you're in the mode); after a
-one-shot action it returns to green. With multiple panes, the green border marks
-which pane has focus.
+So when you press `Ctrl+g` the border turns orange (you're in the mode); after a one-shot action it returns to green. With multiple panes, the green border marks which pane has focus.
 
-This is configured in `config.kdl` (the `ui` block, the `themes` override setting
-the three `frame_*` components) and `layouts/default.kdl` (one pane plus the
-compact-bar).
+This is configured in `config.kdl` (the `ui` block, the `themes` override setting the three `frame_*` components) and `layouts/default.kdl` (one pane plus the compact-bar).
 
 ## Architecture (who owns what)
 
@@ -72,14 +56,11 @@ compact-bar).
 | Editor (splits, buffers, files)               | Neovim     | `<leader>` + `Ctrl`                                  |
 | European characters                           | EurKEY     | `Opt+key`                                            |
 
-Note there are two ways to split: **Ghostty splits** are independent shells that
-do *not* co-persist; **Zellij panes** (`Ctrl+g s` / `v` / `n`) co-persist in the
-session. Use Zellij panes when you want them to survive detach/reattach.
+Note there are two ways to split: **Ghostty splits** are independent shells that do *not* co-persist; **Zellij panes** (`Ctrl+g s` / `v` / `n`) co-persist in the session. Use Zellij panes when you want them to survive detach/reattach.
 
 ## Session control (CLI)
 
-Use the Zellij CLI directly; `zsh/zshrc` configures Herdr aliases for session
-control.
+Use the Zellij CLI directly; `zsh/zshrc` configures Herdr aliases for session control.
 
 | Command                      | What it does                                |
 | ---------------------------- | ------------------------------------------- |
@@ -101,21 +82,11 @@ zellij attach -c main # reattach later; every pane is exactly as you left it
 Ctrl+g w             # any time: fuzzy switch / create / kill sessions
 ```
 
-Sessions are started explicitly with `zellij attach -c` (no auto-attach on shell
-start).
+Sessions are started explicitly with `zellij attach -c` (no auto-attach on shell start).
 
-The optional `zellij_attach_interactive` helper is the out-of-session counterpart
-to the in-session `Ctrl+g w` gateway. Load it with
-`autoload -Uz zellij_attach_interactive`, then run it to fuzzy-pick (skim, falling
-back to a builtin `select` menu) an existing session. It only *selects* — create
-sessions with `zellij attach -c <name>`. Detach before using it; it refuses to run
-inside a session and prints a hint when no sessions exist yet.
+The optional `zellij_attach_interactive` helper is the out-of-session counterpart to the in-session `Ctrl+g w` gateway. Load it with `autoload -Uz zellij_attach_interactive`, then run it to fuzzy-pick (skim, falling back to a builtin `select` menu) an existing session. It only *selects* — create sessions with `zellij attach -c <name>`. Detach before using it; it refuses to run inside a session and prints a hint when no sessions exist yet.
 
 ## Configuration files
 
-- `zellij/config.kdl` → `~/.config/zellij/config.kdl`. Holds the `Ctrl+g` gateway
-  and one-shot `pane` mode, the `ui` frame settings, `default_layout "default"`,
-  and the `gruvbox-dark` theme override with the three frame colors. `default_mode`
-  is `locked`.
-- `zellij/layouts/default.kdl` → `~/.config/zellij/layouts/default.kdl` (symlinked
-  by the setup script). One pane plus a slim 1-row compact-bar (session name).
+- `zellij/config.kdl` → `~/.config/zellij/config.kdl`. Holds the `Ctrl+g` gateway and one-shot `pane` mode, the `ui` frame settings, `default_layout "default"`, and the `gruvbox-dark` theme override with the three frame colors. `default_mode` is `locked`.
+- `zellij/layouts/default.kdl` → `~/.config/zellij/layouts/default.kdl` (symlinked by the setup script). One pane plus a slim 1-row compact-bar (session name).

@@ -5,8 +5,7 @@ setopt errexit nounset pipefail
 # Usage: ./update_pi_models.sh [PROVIDER_DISPLAY_NAME] [API_ENDPOINT] [CONFIGURATION_FILE]
 #
 # Arguments:
-#	PROVIDER_DISPLAY_NAME	Human-readable provider name (default: defined on a password store entry)
-#							Will be converted to snake_case for the provider key
+#	PROVIDER_DISPLAY_NAME	Human-readable provider name (default: defined on a password store entry) Will be converted to snake_case for the provider key
 #	API_ENDPOINT			OpenAI-compatible API endpoint (default: defined on a password store entry)
 #	CONFIGURATION_FILE		Path to pi's models configuration file (default: `models.secret.json`)
 #
@@ -14,13 +13,7 @@ setopt errexit nounset pipefail
 #	API_KEY					API key for authentication (default: defined on a password store entry)
 #
 # Behaviour:
-#	The script prefers the LiteLLM-style `<endpoint>/model/info` route, which returns rich
-#	per-model metadata (costs, token limits, modalities, capability flags). It maps that data
-#	onto pi's model schema (contextWindow, maxTokens, reasoning, input, cost). Only chat models
-#	are kept. Pi's schema is narrower than some others: there is no per-model tool-calling flag
-#	(tools are assumed) and `input` only supports "text"/"image" (no pdf/audio). If `/model/info`
-#	is unavailable it falls back to the plain `<endpoint>/models` route (model names only), so it
-#	still works against any OpenAI-compatible endpoint.
+#	The script prefers the LiteLLM-style `<endpoint>/model/info` route, which returns rich per-model metadata (costs, token limits, modalities, capability flags). It maps that data onto pi's model schema (contextWindow, maxTokens, reasoning, input, cost). Only chat models are kept. Pi's schema is narrower than some others: there is no per-model tool-calling flag (tools are assumed) and `input` only supports "text"/"image" (no pdf/audio). If `/model/info` is unavailable it falls back to the plain `<endpoint>/models` route (model names only), so it still works against any OpenAI-compatible endpoint.
 #
 # Examples:
 #	./update_pi_models.sh
@@ -59,10 +52,7 @@ fi
 # Fetch a single route into a temp file, echoing the HTTP status code.
 fetch_route() {
 	local url="$1" out="$2"
-	curl -s -o "$out" -w '%{http_code}' \
-		-H "Authorization: Bearer $API_KEY" \
-		-H "Content-Type: application/json" \
-		"$url"
+	curl -s -o "$out" -w '%{http_code}' -H "Authorization: Bearer $API_KEY" -H "Content-Type: application/json" "$url"
 }
 
 RESPONSE_TEMPORARY_FILE=$(mktemp /tmp/pi_models.XXXXXX)
@@ -73,8 +63,7 @@ FETCH_MODE="basic"
 echo "Fetching rich model metadata from: $API_ENDPOINT/model/info" >&2
 http_code=$(fetch_route "$API_ENDPOINT/model/info" "$RESPONSE_TEMPORARY_FILE")
 
-if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ] \
-	&& jq -e '.data[0].model_info' "$RESPONSE_TEMPORARY_FILE" > /dev/null 2>&1; then
+if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ] && jq -e '.data[0].model_info' "$RESPONSE_TEMPORARY_FILE" > /dev/null 2>&1; then
 	FETCH_MODE="rich"
 	echo "Using rich metadata (/model/info)" >&2
 else
@@ -160,8 +149,7 @@ elif [ "$FETCH_MODE" = "rich" ]; then
 	")
 	model_count=$(echo "$new_models" | jq 'length')
 else
-	# Basic path: OpenAI-compatible /models — emit only fetched fields
-	# (id + derived name); pi fills in schema defaults at load time.
+	# Basic path: OpenAI-compatible /models — emit only fetched fields (id + derived name); pi fills in schema defaults at load time.
 	new_models=$(echo "$models_response" | jq "
 		$JQ_FORMAT_NAME
 		.data
@@ -174,17 +162,11 @@ else
 fi
 
 # ── Write configuration ────────────────────────────────────────────
-jq --tab \
-	--argjson new_models "$new_models" \
-	--arg provider "$PROVIDER_KEY" \
-	--arg display_name "$PROVIDER_DISPLAY_NAME" \
-	--arg base_url "$API_ENDPOINT" \
-	'.providers[$provider].name = $display_name |
+jq --tab --argjson new_models "$new_models" --arg provider "$PROVIDER_KEY" --arg display_name "$PROVIDER_DISPLAY_NAME" --arg base_url "$API_ENDPOINT" '.providers[$provider].name = $display_name |
 	 .providers[$provider].baseUrl = $base_url |
 	 .providers[$provider].api = "openai-completions" |
 	 .providers[$provider].apiKey = "!pass large_llanguage_model/pi_key | head -n 1" |
-	 .providers[$provider].models = $new_models' \
-	"$CONFIGURATION_FILE" > "$CONFIGURATION_FILE.tmp"
+	 .providers[$provider].models = $new_models' "$CONFIGURATION_FILE" > "$CONFIGURATION_FILE.tmp"
 
 mv "$CONFIGURATION_FILE.tmp" "$CONFIGURATION_FILE"
 

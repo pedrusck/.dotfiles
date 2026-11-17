@@ -1,6 +1,5 @@
 -- mini.nvim is shared with ui.lua (statusline); both add it with the same spec.
--- mini.icons is set up here, early, so telescope/oil/statusline render icons, and
--- mocks nvim-web-devicons. Icons are optional for those consumers.
+-- mini.icons is set up here, early, so telescope/oil/statusline render icons, and mocks nvim-web-devicons. Icons are optional for those consumers.
 local specs = require("plugins.specs")
 
 vim.pack.add { specs.mini }

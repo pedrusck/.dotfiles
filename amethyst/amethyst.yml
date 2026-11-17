@@ -6,21 +6,15 @@
 #   mod2 = Option + Command + Shift (xmonad's "mod + shift")
 #
 # Workspace (space) switching:
-#   Amethyst has NO "switch/focus space" command — it can only throw windows to
-#   spaces. To mirror xmonad's mod-[1..9] (switch) / mod-shift-[1..9] (throw)
-#   pair, space SWITCHING is handled at the macOS level and bound to mod1:
+#   Amethyst has NO "switch/focus space" command — it can only throw windows to spaces. To mirror xmonad's mod-[1..9] (switch) / mod-shift-[1..9] (throw) pair, space SWITCHING is handled at the macOS level and bound to mod1:
 #     mod1 + [1..9]  = switch to space N   (macOS "Switch to Desktop N", Opt+Cmd)
 #     mod2 + [1..9]  = throw window to N   (Amethyst throw-space-N, below)
 #   See keybindings.md for the required macOS Mission Control shortcut remap.
 #
 # Why Option+Command?
-#   - Ergonomic on MacBook: Opt and Cmd are adjacent under the thumb, leaving
-#     all fingers free for any key. Ctrl is in the far-left corner and makes
-#     left-side keys (1-5, W, E, R, S) hard to reach.
-#   - EurKEY compatible: Cmd suppresses the Option keyboard layer — macOS
-#     processes Opt+Cmd+key as a hotkey chord, not as European character input.
-#   - Matches xmonad's two-modifier pattern: mod1 for actions, mod2 (mod1+Shift)
-#     for the "move/shift" variant.
+#   - Ergonomic on MacBook: Opt and Cmd are adjacent under the thumb, leaving all fingers free for any key. Ctrl is in the far-left corner and makes left-side keys (1-5, W, E, R, S) hard to reach.
+#   - EurKEY compatible: Cmd suppresses the Option keyboard layer — macOS processes Opt+Cmd+key as a hotkey chord, not as European character input.
+#   - Matches xmonad's two-modifier pattern: mod1 for actions, mod2 (mod1+Shift) for the "move/shift" variant.
 #
 # Required macOS settings (see macOS_setup_steps.md):
 #   Five system shortcuts must be disabled to avoid conflicts:
@@ -29,17 +23,12 @@
 #   3. Opt+Cmd+W  (Close All Windows) — conflicts with focus-screen-1
 #   4. Opt+Cmd+D  (Toggle Dock)       — conflicts with select-fullscreen-layout
 #   5. Opt+Cmd+Space (Show Finder search window) — conflicts with cycle-layout
-#   Additionally, remap Mission Control's "Switch to Desktop 1..9" from the
-#   default Ctrl+1..9 to Opt+Cmd+1..9 (= mod1) so space switching lands on mod1.
-#   Opt+Cmd+1..9 has no macOS system default and is left unbound by Amethyst,
-#   so those chords pass straight through to Mission Control.
+#   Additionally, remap Mission Control's "Switch to Desktop 1..9" from the default Ctrl+1..9 to Opt+Cmd+1..9 (= mod1) so space switching lands on mod1.
+#   Opt+Cmd+1..9 has no macOS system default and is left unbound by Amethyst, so those chords pass straight through to Mission Control.
 #
-# Note due to issue 1419 (https://github.com/ianyh/Amethyst/issues/1419) some
-# config values may conflict and not work if they are the same as the default
-# values for amethyst. You can see these values on github at
+# Note due to issue 1419 (https://github.com/ianyh/Amethyst/issues/1419) some config values may conflict and not work if they are the same as the default values for amethyst. You can see these values on github at
 # https://github.com/ianyh/Amethyst/blob/development/Amethyst/default.amethyst
-# If you're experiencing conflicts and the settings are the same as the default,
-# comment out the commands in this file.
+# If you're experiencing conflicts and the settings are the same as the default, comment out the commands in this file.
 #
 # Move this file to: `~/.config/amethyst/amethyst.yml`
 # In order to register changes restart Amethyst.
@@ -298,8 +287,7 @@ toggle-focus-follows-mouse:
   key: x
 
 # Automatically quit and reopen Amethyst.
-# Note: NOT mapped to mod1+q to avoid accidental WM restarts. Relaunch is rare
-# and benefits from a deliberate, hard-to-hit binding.
+# Note: NOT mapped to mod1+q to avoid accidental WM restarts. Relaunch is rare and benefits from a deliberate, hard-to-hit binding.
 relaunch-amethyst:
   mod: mod2
   key: z
@@ -320,8 +308,7 @@ smart-window-margins: false
 # The size of the margins between windows (in px, default 0).
 window-margin-size: 9
 
-# The max number of windows that may be visible on a screen at one time before
-# additional windows are minimized. A value of 0 disables the feature.
+# The max number of windows that may be visible on a screen at one time before additional windows are minimized. A value of 0 disables the feature.
 window-max-count: 0
 
 # The smallest height that a window can be sized to regardless of its layout frame (in px, default 0).

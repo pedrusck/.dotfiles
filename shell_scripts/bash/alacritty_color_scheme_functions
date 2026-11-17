@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# Script to change alacritty's color scheme
-# based on: https://arslan.io/2021/02/15/automatic-dark-mode-for-terminal-applications/
+# Script to change alacritty's color scheme based on: https://arslan.io/2021/02/15/automatic-dark-mode-for-terminal-applications/
 
 function check_color_schemes_file() {
 	if [[ ! -f "$ALACRITTY_COLOR_SCHEMES_FILE_PATH" ]]; then

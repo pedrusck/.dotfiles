@@ -3,9 +3,7 @@
 # Interactive Zellij session selector.
 #
 # Lists the existing Zellij sessions and lets you fuzzy-pick one to attach to.
-# A synthetic "+ New session…" entry is always appended at the bottom so a new
-# session can be created from the selector itself (prompts for a name; an empty
-# name lets Zellij auto-generate one).
+# A synthetic "+ New session…" entry is always appended at the bottom so a new session can be created from the selector itself (prompts for a name; an empty name lets Zellij auto-generate one).
 # It is meant to be autoloaded and invoked via the `zai` alias.
 #
 # Finder preference (robust fallback):
@@ -33,17 +31,13 @@ local -a sessions
 # (@f) on an empty substitution yields an empty array, so no stripping needed.
 sessions=("${(@f)$(zellij list-sessions -s 2>/dev/null)}")
 
-# Sentinel for the synthetic "create" entry. Matched by exact equality (never
-# by name-globbing) so it cannot collide with a real session that happens to
-# share this label.
+# Sentinel for the synthetic "create" entry. Matched by exact equality (never by name-globbing) so it cannot collide with a real session that happens to share this label.
 local -r new_entry='+ New session …'
 
 local selection=""
 local create=0
 
-# When no sessions exist, skip the selection menu regardless of which finder
-# is available — there is nothing to attach to. Inform the user and go
-# straight to the create prompt.
+# When no sessions exist, skip the selection menu regardless of which finder is available — there is nothing to attach to. Inform the user and go straight to the create prompt.
 if (( ${#sessions} == 0 )); then
 	print "zai: no sessions found — skipping to new session"
 	create=1
@@ -51,10 +45,7 @@ elif (( $+commands[sk] )); then
 	# skim: colored, decorated listing for context; plain name on selection.
 	# Real sessions first, then the create entry pinned at the bottom.
 	selection="$(
-		{ print -r -- "$new_entry"; zellij list-sessions 2>/dev/null; } \
-			| sk --ansi --no-multi \
-				--prompt '▌ zellij ' \
-				--header 'enter: attach/create · esc: cancel'
+		{ print -r -- "$new_entry"; zellij list-sessions 2>/dev/null; } | sk --ansi --no-multi --prompt '▌ zellij ' --header 'enter: attach/create · esc: cancel'
 	)"
 	if [[ "$selection" == "$new_entry" ]]; then
 		create=1
@@ -65,11 +56,7 @@ elif (( $+commands[sk] )); then
 	fi
 else
 	# Fallback: zsh builtin menu, no fuzzy finder required.
-	# Draw the menu on the alternate screen so it leaves no trace in the
-	# normal buffer: on detach Zellij restores the normal screen with the
-	# original scrollback intact, instead of revealing this menu's leftover
-	# lines. Use terminfo names (smcup/rmcup) rather than raw escapes for
-	# portability across terminal types.
+	# Draw the menu on the alternate screen so it leaves no trace in the normal buffer: on detach Zellij restores the normal screen with the original scrollback intact, instead of revealing this menu's leftover lines. Use terminfo names (smcup/rmcup) rather than raw escapes for portability across terminal types.
 	# `always { }` guarantees the alternate screen is exited even on Ctrl-C.
 	local choice
 	{
@@ -89,16 +76,10 @@ else
 	fi
 fi
 
-# Create flow: prompt for a name. An empty name hands off to bare `zellij`,
-# which auto-generates a random session name and attaches to it.
-# Ctrl-C or Ctrl-D during the prompt causes `read` to return non-zero;
-# treat that as a cancellation and exit without creating anything.
+# Create flow: prompt for a name. An empty name hands off to bare `zellij`, which auto-generates a random session name and attaches to it.
+# Ctrl-C or Ctrl-D during the prompt causes `read` to return non-zero; treat that as a cancellation and exit without creating anything.
 if (( create )); then
-	# Draw the menu on the alternate screen so it leaves no trace in the
-	# normal buffer: on detach Zellij restores the normal screen with the
-	# original scrollback intact, instead of revealing this menu's leftover
-	# lines. Use terminfo names (smcup/rmcup) rather than raw escapes for
-	# portability across terminal types.
+	# Draw the menu on the alternate screen so it leaves no trace in the normal buffer: on detach Zellij restores the normal screen with the original scrollback intact, instead of revealing this menu's leftover lines. Use terminfo names (smcup/rmcup) rather than raw escapes for portability across terminal types.
 	local name
 	{
 		echoti smcup
@@ -123,6 +104,5 @@ if [[ -z "$selection" ]]; then
 	return 0
 fi
 
-# Attach to the chosen session. `-c` also resurrects EXITED sessions safely;
-# the session already exists, so this never creates an unexpected new one.
+# Attach to the chosen session. `-c` also resurrects EXITED sessions safely; the session already exists, so this never creates an unexpected new one.
 zellij attach -c -- "$selection"

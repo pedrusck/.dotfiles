@@ -12,8 +12,7 @@ customCommands:
           Rebase from commit {{ .SelectedCommit.Hash }} through HEAD, setting each replayed commit's committer date to its own author date?
 
           This can include merged side branches and will rewrite commit history. Merge resolutions or manual changes made in merge commits may need to be reapplied. Other branch references will not be automatically updated.
-    # The range starts at the selected commit's first parent, including merged
-    # side branches. --root processes all history reachable from HEAD.
+    # The range starts at the selected commit's first parent, including merged side branches. --root processes all history reachable from HEAD.
     # Recreating merges preserves topology, not necessarily manual merge changes.
     command: |-
       sh -s -- {{ .SelectedCommit.Hash | quote }} <<'SH'
@@ -78,10 +77,7 @@ customCommands:
         parent=$(git rev-parse --verify --end-of-options "$2^{commit}")
         set -- "$parent"
       fi
-      git rebase --rebase-merges=no-rebase-cousins \
-        --keep-empty --empty=keep --reapply-cherry-picks \
-        --no-autosquash --no-autostash --no-update-refs --no-fork-point \
-        --committer-date-is-author-date "$@"
+      git rebase --rebase-merges=no-rebase-cousins --keep-empty --empty=keep --reapply-cherry-picks --no-autosquash --no-autostash --no-update-refs --no-fork-point --committer-date-is-author-date "$@"
       SH
     loadingText: 'Updating committer dates'
     output: log
@@ -107,9 +103,7 @@ customCommands:
         loadingText: 'Opening Xcode on current project'
         output: popup
         outputTitle: 'Open in Xcode'
-        # Keep this selector in sync with DerivedData cleanup: Lazygit's config
-        # migration rejects YAML aliases. runCommand and menu commands use argv
-        # parsing, so explicitly invoke sh and quote the entire script.
+        # Keep this selector in sync with DerivedData cleanup: Lazygit's config migration rejects YAML aliases. runCommand and menu commands use argv parsing, so explicitly invoke sh and quote the entire script.
         prompts:
           - type: 'menuFromCommand'
             title: 'Select a project or workspace:'
@@ -141,8 +135,7 @@ customCommands:
             filter: '^\./(?P<project>.+)$'
             valueFormat: './{{ .project }}'
             labelFormat: '{{ .project | green }}'
-        # Keep discovery identical in the selector and both final commands. Recheck
-        # the selection here in case projects changed while the menu was open.
+        # Keep discovery identical in the selector and both final commands. Recheck the selection here in case projects changed while the menu was open.
         command: |-
           sh -s -- {{ .Form.XcodeProject | quote }} <<'SH'
           set -eu
@@ -276,9 +269,7 @@ customCommands:
         title: 'Author and committer timestamp (ISO 8601; empty means now):'
         key: 'CommitTimestamp'
         initialValue: '{{ runCommand (printf "git show --no-patch --no-show-signature --format=%%aI %s --" (.SelectedCommit.Hash | quote)) }}'
-    # Historical timestamp changes replay descendants, changing their hashes and
-    # committer timestamps. The todo's exec is self-contained so continue/abort
-    # works even after the original shell exits. No helper scripts are written to disk.
+    # Historical timestamp changes replay descendants, changing their hashes and committer timestamps. The todo's exec is self-contained so continue/abort works even after the original shell exits. No helper scripts are written to disk.
     command: |-
       sh -s -- {{ .SelectedCommit.Hash | quote }} {{ .Form.CommitTimestamp | quote }} <<'SH'
       set -eu
@@ -303,8 +294,7 @@ customCommands:
       raw_date=${ident##*> }
       timestamp="@$raw_date"
       # Both dates must match, including their stored UTC offsets, to skip the edit.
-      existing_dates=$(git show --no-patch --no-show-signature \
-        --format='%ad|%cd' --date=raw "$target" --)
+      existing_dates=$(git show --no-patch --no-show-signature --format='%ad|%cd' --date=raw "$target" --)
       if [ "$existing_dates" = "$raw_date|$raw_date" ]; then
         echo 'Author and committer timestamps already match; nothing to change.'
         exit 0
@@ -365,19 +355,14 @@ customCommands:
       }
       export GIT_SEQUENCE_EDITOR="sh -c $(shell_quote "$editor") sh"
       # Only a successful lookup with no parents identifies a root commit.
-      parents=$(git show --no-patch --no-show-signature \
-        --format=%P "$target" --)
+      parents=$(git show --no-patch --no-show-signature --format=%P "$target" --)
       if [ -z "$parents" ]; then
         set -- --root
       else
-        parent=$(git rev-parse --verify --end-of-options \
-          "${parents%% *}^{commit}")
+        parent=$(git rev-parse --verify --end-of-options "${parents%% *}^{commit}")
         set -- "$parent"
       fi
-      git -c rebase.instructionFormat=%s -c rebase.abbreviateCommands=false rebase \
-        --interactive --rebase-merges --keep-empty --empty=keep \
-        --no-autosquash --no-autostash --no-update-refs --no-fork-point \
-        --reapply-cherry-picks --reschedule-failed-exec "$@"
+      git -c rebase.instructionFormat=%s -c rebase.abbreviateCommands=false rebase --interactive --rebase-merges --keep-empty --empty=keep --no-autosquash --no-autostash --no-update-refs --no-fork-point --reapply-cherry-picks --reschedule-failed-exec "$@"
       SH
     loadingText: 'Changing commit timestamp'
     output: log
@@ -388,8 +373,7 @@ git:
   diffContextSize: 5
   diffRenderers:
     # Delta reads the shared [delta] Git configuration automatically.
-    # --paging=never lets Lazygit manage paging; Delta's navigate option only
-    # applies outside Lazygit.
+    # --paging=never lets Lazygit manage paging; Delta's navigate option only applies outside Lazygit.
     # Cycle renderers with | (forward) and \ (backward).
     - command: 'delta --paging=never --hyperlinks --hyperlinks-file-link-format="lazygit-edit://{path}:{line}"'
     - type: rawGit

@@ -44,8 +44,7 @@ Dry-run performs preflight checks only; SQLite validation requires staging and
 therefore happens only during an actual restore.'
 }
 
-# Keep discovery and browser/lock checks aligned with the extractor. Unlike
-# extraction, restoration also supports a profile with no permissions database.
+# Keep discovery and browser/lock checks aligned with the extractor. Unlike extraction, restoration also supports a profile with no permissions database.
 function find_profile() {
 	local override=$1 base="" candidate selected=""
 	local -a roots profiles
@@ -133,8 +132,7 @@ function check_not_running() {
 			die "profile lock is in use: $profile/$lock_file. Close LibreWolf completely and try again."
 		else
 			result=$?
-			(( result == 1 )) && [[ -z "$lock_info" ]] \
-				|| die "could not inspect profile lock: $profile/$lock_file (lsof exited $result): $lock_info"
+			(( result == 1 )) && [[ -z "$lock_info" ]] || die "could not inspect profile lock: $profile/$lock_file (lsof exited $result): $lock_info"
 		fi
 	done
 }
@@ -153,8 +151,7 @@ function select_snapshot() {
 		done
 		[[ -n "$selected" ]] || die "no snapshots found in $SCRIPT_DIR"
 	fi
-	[[ -f "$selected" && -r "$selected" && -s "$selected" ]] \
-		|| die "snapshot is missing, unreadable, or empty: $selected"
+	[[ -f "$selected" && -r "$selected" && -s "$selected" ]] || die "snapshot is missing, unreadable, or empty: $selected"
 	print -r -- "${selected:A}"
 }
 
@@ -167,16 +164,14 @@ function check_files() {
 		[[ -f "$file" && -r "$file" ]] || die "expected a readable regular file: $file"
 	done
 	# A hot rollback journal could replay old content over the replacement.
-	[[ ! -e "$base-journal" && ! -L "$base-journal" ]] \
-		|| die "unexpected SQLite rollback journal: $base-journal"
+	[[ ! -e "$base-journal" && ! -L "$base-journal" ]] || die "unexpected SQLite rollback journal: $base-journal"
 }
 
 function check_no_overlap() {
 	local snapshot=$1 dest=$2 source_suffix target_suffix
 	for source_suffix in '' -wal -shm; do
 		for target_suffix in '' -wal -shm; do
-			[[ "$snapshot$source_suffix" != "$dest$target_suffix" && ! "$snapshot$source_suffix" -ef "$dest$target_suffix" ]] \
-				|| die "snapshot overlaps target permissions files: $snapshot$source_suffix"
+			[[ "$snapshot$source_suffix" != "$dest$target_suffix" && ! "$snapshot$source_suffix" -ef "$dest$target_suffix" ]] || die "snapshot overlaps target permissions files: $snapshot$source_suffix"
 		done
 	done
 }
@@ -223,17 +218,14 @@ function restore_permissions() (
 	done
 	chmod 600 "$stage/raw/permissions.sqlite"* || die 'could not prepare staged files'
 	# Fixed relative SQLite paths also support profile names containing quotes.
-	(cd -- "$stage/out" && sqlite3 ../raw/permissions.sqlite '.backup permissions.sqlite') \
-		|| die 'SQLite backup failed'
+	(cd -- "$stage/out" && sqlite3 ../raw/permissions.sqlite '.backup permissions.sqlite') || die 'SQLite backup failed'
 	integrity=$(sqlite3 "$stage/out/permissions.sqlite" 'PRAGMA journal_mode=DELETE;') || die 'could not finalize staged database'
 	[[ "$integrity" == delete ]] || die "could not disable WAL: $integrity"
 	integrity=$(sqlite3 -readonly "$stage/out/permissions.sqlite" 'PRAGMA integrity_check;') || die 'SQLite integrity check failed'
 	[[ "$integrity" == ok ]] || die "snapshot integrity check failed: $integrity"
-	schema=$(sqlite3 -readonly "$stage/out/permissions.sqlite" "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='moz_perms';") \
-		|| die 'could not inspect permissions schema'
+	schema=$(sqlite3 -readonly "$stage/out/permissions.sqlite" "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='moz_perms';") || die 'could not inspect permissions schema'
 	[[ "$schema" == 1 ]] || die 'snapshot does not contain the moz_perms table'
-	sqlite3 -readonly "$stage/out/permissions.sqlite" 'SELECT origin, type, permission FROM moz_perms LIMIT 0;' \
-		|| die 'snapshot is missing required permissions columns'
+	sqlite3 -readonly "$stage/out/permissions.sqlite" 'SELECT origin, type, permission FROM moz_perms LIMIT 0;' || die 'snapshot is missing required permissions columns'
 	chmod 600 "$stage/out/permissions.sqlite" || die 'could not set database permissions'
 
 	# Validate the snapshot fully before replacing disposable profile state.
@@ -288,8 +280,7 @@ function main() {
 	check_files "$profile/permissions.sqlite"
 	check_no_overlap "$snapshot" "$profile/permissions.sqlite"
 	check_not_running "$profile"
-	[[ ! -e "$profile/.permissions-restore.lock" && ! -L "$profile/.permissions-restore.lock" ]] \
-		|| die "restore lock already exists: $profile/.permissions-restore.lock"
+	[[ ! -e "$profile/.permissions-restore.lock" && ! -L "$profile/.permissions-restore.lock" ]] || die "restore lock already exists: $profile/.permissions-restore.lock"
 	if (( dry_run )); then
 		print -r -- "Snapshot: $snapshot"
 		print -r -- "Destination: $profile/permissions.sqlite"

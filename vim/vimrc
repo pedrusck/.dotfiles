@@ -88,8 +88,7 @@ nnoremap <C-K> <C-W><C-K>
 nnoremap <C-L> <C-W><C-L>
 nnoremap <C-H> <C-W><C-H>
 
-" Make 'Y' to yank till the end of the line (behaving like the other capital
-" letters)
+" Make 'Y' to yank till the end of the line (behaving like the other capital letters)
 nnoremap Y y$
 
 " Fix syntax highlighting

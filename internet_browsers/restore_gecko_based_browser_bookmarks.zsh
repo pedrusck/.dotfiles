@@ -22,8 +22,7 @@ function fail() {
 	return 1
 }
 
-# Return an absolute path in REPLY. Directory selection accepts only raw snapshot
-# names, with an optional six-digit collision counter, never e.g. *_sorted.*.
+# Return an absolute path in REPLY. Directory selection accepts only raw snapshot names, with an optional six-digit collision counter, never e.g. *_sorted.*.
 function select_snapshot() {
 	local source=$1 family=$2 extension=$3 candidate pattern
 	local -x LC_ALL=C

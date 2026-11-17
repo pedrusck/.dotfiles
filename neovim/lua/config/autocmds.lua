@@ -13,18 +13,14 @@ autocmd(
 	}
 )
 
--- Markdown is delegated to rumdl so the editor and `rumdl fmt` cannot disagree,
--- and because two trailing spaces are a hard line break there. Everywhere else
--- only the trailing whitespace span itself is deleted, so that the cursor, the
--- jumplist, the search register, marks and extmarks stay valid.
+-- Markdown is delegated to rumdl so the editor and `rumdl fmt` cannot disagree, and because two trailing spaces are a hard line break there. Everywhere else only the trailing whitespace span itself is deleted, so that the cursor, the jumplist, the search register, marks and extmarks stay valid.
 local RUMDL_TIMEOUT_MS = 2000
 
 --- Reformat a markdown buffer in place with `rumdl fmt`.
 local function format_markdown(buf)
 	local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 
-	-- Piped rather than formatted by path: the buffer is not on disk yet, may be
-	-- unnamed, and may be written somewhere other than its own name.
+	-- Piped rather than formatted by path: the buffer is not on disk yet, may be unnamed, and may be written somewhere other than its own name.
 	local ok, result = pcall(
 		function()
 			return vim.system({ "rumdl", "fmt", "-" }, { stdin = lines, text = true }):wait(RUMDL_TIMEOUT_MS)
@@ -37,8 +33,7 @@ local function format_markdown(buf)
 		return
 	end
 
-	-- Only the final newline is dropped: `trimempty` would also discard a leading
-	-- blank line, which rumdl keeps
+	-- Only the final newline is dropped: `trimempty` would also discard a leading blank line, which rumdl keeps
 	local formatted = vim.split((result.stdout:gsub("\n$", "")), "\n")
 
 	-- Compared first so that an already formatted buffer adds no undo state
@@ -134,11 +129,7 @@ autocmd(
 -- Regenerate spell files on startup
 local spell_dir = vim.fn.stdpath("config") .. "/spell"
 for _, f in ipairs(vim.fn.glob(spell_dir .. "/*.add", false, true)) do
-	if
-		vim.fn.filereadable(f) == 1
-			and (vim.fn.filereadable(f .. ".spl") == 0
-			or vim.fn.getftime(f) > vim.fn.getftime(f .. ".spl"))
-	then
+	if vim.fn.filereadable(f) == 1 and (vim.fn.filereadable(f .. ".spl") == 0 or vim.fn.getftime(f) > vim.fn.getftime(f .. ".spl")) then
 		vim.cmd("mkspell! " .. vim.fn.fnameescape(f))
 	end
 end

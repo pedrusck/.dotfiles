@@ -61,8 +61,7 @@ pack.later(
 	end
 )
 
--- Highlight TODO/NOTE/WARN comments. Deferred: on setup it highlights all
--- already-open windows, so buffers opened at startup are covered too.
+-- Highlight TODO/NOTE/WARN comments. Deferred: on setup it highlights all already-open windows, so buffers opened at startup are covered too.
 pack.later(
 	"todo-comments setup",
 	function()

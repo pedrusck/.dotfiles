@@ -31,11 +31,9 @@ end
 ---@param what string
 ---@param f fun()
 function M.later(what, f)
-	vim.schedule(
-		function()
-			M.safely(what, f)
-		end
-	)
+	vim.schedule(function()
+		M.safely(what, f)
+	end)
 end
 
 --- Run plugin hooks on PackChanged events. `hooks` maps plugin names to callbacks

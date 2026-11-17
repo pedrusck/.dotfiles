@@ -21,8 +21,7 @@
 > in English go to System Settings > Keyboard > [Key repeat rate > Fast, Delay until repeat > Short]
 
 - [ ] Activate Firewall (required)
-> Required: the OpenCode server listens on the network and advertises itself via
-> mDNS (`opencode.local`), so the firewall is the primary access control for it.
+> Required: the OpenCode server listens on the network and advertises itself via mDNS (`opencode.local`), so the firewall is the primary access control for it.
 >
 > in German go to Systemeinstellungen > Netzwerk > Firewall > Firewall aktivieren
 >
@@ -122,16 +121,12 @@
 > in English go to System Settings > Keyboard > Keyboard Shortcuts > Dock > uncheck "Turn Dock Hiding On/Off"
 
 - [ ] Disable Spotlight shortcut (Opt+Cmd+Space) to free Amethyst cycle-layout
-> Disable "Show Finder search window" so Amethyst can use Opt+Cmd+Space.
-> in German go to Systemeinstellungen > Tastatur > Tastaturkurzbefehle > Spotlight > "Finder-Suchfenster einblenden" deaktivieren
+> Disable "Show Finder search window" so Amethyst can use Opt+Cmd+Space. in German go to Systemeinstellungen > Tastatur > Tastaturkurzbefehle > Spotlight > "Finder-Suchfenster einblenden" deaktivieren
 >
 > in English go to System Settings > Keyboard > Keyboard Shortcuts > Spotlight > uncheck "Show Finder search window"
 
 - [ ] Disable input-source switching shortcuts (Ctrl+Space / Ctrl+Opt+Space) to free Neovim completion
-> With multiple input sources enabled (EurKEY + English + German), macOS binds
-> Ctrl+Space and Ctrl+Opt+Space to input-source switching, which shadows Neovim's
-> `<C-space>` completion trigger (blink.cmp). Disable them and cycle input sources
-> via the Globe/🌐 key or the menu-bar input menu instead.
+> With multiple input sources enabled (EurKEY + English + German), macOS binds Ctrl+Space and Ctrl+Opt+Space to input-source switching, which shadows Neovim's `<C-space>` completion trigger (blink.cmp). Disable them and cycle input sources via the Globe/🌐 key or the menu-bar input menu instead.
 >
 > in German go to Systemeinstellungen > Tastatur > Tastaturkurzbefehle > Eingabequellen > "Vorherige Eingabequelle auswählen" und "Nächste Quelle im Eingabemenü auswählen" deaktivieren
 >
@@ -152,8 +147,7 @@
 > in English go to System Settings > Keyboard > Text Input > Input Sources > Edit... > disable "Correct spelling automatically" and "Capitalize words automatically"
 
 - [ ] Disable charging sound
-> on the terminal:
-> sudo nvram BootAudio=%00
+> on the terminal: sudo nvram BootAudio=%00
 
 - [ ] Disable click wallpaper to show desktop
 > in German go to Systemeinstellungen > Schreibtisch & Dock > Schreibtisch & Stage Manager > "Auf Hintergrund klicken, um den Schreibtisch anzuzeigen" > "Nur im Stage Manager" auswählen

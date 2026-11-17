@@ -90,8 +90,7 @@ parse_args() {
 			*) usage_error "unknown argument: $1" ;;
 		esac
 	done
-	if [[ ! $ZEROCONF_PORT =~ ^[1-9][0-9]{3,4}$ ]] ||
-		(( ZEROCONF_PORT <= 1024 || ZEROCONF_PORT > 65535 )); then
+	if [[ ! $ZEROCONF_PORT =~ ^[1-9][0-9]{3,4}$ ]] || (( ZEROCONF_PORT <= 1024 || ZEROCONF_PORT > 65535 )); then
 		usage_error 'ZEROCONF_PORT must be between 1025 and 65535'
 	fi
 	if [[ ! $WAIT_TIMEOUT =~ ^[1-9][0-9]{0,3}$ ]] || (( WAIT_TIMEOUT > 3600 )); then
@@ -102,13 +101,11 @@ parse_args() {
 	(( ${#NAME} <= 128 )) || usage_error '--name is too long (maximum 128 characters)'
 }
 
-# sudo commonly strips SSH_CONNECTION. Read it from the process ancestry instead;
-# never evaluate environment strings as shell code.
+# sudo commonly strips SSH_CONNECTION. Read it from the process ancestry instead; never evaluate environment strings as shell code.
 ssh_connection() {
 	local pid=$$ connection depth=0
 	while [[ $pid =~ ^[0-9]+$ ]] && (( pid > 1 && depth < 32 )); do
-		connection=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null |
-			awk '/^SSH_CONNECTION=/ {sub(/^SSH_CONNECTION=/, ""); print; exit}') || connection=""
+		connection=$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null | awk '/^SSH_CONNECTION=/ {sub(/^SSH_CONNECTION=/, ""); print; exit}') || connection=""
 		if [[ -n $connection ]]; then printf '%s\n' "$connection"; return; fi
 		pid=$(awk '/^PPid:/ {print $2}' "/proc/$pid/status" 2>/dev/null) || break
 		depth=$((depth + 1))
@@ -121,8 +118,7 @@ check_platform() {
 	(( BASH_VERSINFO[0] >= 5 )) || die 'Bash 5 or newer is required'
 	(( EUID == 0 )) || die 'run with sudo bash, or pipe into sudo -n bash -s --'
 	local cmd model version architecture
-	for cmd in systemctl systemd-run apt-get dpkg-query flock timeout curl awk sed grep \
-		findmnt sha256sum ss stat install mktemp; do
+	for cmd in systemctl systemd-run apt-get dpkg-query flock timeout curl awk sed grep findmnt sha256sum ss stat install mktemp; do
 		have "$cmd" || die "missing prerequisite: $cmd"
 	done
 	[[ -d /run/systemd/system ]] || die 'systemd must be running'
@@ -166,8 +162,7 @@ preflight() {
 	(( free_kb >= 1048576 )) || die 'at least 1 GiB of free root-filesystem space is required'
 	(( $(date +%Y) >= 2025 )) || die 'the system clock is incorrect; fix time synchronization first'
 	for endpoint in https://deb.debian.org/debian/ https://archive.raspberrypi.com/debian/ "$REPO_URL/"; do
-		curl -fsSL --connect-timeout 10 --max-time 30 -o /dev/null "$endpoint" ||
-			die "DNS/TLS/repository connectivity failed: $endpoint"
+		curl -fsSL --connect-timeout 10 --max-time 30 -o /dev/null "$endpoint" || die "DNS/TLS/repository connectivity failed: $endpoint"
 	done
 	if (( SSH_HARDENING )); then
 		if [[ -z $LOGIN_USER || $LOGIN_USER == root ]] || ! id "$LOGIN_USER" >/dev/null 2>&1; then
@@ -302,8 +297,7 @@ write_file() {
 	cat > "$CURRENT_TEMP"
 	chmod "$mode" "$CURRENT_TEMP"
 	chown root:root "$CURRENT_TEMP"
-	if [[ -f $path ]] && cmp -s "$CURRENT_TEMP" "$path" &&
-		[[ $(stat -c '%a:%u:%g' "$path") == "${mode#0}:0:0" ]]; then
+	if [[ -f $path ]] && cmp -s "$CURRENT_TEMP" "$path" && [[ $(stat -c '%a:%u:%g' "$path") == "${mode#0}:0:0" ]]; then
 		rm -f -- "$CURRENT_TEMP"; CURRENT_TEMP=""
 		status ok "$path"
 		return
@@ -317,31 +311,24 @@ write_file() {
 apt_run() {
 	local start=$SECONDS rc
 	while :; do
-		if DEBIAN_FRONTEND=noninteractive apt-get -y \
-			-o "DPkg::Lock::Timeout=$WAIT_TIMEOUT" -o Acquire::Retries=3 \
-			-o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold \
-			"$@" </dev/null 2>&1 | tee "$RUN_DIR/apt-output"; then
+		if DEBIAN_FRONTEND=noninteractive apt-get -y -o "DPkg::Lock::Timeout=$WAIT_TIMEOUT" -o Acquire::Retries=3 -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold "$@" </dev/null 2>&1 | tee "$RUN_DIR/apt-output"; then
 			return 0
 		else rc=$?; fi
-		if grep -Eq 'Could not get lock|Unable to acquire.*lock' "$RUN_DIR/apt-output" &&
-			(( SECONDS - start < WAIT_TIMEOUT )); then
+		if grep -Eq 'Could not get lock|Unable to acquire.*lock' "$RUN_DIR/apt-output" && (( SECONDS - start < WAIT_TIMEOUT )); then
 			sleep 5
 		else die "apt-get $* failed (exit $rc)"; fi
 	done
 }
 
 boot_packages() {
-	dpkg-query -W -f='${Package} ${Version}\n' 2>/dev/null |
-		awk '$1 ~ /^(linux-image|raspberrypi-kernel|raspberrypi-bootloader|raspi-firmware|rpi-eeprom)/' | sort
+	dpkg-query -W -f='${Package} ${Version}\n' 2>/dev/null | awk '$1 ~ /^(linux-image|raspberrypi-kernel|raspberrypi-bootloader|raspi-firmware|rpi-eeprom)/' | sort
 }
 
 install_packages() {
 	local packages=(ca-certificates curl gnupg alsa-utils iw avahi-daemon avahi-utils)
 	boot_packages > "$RUN_DIR/boot-packages.before"
-	# rpi-eeprom's package hooks can flash firmware. Keep that package unchanged
-	# during ordinary upgrades; restore the original hold state on every exit.
-	if (( ! EEPROM )) && [[ $(dpkg-query -W -f='${db:Status-Status}' rpi-eeprom 2>/dev/null) == installed ]] &&
-		! apt-mark showhold | grep -qx rpi-eeprom; then
+	# rpi-eeprom's package hooks can flash firmware. Keep that package unchanged during ordinary upgrades; restore the original hold state on every exit.
+	if (( ! EEPROM )) && [[ $(dpkg-query -W -f='${db:Status-Status}' rpi-eeprom 2>/dev/null) == installed ]] && ! apt-mark showhold | grep -qx rpi-eeprom; then
 		EEPROM_HELD=1
 		apt-mark hold rpi-eeprom
 	fi
@@ -359,8 +346,7 @@ install_raspotify() {
 	local key="$RUN_DIR/raspotify-key.asc" fingerprints
 	install -d -m 0700 "$RUN_DIR/gnupg"
 	curl -fsSL --connect-timeout 10 --max-time 60 "$REPO_URL/key.asc" -o "$key"
-	fingerprints=$(gpg --homedir "$RUN_DIR/gnupg" --batch --no-options --with-colons --show-keys "$key" |
-		awk -F: '$1 == "pub" {primary=1; next} primary && $1 == "fpr" {print $10; primary=0}')
+	fingerprints=$(gpg --homedir "$RUN_DIR/gnupg" --batch --no-options --with-colons --show-keys "$key" | awk -F: '$1 == "pub" {primary=1; next} primary && $1 == "fpr" {print $10; primary=0}')
 	[[ $fingerprints == "$REPO_FINGERPRINT" ]] || die 'Raspotify repository signing key does not match the reviewed fingerprint'
 	# Recognize the official installer's legacy source, but refuse other duplicates.
 	local source
@@ -391,19 +377,14 @@ EOF
 	librespot --version
 	librespot --help > "$RUN_DIR/librespot-help"
 	local option
-	for option in name bitrate backend device format dither mixer initial-volume volume-ctrl \
-		volume-range enable-volume-normalisation device-type zeroconf-port zeroconf-backend \
-		disable-audio-cache system-cache; do
-		grep -Eq -- "(^|[[:space:]])--${option}([[:space:]=,<]|$)" "$RUN_DIR/librespot-help" ||
-			die "installed librespot does not advertise --$option"
+	for option in name bitrate backend device format dither mixer initial-volume volume-ctrl volume-range enable-volume-normalisation device-type zeroconf-port zeroconf-backend disable-audio-cache system-cache; do
+		grep -Eq -- "(^|[[:space:]])--${option}([[:space:]=,<]|$)" "$RUN_DIR/librespot-help" || die "installed librespot does not advertise --$option"
 	done
 	local listener
 	listener=$(ss -H -lntp "sport = :$ZEROCONF_PORT")
 	[[ -z $listener || $listener == *'"librespot"'* ]] || die "TCP $ZEROCONF_PORT is already occupied by another process"
 	[[ $(findmnt -n -o FSTYPE -T /run) == tmpfs ]] || die '/run is not tmpfs; cannot guarantee RAM-backed audio buffering'
-	systemctl show raspotify.service -p Environment --value |
-		grep -Eq '(^|[[:space:]])TMPDIR=/run/raspotify([[:space:]]|$)' ||
-		die 'the installed Raspotify unit does not provide the expected RAM-backed TMPDIR'
+	systemctl show raspotify.service -p Environment --value | grep -Eq '(^|[[:space:]])TMPDIR=/run/raspotify([[:space:]]|$)' || die 'the installed Raspotify unit does not provide the expected RAM-backed TMPDIR'
 	status ok 'Raspotify options and runtime buffering configuration verified'
 }
 
@@ -435,10 +416,7 @@ probe_audio() {
 		systemctl stop raspotify.service
 	fi
 	for format in S24_LE S24_3LE S16_LE; do
-		if timeout 8 aplay -D "$ALSA_DEVICE" -t raw -c 2 -r 44100 -f "$format" \
-			-d 1 --disable-resample --dump-hw-params -v /dev/zero > "$RUN_DIR/audio-probe" 2>&1 &&
-			! grep -qi 'rate is not accurate' "$RUN_DIR/audio-probe" &&
-			grep -Eq '^[[:space:]]*rate[[:space:]]*:[[:space:]]*44100([[:space:]]|$)' "$RUN_DIR/audio-probe"; then
+		if timeout 8 aplay -D "$ALSA_DEVICE" -t raw -c 2 -r 44100 -f "$format" -d 1 --disable-resample --dump-hw-params -v /dev/zero > "$RUN_DIR/audio-probe" 2>&1 && ! grep -qi 'rate is not accurate' "$RUN_DIR/audio-probe" && grep -Eq '^[[:space:]]*rate[[:space:]]*:[[:space:]]*44100([[:space:]]|$)' "$RUN_DIR/audio-probe"; then
 			case $format in S24_LE) AUDIO_FORMAT=S24 ;; S24_3LE) AUDIO_FORMAT=S24_3 ;; S16_LE) AUDIO_FORMAT=S16 ;; esac
 			printf '%s %s\n' "$signature" "$AUDIO_FORMAT" > "$STATE_DIR/audio-probe"
 			status ok "verified 44.1 kHz stereo playback: $format ($AUDIO_FORMAT)"
@@ -557,8 +535,7 @@ APT::Periodic::Unattended-Upgrade "1";
 Unattended-Upgrade::Automatic-Reboot "false";
 // EEPROM flashing remains an explicit bootstrap --update-eeprom operation.
 Unattended-Upgrade::Package-Blacklist { "^rpi-eeprom$"; };
-// Debian security plus the stable Raspberry Pi OS archives. Raspberry Pi and
-// Raspbian do not publish a separate security-only origin. No third-party apps.
+// Debian security plus the stable Raspberry Pi OS archives. Raspberry Pi and Raspbian do not publish a separate security-only origin. No third-party apps.
 #clear Unattended-Upgrade::Allowed-Origins;
 #clear Unattended-Upgrade::Origins-Pattern;
 Unattended-Upgrade::Origins-Pattern {
@@ -788,11 +765,7 @@ serialize_program() {
 	local entry=$1 variable
 	printf '#!/bin/bash\nset -Eeuo pipefail\nexport PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C\numask 077\n'
 	declare -f
-	for variable in NAME USB_AUDIO_CARD_ID ZEROCONF_PORT WAIT_TIMEOUT DRY_RUN UPGRADE FIREWALL SSH_HARDENING \
-		UNATTENDED WIFI_FIX VOLATILE_JOURNAL WATCHDOG EEPROM REBOOT LOG STATE_DIR \
-		ACCESS_DIR ACCESS_LOCK REPO_URL REPO_FINGERPRINT RUN_DIR RUN_ID BACKUP_DIR LOGIN_USER ORIGINAL_SSH \
-		ALSA_DEVICE ALSA_CARD ALSA_CARD_DIR AUDIO_FORMAT REBOOT_NEEDED FILE_CHANGED PROBE_STOPPED WARNINGS EEPROM_HELD \
-		DISABLED_SERVICES CURRENT_TEMP SSH_UNIT; do
+	for variable in NAME USB_AUDIO_CARD_ID ZEROCONF_PORT WAIT_TIMEOUT DRY_RUN UPGRADE FIREWALL SSH_HARDENING UNATTENDED WIFI_FIX VOLATILE_JOURNAL WATCHDOG EEPROM REBOOT LOG STATE_DIR ACCESS_DIR ACCESS_LOCK REPO_URL REPO_FINGERPRINT RUN_DIR RUN_ID BACKUP_DIR LOGIN_USER ORIGINAL_SSH ALSA_DEVICE ALSA_CARD ALSA_CARD_DIR AUDIO_FORMAT REBOOT_NEEDED FILE_CHANGED PROBE_STOPPED WARNINGS EEPROM_HELD DISABLED_SERVICES CURRENT_TEMP SSH_UNIT; do
 		printf '%s=%q\n' "$variable" "${!variable}"
 	done
 	printf '%s\n' "$entry"
@@ -805,8 +778,7 @@ access_rollback() {
 	local path failed=0
 	status warning 'restoring previous SSH/firewall configuration'
 	if (( FIREWALL )); then
-		# Disable before removing a newly created unit file, so its enablement
-		# symlinks can still be resolved. This service has no destructive ExecStop.
+		# Disable before removing a newly created unit file, so its enablement symlinks can still be resolved. This service has no destructive ExecStop.
 		systemctl stop pi-setup-firewall.service 2>/dev/null || true
 		systemctl disable pi-setup-firewall.service 2>/dev/null || true
 	fi
@@ -827,8 +799,7 @@ access_rollback() {
 		if [[ $(cat "$ACCESS_DIR/firewall-active") == active ]]; then
 			systemctl start pi-setup-firewall.service || failed=1
 		fi
-		# Restore the actual previous rules AFTER any service reload, because the
-		# previous runtime rules may have differed from its on-disk configuration.
+		# Restore the actual previous rules AFTER any service reload, because the previous runtime rules may have differed from its on-disk configuration.
 		: > "$ACCESS_DIR/restore.nft"
 		if nft list table inet pi_setup >/dev/null 2>&1; then
 			printf 'delete table inet pi_setup\n' >> "$ACCESS_DIR/restore.nft"
@@ -850,8 +821,7 @@ access_confirm() {
 	(( EUID == 0 )) || die 'run this confirmation with sudo from a new SSH connection'
 	local connection
 	connection=$(ssh_connection)
-	[[ -n $connection && $connection != "$ORIGINAL_SSH" ]] ||
-		die 'confirmation requires a new SSH transport; reconnect with ssh -o ControlMaster=no -o ControlPath=none'
+	[[ -n $connection && $connection != "$ORIGINAL_SSH" ]] || die 'confirmation requires a new SSH transport; reconnect with ssh -o ControlMaster=no -o ControlPath=none'
 	exec 8>"$ACCESS_LOCK"
 	flock 8
 	[[ -r $ACCESS_DIR/status && $(cat "$ACCESS_DIR/status") == pending ]] || die 'no pending access transaction'
@@ -932,8 +902,7 @@ apply_access() {
 	printf 'pending\n' > "$ACCESS_DIR/status"
 	systemctl stop pi-setup-access-rollback.timer pi-setup-access-rollback.service 2>/dev/null || true
 	systemctl reset-failed pi-setup-access-rollback.service 2>/dev/null || true
-	systemd-run --unit=pi-setup-access-rollback --on-active=10m --timer-property=AccuracySec=1s \
-		--property="StandardOutput=append:$LOG" --property=StandardError=inherit "$ACCESS_DIR/rollback"
+	systemd-run --unit=pi-setup-access-rollback --on-active=10m --timer-property=AccuracySec=1s --property="StandardOutput=append:$LOG" --property=StandardError=inherit "$ACCESS_DIR/rollback"
 	if (( SSH_HARDENING )); then
 		write_file /etc/ssh/sshd_config.d/00-pi-setup.conf 0644 < "$RUN_DIR/sshd.conf"
 		verify_ssh_policy
@@ -1153,12 +1122,9 @@ launch_worker() {
 	trim_log
 	local start_line tail_pid result
 	start_line=$(( $(wc -l < "$LOG") + 1 ))
-	# The worker independently acquires the lock. Concurrent launchers cannot both
-	# provision: only one worker gets the lock even if launched in this tiny gap.
+	# The worker independently acquires the lock. Concurrent launchers cannot both provision: only one worker gets the lock even if launched in this tiny gap.
 	flock -u 9
-	systemd-run --unit="pi-setup-$RUN_ID" --property=Type=exec \
-		--property="StandardOutput=append:$LOG" --property=StandardError=inherit \
-		--property=TimeoutStopSec=120 /bin/bash "$RUN_DIR/worker" </dev/null
+	systemd-run --unit="pi-setup-$RUN_ID" --property=Type=exec --property="StandardOutput=append:$LOG" --property=StandardError=inherit --property=TimeoutStopSec=120 /bin/bash "$RUN_DIR/worker" </dev/null
 	status ok "detached service pi-setup-$RUN_ID started; SSH may disconnect without interrupting it"
 	tail -n "+$start_line" -F "$LOG" &
 	tail_pid=$!

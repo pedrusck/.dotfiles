@@ -1,6 +1,5 @@
 -- Plugin build/update hooks, run by config/pack.lua on PackChanged events.
--- Only defines functions: it must not add or load plugins, because it is required
--- before the first vim.pack.add() (which may install everything from the lockfile).
+-- Only defines functions: it must not add or load plugins, because it is required before the first vim.pack.add() (which may install everything from the lockfile).
 local M = {}
 
 --- Compile telescope-fzf-native's C library.

@@ -22,15 +22,12 @@ setopt pipefail extendedglob
 #
 # Behavior:
 #	Fetches models from the provider endpoint and updates the configuration file.
-#	Uses `<endpoint>/models` for inventory and enriched metadata, supplemented by
-#	LiteLLM `/model/info`. Maps prices, tiers, limits and reasoning to native V2.
-#	Embeddings are excluded; image models stay disabled until explicitly configured
-#	with an image runtime. Responses models use the native Responses runtime.
+#	Uses `<endpoint>/models` for inventory and enriched metadata, supplemented by LiteLLM `/model/info`. Maps prices, tiers, limits and reasoning to native V2.
+#	Embeddings are excluded; image models stay disabled until explicitly configured with an image runtime. Responses models use the native Responses runtime.
 #
 #	Each successful refresh replaces metadata using only the current responses.
 #	Missing/null metadata is omitted, including previously edited metadata.
-#	Request settings, custom names and package overrides are preserved. Reasoning
-#	effort variants are retained only when confirmed by current metadata.
+#	Request settings, custom names and package overrides are preserved. Reasoning effort variants are retained only when confirmed by current metadata.
 #	Models absent from the inventory are removed. No companion files are needed.
 #	Migrates this provider's legacy settings to native V2, preserving native overrides.
 #	If the config file doesn't exist, it will be created.
@@ -125,11 +122,7 @@ vlog "Config: provider='$provider_name' endpoint='$api_endpoint' file='$config_f
 fetch_route() {  # url out key
 	vlog "HTTP request: $1"
 	local http_code
-	http_code=$(curl -sL -o "$2" -w '%{http_code}' \
-		--max-time 10 --connect-timeout 3 \
-		-H "Authorization: Bearer $3" \
-		-H "Content-Type: application/json" \
-		"$1") || return $?
+	http_code=$(curl -sL -o "$2" -w '%{http_code}' --max-time 10 --connect-timeout 3 -H "Authorization: Bearer $3" -H "Content-Type: application/json" "$1") || return $?
 	vlog "HTTP response: $http_code"
 	print -- "$http_code"
 }
@@ -157,9 +150,7 @@ def format_name:
 	| gsub("(?<pre>^| )(?<num>[0-9.]+)b(?<post> |$)"; "\(.pre)\(.num)B\(.post)");
 '
 
-# Transform the current discovery snapshot to OpenCode V2. Missing/null values
-# are unknown, not false or zero. Only identity and request customizations carry
-# over; historical metadata (including manual edits) is discarded.
+# Transform the current discovery snapshot to OpenCode V2. Missing/null values are unknown, not false or zero. Only identity and request customizations carry over; historical metadata (including manual edits) is discarded.
 local JQ_TRANSFORM_MODELS='
 def number:
 	(if type == "string" then tonumber else . end)
@@ -189,8 +180,7 @@ def costs($p; $hour):
 		| sort_by(.tier.size)
 		| if (map(.tier.size) | unique | length) == length then . else error("Duplicate pricing tier") end
 		end) as $tiers
-	# Every cost entry needs its own input/output rates. Do not fill absent
-	# tier rates or cache prices from the base entry or a previous refresh.
+	# Every cost entry needs its own input/output rates. Do not fill absent tier rates or cache prices from the base entry or a previous refresh.
 	| [($p | prices($hour)), $tiers[]]
 	| map(select(has("input") and has("output")))
 	| if length == 0 then null
@@ -231,8 +221,7 @@ def media($flags):
 	if ($flags | length) == 0 then null else
 		["text"] + [$flags | to_entries[] | select(.value | boolean) | .key]
 	end;
-# These are metadata fields, not retained request configuration. Use the same
-# boundary for aliases so they cannot reintroduce historical target metadata.
+# These are metadata fields, not retained request configuration. Use the same boundary for aliases so they cannot reintroduce historical target metadata.
 def customizations: del(.cost, .limit, .capabilities, .type, .disabled, .family, .releaseDate);
 def current_variants($reasoning):
 	if .variants != null then
@@ -290,8 +279,7 @@ def model($row; $info; $old):
 # Preserve configured aliases only while their target is in the new inventory.
 | reduce ($previous | to_entries[] | .key as $key | select(.value.modelID != null and ($models | has($key) | not))) as $alias
 	($models; $alias.value.modelID as $target | if $models[$target] != null then
-		# Rebuild from the same fresh record, applying the effective alias request
-		# settings (including cache lifetime) before calculating its metadata.
+		# Rebuild from the same fresh record, applying the effective alias request settings (including cache lifetime) before calculating its metadata.
 		.[$alias.key] = (model($records[$target]; $info[$target] // {};
 			$models[$target] * ($alias.value | customizations)) | .value) else . end)
 | to_entries | sort_by(.value.name, .key) | from_entries
@@ -307,8 +295,7 @@ slugify_provider() {  # display_name -> stdout
 	print -- ${${slug##_}%%_}
 }
 
-# Inventory is authoritative even when empty. A successful malformed response is
-# an error, not a reason to silently publish a different inventory.
+# Inventory is authoritative even when empty. A successful malformed response is an error, not a reason to silently publish a different inventory.
 fetch_models() {  # endpoint tmp_file api_key
 	local endpoint=$1 tmp=$2 key=$3
 	local http_code response=null info='[]' route
@@ -317,8 +304,7 @@ fetch_models() {  # endpoint tmp_file api_key
 	routes=( ${(u)routes} )
 
 	print -ru2 -- "Fetching model inventory from: $endpoint/models"
-	if http_code=$(fetch_route "$endpoint/models" "$tmp" "$key") &&
-		[[ $http_code -ge 200 && $http_code -lt 300 ]]; then
+	if http_code=$(fetch_route "$endpoint/models" "$tmp" "$key") && [[ $http_code -ge 200 && $http_code -lt 300 ]]; then
 		if ! response=$(jq -ce 'if (.data | type) == "array" then .data else error("Expected data array") end' "$tmp"); then
 			print -ru2 -- "Error: invalid model inventory"
 			return 1
@@ -329,8 +315,7 @@ fetch_models() {  # endpoint tmp_file api_key
 	fi
 
 	for route in $routes; do
-		if http_code=$(fetch_route "$route" "$tmp" "$key") &&
-			[[ $http_code -ge 200 && $http_code -lt 300 ]]; then
+		if http_code=$(fetch_route "$route" "$tmp" "$key") && [[ $http_code -ge 200 && $http_code -lt 300 ]]; then
 			if ! info=$(jq -ce 'if (.data | type) == "array" then .data else error("Expected data array") end' "$tmp"); then
 				print -ru2 -- "Error: invalid model metadata"
 				return 1
@@ -352,9 +337,7 @@ fetch_models() {  # endpoint tmp_file api_key
 
 # ── Config validation ───────────────────────────────────────────────
 
-# Native V2 provider/model checks, based on the V2 docs and their linked
-# Config.ProviderEncoded / Config.ModelEncoded API schemas. The editor schema
-# at opencode.ai/config.json may still describe V1.
+# Native V2 provider/model checks, based on the V2 docs and their linked Config.ProviderEncoded / Config.ModelEncoded API schemas. The editor schema at opencode.ai/config.json may still describe V1.
 # Reports paths without printing settings or credentials.
 local JQ_VALIDATE_CONFIG='
 def is_type($t):
@@ -452,9 +435,7 @@ validate_config() {  # candidate_file
 	fi
 	vlog "Structural validation passed"
 
-	# V2 debug config uses the shared service and has no --pure mode. A private
-	# server receives OPENCODE_CONFIG for this invocation. Parsing can silently
-	# discard invalid fields, so verify the exact document and retained providers.
+	# V2 debug config uses the shared service and has no --pure mode. A private server receives OPENCODE_CONFIG for this invocation. Parsing can silently discard invalid fields, so verify the exact document and retained providers.
 	if (( $+commands[opencode] )); then
 		vlog "Validating with: opencode api --standalone get /api/config"
 		local output
@@ -463,8 +444,7 @@ validate_config() {  # candidate_file
 			return 1
 		fi
 		if ! jq -e --arg candidate "${candidate:A}" --slurpfile expected "$candidate" '
-			# Environment/file substitutions are resolved by OpenCode. Check their
-			# presence and type; compare all other values recursively and exactly.
+			# Environment/file substitutions are resolved by OpenCode. Check their presence and type; compare all other values recursively and exactly.
 			def retained($e):
 				. as $actual | if ($e | type) == "object" then
 					type == "object" and all($e | keys[]; . as $k | ($actual | has($k)) and ($actual[$k] | retained($e[$k])))
@@ -492,8 +472,7 @@ update_config() {  # config_file provider_key display_name base_url new_models
 	local config=$1 provider_key=$2 display_name=$3 base_url=$4 new_models=$5
 	local work candidate input=$config
 	work=$(command mktemp -d "${config:h}/.opencode-models.XXXXXX") || return $?
-	# Keep the candidate beside the destination so relative file substitutions,
-	# plugins and other config paths resolve exactly as in the live document.
+	# Keep the candidate beside the destination so relative file substitutions, plugins and other config paths resolve exactly as in the live document.
 	candidate="$work.json"
 	{
 	if [[ -f $config ]]; then
@@ -505,14 +484,8 @@ update_config() {  # config_file provider_key display_name base_url new_models
 	fi
 
 	vlog "Writing config to temporary file: $candidate"
-	if ! jq --tab \
-		--argjson new_models "$new_models" \
-		--arg provider "$provider_key" \
-		--arg display_name "$display_name" \
-		--arg base_url "$base_url" \
-		'
-		# Models are replaced below. Translate the remaining legacy provider fields
-		# as V2 does, separating HTTP headers/body from runtime settings.
+	if ! jq --tab --argjson new_models "$new_models" --arg provider "$provider_key" --arg display_name "$display_name" --arg base_url "$base_url" '
+		# Models are replaced below. Translate the remaining legacy provider fields as V2 does, separating HTTP headers/body from runtime settings.
 		def migrate_provider:
 			(.options // {}) as $options
 			| .npm as $npm
@@ -537,8 +510,7 @@ update_config() {  # config_file provider_key display_name base_url new_models
 		| if (.provider // {} | has($provider)) then
 			del(.provider[$provider]) | if .provider == {} then del(.provider) else . end
 		  else . end
-		' \
-		"$input" > "$candidate"; then
+		' "$input" > "$candidate"; then
 		print -ru2 -- "Error: failed to write configuration"
 		rm -f "$candidate"
 		return 1
@@ -609,8 +581,7 @@ process_provider() {
 		provider_settings=$(jq -ce --arg provider "$provider_key" '(.provider[$provider].options // {}) * (.providers[$provider].settings // {})' "$config") || return $?
 	fi
 
-	# OpenCode token costs cannot represent independent media/query/service-tier
-	# charges. Report their presence without guessing a text-token equivalent.
+	# OpenCode token costs cannot represent independent media/query/service-tier charges. Report their presence without guessing a text-token equivalent.
 	if jq -e 'any(.info[].model_info // {} | to_entries[]; .value != null and
 		(.key | test("cost.*(image|audio|query|priority|batches|flex)|search_context_cost")))' <<<"$fetch_result" >/dev/null; then
 		print -ru2 -- "Note: media, query and service-tier charges are not included in text-token cost estimates"
@@ -618,8 +589,7 @@ process_provider() {
 
 	# Transform to opencode schema
 	vlog "Transforming API response to opencode schema..."
-	if ! new_models=$(jq --argjson previous "$previous" --argjson provider_settings "$provider_settings" \
-		"${JQ_FORMAT_NAME}${JQ_TRANSFORM_MODELS}" <<<"$fetch_result"); then
+	if ! new_models=$(jq --argjson previous "$previous" --argjson provider_settings "$provider_settings" "${JQ_FORMAT_NAME}${JQ_TRANSFORM_MODELS}" <<<"$fetch_result"); then
 		print -ru2 -- "Error: failed to parse model data"
 		return 1
 	fi
@@ -653,8 +623,7 @@ process_provider() {
 
 # ── Main ────────────────────────────────────────────────────────────
 
-# Resolve symlinks before atomic replacement. Bootstrap only after discovery and
-# validation succeed, so a failed first refresh leaves no configuration behind.
+# Resolve symlinks before atomic replacement. Bootstrap only after discovery and validation succeed, so a failed first refresh leaves no configuration behind.
 config_file=${config_file:A}
 vlog "Checking config file: $config_file"
 if [[ -e $config_file && ! -w $config_file ]] || [[ ! -d ${config_file:h} || ! -w ${config_file:h} ]]; then

@@ -20,8 +20,7 @@ tick_rate = 50
 
 [ui]
 # Whether to use nerd font icons in the UI
-# This option requires a font patched with Nerd Font in order to properly
-# display glyphs (see https://www.nerdfonts.com/ for more information)
+# This option requires a font patched with Nerd Font in order to properly display glyphs (see https://www.nerdfonts.com/ for more information)
 use_nerd_font_icons = true
 # How much space to allocate for the UI (in percentage of the screen)
 # ┌───────────────────────────────────────┐
@@ -53,9 +52,7 @@ input_bar_position = "top"
 # Where to place the preview title in the UI (top or bottom)
 # preview_title_position = "top"
 # The theme to use for the UI
-# A list of builtin themes can be found in the `themes` directory of the television
-# repository. You may also create your own theme by creating a new file in a `themes`
-# directory in your configuration directory (see the `config.toml` location above).
+# A list of builtin themes can be found in the `themes` directory of the television repository. You may also create your own theme by creating a new file in a `themes` directory in your configuration directory (see the `config.toml` location above).
 theme = "gruvbox-dark"
 
 # Previewers settings
@@ -104,20 +101,16 @@ toggle_preview = "ctrl-o"
 # Shell integration
 # ----------------------------------------------------------------------------
 #
-# The shell integration feature allows you to use television as a picker for
-# your shell commands (as well as your shell history with <CTRL-R>).
-# E.g. typing `git checkout <CTRL-T>` will open television with a list of
-# branches to choose from.
+# The shell integration feature allows you to use television as a picker for your shell commands (as well as your shell history with <CTRL-R>).
+# E.g. typing `git checkout <CTRL-T>` will open television with a list of branches to choose from.
 
 [shell_integration]
 # This specifies the default fallback channel if no other channel is matched.
 fallback_channel = "files"
 
 [shell_integration.channel_triggers]
-# Add your channel triggers here. Each key is a channel that will be triggered
-# by the corresponding commands.
-# Example: say you want the following commands to trigger the following channels
-# when pressing <CTRL-T>:
+# Add your channel triggers here. Each key is a channel that will be triggered by the corresponding commands.
+# Example: say you want the following commands to trigger the following channels when pressing <CTRL-T>:
 #          `git checkout`  should trigger the `git-branches` channel
 #          `ls`            should trigger the `dirs` channel
 #          `cat` and `cp`  should trigger the `files` channel

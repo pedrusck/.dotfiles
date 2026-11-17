@@ -1,20 +1,12 @@
 # Neovim Keybindings
 
-A minimalist Neovim 0.12 configuration built on the native `vim.pack` package
-manager and native LSP. It follows the conventions used across these dotfiles:
-the **gruvbox** theme and Vim-style `h/j/k/l` movement. The keyboard layer is
-**`<leader>` + `Ctrl`**, with `Space` as the leader key.
+A minimalist Neovim 0.12 configuration built on the native `vim.pack` package manager and native LSP. It follows the conventions used across these dotfiles: the **gruvbox** theme and Vim-style `h/j/k/l` movement. The keyboard layer is **`<leader>` + `Ctrl`**, with `Space` as the leader key.
 
-In the wider dotfiles ecosystem Neovim owns the **editor** layer (splits,
-buffers, files); OS windows/spaces are Amethyst, session-persistent panes are
-Herdr. The bindings below are the editor layer on top.
+In the wider dotfiles ecosystem Neovim owns the **editor** layer (splits, buffers, files); OS windows/spaces are Amethyst, session-persistent panes are Herdr. The bindings below are the editor layer on top.
 
 ## Leader & namespaces
 
-`Space` is both `mapleader` and `maplocalleader`. Custom maps are grouped into
-reserved `<leader>` namespaces (first letter = domain) so related actions stay
-together. Press `<leader>` and wait to see the live **which-key** popup listing
-every group.
+`Space` is both `mapleader` and `maplocalleader`. Custom maps are grouped into reserved `<leader>` namespaces (first letter = domain) so related actions stay together. Press `<leader>` and wait to see the live **which-key** popup listing every group.
 
 | Namespace    | Domain      | Purpose                                  |
 | ------------ | ----------- | ---------------------------------------- |
@@ -26,17 +18,11 @@ every group.
 | `<leader>s*` | Spell       | Spell-language switching                 |
 | `<leader>m*` | Move        | Move lines                               |
 
-Modifier roles are kept semantic and never mixed: **`Ctrl`+`h/j/k/l`** = window
-focus, **`Ctrl`+`d/u`** = scroll, **`<leader>`+group** = commands, **`g`** =
-go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
+Modifier roles are kept semantic and never mixed: **`Ctrl`+`h/j/k/l`** = window focus, **`Ctrl`+`d/u`** = scroll, **`<leader>`+group** = commands, **`g`** = go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 
-> **Why the Ctrl layer is motion-only:** in a terminal `Ctrl+h` can be confused
-> with backspace (ASCII `0x08`); modern terminals (Ghostty here) send it
-> distinctly, so `Ctrl+h/j/k/l` is used for window focus. All *command* actions
-> live under `<leader>` groups, keeping the two roles separate.
+> **Why the Ctrl layer is motion-only:** in a terminal `Ctrl+h` can be confused with backspace (ASCII `0x08`); modern terminals (Ghostty here) send it distinctly, so `Ctrl+h/j/k/l` is used for window focus. All *command* actions live under `<leader>` groups, keeping the two roles separate.
 >
-> **`s*` vs `<leader>s*`:** bare `s` (no leader) is mini.surround; `<leader>s`
-> (with leader) is Spell. They never collide.
+> **`s*` vs `<leader>s*`:** bare `s` (no leader) is mini.surround; `<leader>s` (with leader) is Spell. They never collide.
 
 ## Learn these first
 
@@ -73,9 +59,7 @@ go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 | `<leader>bd`                          | n    | Delete buffer                         |
 | `gt` / `gT`                           | n    | Cycle next / previous buffer          |
 
-> `gt` / `gT` are remapped from their Vim default (tab-page cycle) to **buffer**
-> cycle. Tab pages remain reachable via `:tabnext` / `:tabprev`. Screen-top /
-> screen-bottom `H` / `L` are left at their Vim defaults.
+> `gt` / `gT` are remapped from their Vim default (tab-page cycle) to **buffer** cycle. Tab pages remain reachable via `:tabnext` / `:tabprev`. Screen-top / screen-bottom `H` / `L` are left at their Vim defaults.
 
 ## Find (Telescope)
 
@@ -104,10 +88,7 @@ go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 | `<leader>hp` / `<leader>hn` | Harpoon: previous / next    |
 | `<leader>u`                 | Toggle undotree             |
 
-> Bare `nvim` starts with an empty buffer and no intro message. Open oil manually
-> with `-` or `<leader>e`; `nvim .` / `nvim <dir>` open oil's native explorer,
-> and file arguments open normally. Hidden files are shown (`show_hidden = true`);
-> toggle with `g.` inside oil.
+> Bare `nvim` starts with an empty buffer and no intro message. Open oil manually with `-` or `<leader>e`; `nvim .` / `nvim <dir>` open oil's native explorer, and file arguments open normally. Hidden files are shown (`show_hidden = true`); toggle with `g.` inside oil.
 
 ## Code (LSP)
 
@@ -123,14 +104,11 @@ go-to/LSP builtins, **`[`/`]`** = prev/next pairs.
 | `<leader>cwr` | Remove workspace folder                 |
 | `<leader>cwl` | List workspace folders                  |
 
-> **Formatting is LSP-only by design.** `<leader>cf` calls `vim.lsp.buf.format`;
-> there is no dedicated formatter plugin (conform.nvim / none-ls). Servers that
-> provide formatting handle it; trailing whitespace is stripped on save globally.
+> **Formatting is LSP-only by design.** `<leader>cf` calls `vim.lsp.buf.format`; there is no dedicated formatter plugin (conform.nvim / none-ls). Servers that provide formatting handle it; trailing whitespace is stripped on save globally.
 
 ### Neovim built-in defaults (0.11+)
 
-The config also relies on Neovim's built-in LSP defaults; the `<leader>c*`
-aliases above sit alongside them for discoverability:
+The config also relies on Neovim's built-in LSP defaults; the `<leader>c*` aliases above sit alongside them for discoverability:
 
 | Key         | Mode | Action                     |
 | ----------- | ---- | -------------------------- |
@@ -180,8 +158,7 @@ Plugin defaults (not custom-set). mini.surround operates on the `s` prefix:
 | `sh`        | n    | Highlight surrounding                     |
 | `a` / `i`   | o, x | mini.ai textobjects (around / inside)     |
 
-mini.ai extends textobjects with `n` / `l` for next / last (e.g. `van(`,
-`ci"`, `yinq`).
+mini.ai extends textobjects with `n` / `l` for next / last (e.g. `van(`, `ci"`, `yinq`).
 
 ## Spell & language
 
@@ -190,9 +167,7 @@ mini.ai extends textobjects with `n` / `l` for next / last (e.g. `van(`,
 | `<leader>sd` | Set spell language to German  |
 | `<leader>se` | Set spell language to English |
 
-- **Swift**: run the current file with `<leader>cx` (output in a split). This is
-  an explicit keymap — intended for standalone runnable scripts, not SwiftPM
-  package sources.
+- **Swift**: run the current file with `<leader>cx` (output in a split). This is an explicit keymap — intended for standalone runnable scripts, not SwiftPM package sources.
 - **LaTeX** (vimtex): PDF viewer is Skim (`vimtex_view_method = "skim"`).
 - **Markdown**: table editing via vim-table-mode.
 
@@ -201,39 +176,21 @@ mini.ai extends textobjects with `n` / `l` for next / last (e.g. `van(`,
 - **Theme:** `gruvbox` (hard contrast), matching the rest of these dotfiles.
 - **Statusline:** `mini.statusline` with `LINE:COLUMN` location.
 - **Indent guides:** `indent-blankline` (`▏`), scope highlighting off.
-- **Diagnostics:** custom sign icons (error/warn/info/hint) with severity-based
-  line highlighting.
+- **Diagnostics:** custom sign icons (error/warn/info/hint) with severity-based line highlighting.
 - **Comments:** `todo-comments` highlights `TODO` / `NOTE` / `WARN` markers.
 - **Icons:** `mini.icons` (mocks `nvim-web-devicons`).
-- **Keybinding discovery:** `which-key` shows a live popup of the `<leader>`
-  namespace groups (`f`/`b`/`h`/`c`/`x`/`s`/`m`) after a short delay.
+- **Keybinding discovery:** `which-key` shows a live popup of the `<leader>` namespace groups (`f`/`b`/`h`/`c`/`x`/`s`/`m`) after a short delay.
 
 ## Configuration files
 
-- `neovim/init.lua` → `~/.config/nvim/init.lua`; `neovim/lua`, `neovim/after`
-  and `neovim/spell` are symlinked into `~/.config/nvim/` by `neovim/setup.sh`.
-- Layout: `init.lua` (leaders, plugin module load order); `lua/config/`
-  (`options`, `keymaps`, `autocmds`, plugin-agnostic `pack` helpers, `minimal`);
-  `lua/plugins/` (one file per domain, with `lang/` for per-language setup, plus
-  shared `specs` and build `hooks`); `after/lsp/` (overrides merged over
-  nvim-lspconfig's server definitions).
+- `neovim/init.lua` → `~/.config/nvim/init.lua`; `neovim/lua`, `neovim/after` and `neovim/spell` are symlinked into `~/.config/nvim/` by `neovim/setup.sh`.
+- Layout: `init.lua` (leaders, plugin module load order); `lua/config/` (`options`, `keymaps`, `autocmds`, plugin-agnostic `pack` helpers, `minimal`); `lua/plugins/` (one file per domain, with `lang/` for per-language setup, plus shared `specs` and build `hooks`); `after/lsp/` (overrides merged over nvim-lspconfig's server definitions).
 - This `keybindings.md` is repo documentation only; it is **not** symlinked.
 
 ## Plugins (`vim.pack`)
 
-- Plugins follow their latest semver release where one is maintained. The
-  exceptions (default branch or a named branch) carry a comment next to their
-  spec explaining why.
-- Each plugin module lists its own hard dependencies. A plugin that fails to
-  install or load is reported as a warning and the rest of the config still
-  loads; without gruvbox the built-in `retrobox` theme is used.
-- Loaded after startup (`vim.schedule`): which-key, todo-comments, undotree,
-  vim-table-mode, and Mason's registry refresh / missing server installation.
-- Update with `:PackUpdate` (all plugins) or `:PackUpdate vimtex oil.nvim`
-  (selected plugins, names tab-complete). Review the changes, then `:w` to apply
-  or `:q` to cancel, and `:restart` to load the updated code. Each plugin keeps
-  its configured branch, tag or version range.
-- Inspect with `:lua vim.pack.update(nil, { offline = true })`; diagnose with
-  `:checkhealth vim.pack`. Build hooks (telescope-fzf-native `make`,
-  nvim-treesitter `:TSUpdate`) live in `lua/plugins/hooks.lua`; specs shared by
-  several modules (plenary, mini.nvim) in `lua/plugins/specs.lua`.
+- Plugins follow their latest semver release where one is maintained. The exceptions (default branch or a named branch) carry a comment next to their spec explaining why.
+- Each plugin module lists its own hard dependencies. A plugin that fails to install or load is reported as a warning and the rest of the config still loads; without gruvbox the built-in `retrobox` theme is used.
+- Loaded after startup (`vim.schedule`): which-key, todo-comments, undotree, vim-table-mode, and Mason's registry refresh / missing server installation.
+- Update with `:PackUpdate` (all plugins) or `:PackUpdate vimtex oil.nvim` (selected plugins, names tab-complete). Review the changes, then `:w` to apply or `:q` to cancel, and `:restart` to load the updated code. Each plugin keeps its configured branch, tag or version range.
+- Inspect with `:lua vim.pack.update(nil, { offline = true })`; diagnose with `:checkhealth vim.pack`. Build hooks (telescope-fzf-native `make`, nvim-treesitter `:TSUpdate`) live in `lua/plugins/hooks.lua`; specs shared by several modules (plenary, mini.nvim) in `lua/plugins/specs.lua`.

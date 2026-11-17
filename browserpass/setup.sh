@@ -15,8 +15,7 @@ register_browserpass_host() (
 		printf '%s\n' "Missing Browserpass host manifest (repair the installation): $src" >&2
 		return 1
 	fi
-	if ! executable=$(/usr/bin/plutil -extract path raw -o - "$src" 2>/dev/null) \
-		|| [ "${executable#/}" = "$executable" ] || [ ! -f "$executable" ] || [ ! -x "$executable" ]; then
+	if ! executable=$(/usr/bin/plutil -extract path raw -o - "$src" 2>/dev/null) || [ "${executable#/}" = "$executable" ] || [ ! -f "$executable" ] || [ ! -x "$executable" ]; then
 		printf '%s\n' "Invalid Browserpass manifest or executable (repair the installation): $src" >&2
 		return 1
 	fi
@@ -25,8 +24,7 @@ register_browserpass_host() (
 		printf '%s\n' "Conflicting destination; move it aside before rerunning setup: $dest" >&2
 		return 1
 	fi
-	if ! mkdir -p "$directory" || ! ln -sf "$src" "$dest" \
-		|| [ ! -L "$dest" ] || [ ! "$dest" -ef "$src" ]; then
+	if ! mkdir -p "$directory" || ! ln -sf "$src" "$dest" || [ ! -L "$dest" ] || [ ! "$dest" -ef "$src" ]; then
 		printf '%s\n' "Browserpass registration failed: $dest" >&2
 		return 1
 	fi
@@ -60,19 +58,16 @@ configure_browserpass() {
 	# Floorp shares Mozilla's host directory; Helium also searches Chrome's.
 	# https://github.com/imputnet/helium/blob/main/patches/helium/core/scan-chrome-native-messaging-hosts.patch
 	if app_installed Firefox || app_installed Floorp; then
-		register_browserpass_host "$prefix/lib/browserpass/hosts/firefox/$manifest" \
-			"$support/Mozilla/NativeMessagingHosts" || failed=1
+		register_browserpass_host "$prefix/lib/browserpass/hosts/firefox/$manifest" "$support/Mozilla/NativeMessagingHosts" || failed=1
 	fi
 	if app_installed Helium; then
 		chromium_host="$prefix/lib/browserpass/hosts/chromium/$manifest"
 		helium_host="$support/net.imput.helium/NativeMessagingHosts/$manifest"
-		if [ -f "$chromium_host" ] && { [ -e "$helium_host" ] || [ -L "$helium_host" ]; } \
-			&& [ ! "$helium_host" -ef "$chromium_host" ]; then
+		if [ -f "$chromium_host" ] && { [ -e "$helium_host" ] || [ -L "$helium_host" ]; } && [ ! "$helium_host" -ef "$chromium_host" ]; then
 			printf '%s\n' "Helium-local manifest overrides Chrome registration; move it aside: $helium_host" >&2
 			failed=1
 		else
-			register_browserpass_host "$chromium_host" \
-				"$support/Google/Chrome/NativeMessagingHosts" || failed=1
+			register_browserpass_host "$chromium_host" "$support/Google/Chrome/NativeMessagingHosts" || failed=1
 		fi
 	fi
 	return "$failed"

@@ -27,8 +27,7 @@ function fail() {
 	return 1
 }
 
-# Return an absolute path in REPLY. Directory selection accepts only raw snapshot
-# names, with an optional six-digit collision counter, never e.g. *_sorted.*.
+# Return an absolute path in REPLY. Directory selection accepts only raw snapshot names, with an optional six-digit collision counter, never e.g. *_sorted.*.
 function select_snapshot() {
 	local source=$1 family=$2 extension=$3 candidate pattern
 	local -x LC_ALL=C
@@ -53,8 +52,7 @@ function select_snapshot() {
 	[[ -r $REPLY && -s $REPLY ]] || { fail "source is unreadable or empty: $REPLY"; return 1; }
 }
 
-# Capture the on-disk file, retrying if it changes during the copy. This does not
-# flush pending browser writes or validate the bookmark format.
+# Capture the on-disk file, retrying if it changes during the copy. This does not flush pending browser writes or validate the bookmark format.
 function copy_snapshot() {
 	local source=$1 destination=$2
 	local -i attempt
@@ -110,8 +108,7 @@ done
 select_snapshot "$SOURCE" chromium json
 SOURCE_FILE=$REPLY
 
-# Freeze the source once so every browser receives identical bytes, including
-# when the explicit source is itself one of the live destination files.
+# Freeze the source once so every browser receives identical bytes, including when the explicit source is itself one of the live destination files.
 CAPTURE_DIR=""
 function cleanup_capture() {
 	local -i result=$? failed=0

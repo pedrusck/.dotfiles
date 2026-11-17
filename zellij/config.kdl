@@ -1,9 +1,7 @@
 // Zellij Configuration
 // ====================
 //
-// Zellij is a session-persistence layer (detach / reattach so processes survive
-// closing the Ghostty window) with a single, conflict-free modal gateway for
-// managing co-persisting panes the Vim way.
+// Zellij is a session-persistence layer (detach / reattach so processes survive closing the Ghostty window) with a single, conflict-free modal gateway for managing co-persisting panes the Vim way.
 //
 //   - The ONLY key bound in Locked mode is Ctrl+g, which enters "Zellij mode".
 //     Every other Ctrl+key chord passes straight through to Neovim / shell.
@@ -35,8 +33,7 @@ keybinds clear-defaults=true {
         // The single gateway: enter Zellij mode. Everything else passes through.
         bind "Ctrl g" { SwitchToMode "pane"; }
     }
-    // Zellij mode: Vim-philosophy pane management. Every action is one-shot
-    // (performs the action then returns to Locked).
+    // Zellij mode: Vim-philosophy pane management. Every action is one-shot (performs the action then returns to Locked).
     pane {
         // Splits / new pane
         bind "s" { NewPane "down"; SwitchToMode "locked"; }
@@ -77,8 +74,7 @@ keybinds clear-defaults=true {
     }
 }
 
-// Use rounded pane-frame corners. (hide_session_name affects the bar, not the
-// frame; the session name is shown by the compact-bar in layouts/default.kdl.)
+// Use rounded pane-frame corners. (hide_session_name affects the bar, not the frame; the session name is shown by the compact-bar in layouts/default.kdl.)
 ui {
     pane_frames {
         rounded_corners true
@@ -90,8 +86,7 @@ ui {
 default_layout "default"
 
 // gruvbox-dark with all frame states set to gruvbox green (#98971a = 152 151 26).
-// This is the verbatim upstream gruvbox-dark theme; only the frame_* components
-// are modified (frame_selected was already green upstream).
+// This is the verbatim upstream gruvbox-dark theme; only the frame_* components are modified (frame_selected was already green upstream).
 themes {
     gruvbox-dark {
         text_unselected {
@@ -225,8 +220,7 @@ themes {
     }
 }
 
-// Plugin aliases - can be used to change the implementation of Zellij
-// changing these requires a restart to take effect
+// Plugin aliases - can be used to change the implementation of Zellij changing these requires a restart to take effect
 plugins {
     about location="zellij:about"
     compact-bar location="zellij:compact-bar"
@@ -244,9 +238,7 @@ plugins {
     }
 }
 
-// Plugins to load in the background when a new session starts
-// eg. "file:/path/to/my-plugin.wasm"
-// eg. "https://example.com/my-plugin.wasm"
+// Plugins to load in the background when a new session starts eg. "file:/path/to/my-plugin.wasm" eg. "https://example.com/my-plugin.wasm"
 load_plugins {
     zellij:link
 }
@@ -303,8 +295,7 @@ default_mode "locked"
 // theme_dir "/tmp"
 
 // Toggle enabling the mouse mode.
-// On certain configurations, or terminals this could
-// potentially interfere with copying text.
+// On certain configurations, or terminals this could potentially interfere with copying text.
 // Options:
 //   - true (default)
 //   - false
@@ -318,16 +309,13 @@ default_mode "locked"
 //
 // pane_frames false
 
-// When attaching to an existing session with other users,
-// should the session be mirrored (true)
-// or should each user have their own cursor (false)
+// When attaching to an existing session with other users, should the session be mirrored (true) or should each user have their own cursor (false)
 // (Requires restart)
 // Default: false
 //
 // mirror_session true
 
-// Choose what to do when zellij receives SIGTERM, SIGINT, SIGQUIT or SIGHUP
-// eg. when terminal window with an active zellij session is closed
+// Choose what to do when zellij receives SIGTERM, SIGINT, SIGQUIT or SIGHUP eg. when terminal window with an active zellij session is closed
 // (Requires restart)
 // Options:
 //   - detach (Default)
@@ -336,18 +324,14 @@ default_mode "locked"
 // on_force_close "quit"
 
 // Configure the scroll back buffer size
-// This is the number of lines zellij stores for each pane in the scroll back
-// buffer. Excess number of lines are discarded in a FIFO fashion.
+// This is the number of lines zellij stores for each pane in the scroll back buffer. Excess number of lines are discarded in a FIFO fashion.
 // (Requires restart)
 // Valid values: positive integers
 // Default value: 10000
 //
 // scroll_buffer_size 10000
 
-// Provide a command to execute when copying text. The text will be piped to
-// the stdin of the program to perform the copy. This can be used with
-// terminal emulators which do not support the OSC 52 ANSI control sequence
-// that will be used by default if this option is not set.
+// Provide a command to execute when copying text. The text will be piped to the stdin of the program to perform the copy. This can be used with terminal emulators which do not support the OSC 52 ANSI control sequence that will be used by default if this option is not set.
 // Examples:
 //
 // copy_command "xclip -selection clipboard" // x11
@@ -375,14 +359,12 @@ default_mode "locked"
 // scrollback_editor "/usr/bin/vim"
 
 // A fixed name to always give the Zellij session.
-// Consider also setting `attach_to_session true,`
-// otherwise this will error if such a session exists.
+// Consider also setting `attach_to_session true,` otherwise this will error if such a session exists.
 // Default: <RANDOM>
 //
 // session_name "My singleton session"
 
-// When `session_name` is provided, attaches to that session
-// if it is already running or creates it otherwise.
+// When `session_name` is provided, attaches to that session if it is already running or creates it otherwise.
 // Default: false
 //
 // attach_to_session true
@@ -408,9 +390,7 @@ default_mode "locked"
 //
 // serialize_pane_viewport false
 
-// Scrollback lines to serialize along with the pane viewport when serializing sessions, 0
-// defaults to the scrollback size. If this number is higher than the scrollback size, it will
-// also default to the scrollback size. This does nothing if `serialize_pane_viewport` is not true.
+// Scrollback lines to serialize along with the pane viewport when serializing sessions, 0 defaults to the scrollback size. If this number is higher than the scrollback size, it will also default to the scrollback size. This does nothing if `serialize_pane_viewport` is not true.
 //
 // scrollback_lines_to_serialize 10000
 
@@ -425,8 +405,7 @@ default_mode "locked"
 //
 // serialization_interval 10000
 
-// Enable or disable writing of session metadata to disk (if disabled, other sessions might not know
-// metadata info on this session)
+// Enable or disable writing of session metadata to disk (if disabled, other sessions might not know metadata info on this session)
 // (Requires restart)
 // Default: false
 //
@@ -438,14 +417,12 @@ default_mode "locked"
 //
 // support_kitty_keyboard_protocol false
 // Whether to make sure a local web server is running when a new Zellij session starts.
-// This web server will allow creating new sessions and attaching to existing ones that have
-// opted in to being shared in the browser.
+// This web server will allow creating new sessions and attaching to existing ones that have opted in to being shared in the browser.
 // When enabled, navigate to http://127.0.0.1:8082
 // (Requires restart)
 //
 // Note: a local web server can still be manually started from within a Zellij session or from the CLI.
-// If this is not desired, one can use a version of Zellij compiled without
-// `web_server_capability`
+// If this is not desired, one can use a version of Zellij compiled without `web_server_capability`
 //
 // Possible values:
 // - true
@@ -453,26 +430,22 @@ default_mode "locked"
 // Default: false
 //
 // web_server false
-// Whether to allow sessions started in the terminal to be shared through a local web server, assuming one is
-// running (see the `web_server` option for more details).
+// Whether to allow sessions started in the terminal to be shared through a local web server, assuming one is running (see the `web_server` option for more details).
 // (Requires restart)
 //
 // Note: This is an administrative separation and not intended as a security measure.
 //
 // Possible values:
-// - "on" (allow web sharing through the local web server if it
-// is online)
+// - "on" (allow web sharing through the local web server if it is online)
 // - "off" (do not allow web sharing unless sessions explicitly opt-in to it)
 // - "disabled" (do not allow web sharing and do not permit sessions started in the terminal to opt-in to it)
 // Default: "off"
 //
 // web_sharing "off"
-// A path to a certificate file to be used when setting up the web client to serve the
-// connection over HTTPs
+// A path to a certificate file to be used when setting up the web client to serve the connection over HTTPs
 //
 // web_server_cert "/path/to/cert.pem"
-// A path to a key file to be used when setting up the web client to serve the
-// connection over HTTPs
+// A path to a key file to be used when setting up the web client to serve the connection over HTTPs
 //
 // web_server_key "/path/to/key.pem"
 /// Whether to enforce https connections to the web server when it is bound to localhost
@@ -529,16 +502,12 @@ show_startup_tips false
 // (Requires restart)
 // web_server_port 8082
 
-// A command to run (will be wrapped with sh -c and provided the RESURRECT_COMMAND env variable)
-// after Zellij attempts to discover a command inside a pane when resurrecting sessions, the STDOUT
-// of this command will be used instead of the discovered RESURRECT_COMMAND
-// can be useful for removing wrappers around commands
+// A command to run (will be wrapped with sh -c and provided the RESURRECT_COMMAND env variable) after Zellij attempts to discover a command inside a pane when resurrecting sessions, the STDOUT of this command will be used instead of the discovered RESURRECT_COMMAND can be useful for removing wrappers around commands
 // Note: be sure to escape backslashes and similar characters properly
 // post_command_discovery_hook "echo $RESURRECT_COMMAND | sed <your_regex_here>"
 
 // Number of async worker tasks to spawn per active client.
 //
-// Allocating few tasks may result in resource contention and lags. Small values (around 4) should
-// typically work best. Set to 0 to use the number of (physical) CPU cores.
+// Allocating few tasks may result in resource contention and lags. Small values (around 4) should typically work best. Set to 0 to use the number of (physical) CPU cores.
 // Note: This only applies to web clients at the moment.
 // client_async_worker_tasks 4

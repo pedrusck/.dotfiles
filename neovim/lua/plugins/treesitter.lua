@@ -1,6 +1,5 @@
 vim.pack.add {
-	-- Branch, not a version range: all release tags belong to the archived `master`
-	-- branch, whose API is incompatible with the `main` rewrite used here
+	-- Branch, not a version range: all release tags belong to the archived `master` branch, whose API is incompatible with the `main` rewrite used here
 	{ src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" }
 }
 

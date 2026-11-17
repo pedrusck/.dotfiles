@@ -145,8 +145,7 @@
 # function stop_vpn() {
 #     echo -e "\nStopping GlobalProtect...\n"
 #
-#     if ! launchctl bootout gui/$(id -u) /Library/LaunchAgents/com.paloaltonetworks.gp.pangps.plist 2>/dev/null || \
-#        ! launchctl bootout gui/$(id -u) /Library/LaunchAgents/com.paloaltonetworks.gp.pangpa.plist 2>/dev/null; then
+#     if ! launchctl bootout gui/$(id -u) /Library/LaunchAgents/com.paloaltonetworks.gp.pangps.plist 2>/dev/null || ! launchctl bootout gui/$(id -u) /Library/LaunchAgents/com.paloaltonetworks.gp.pangpa.plist 2>/dev/null; then
 #         echo "Failed to bootout as current user, trying with sudo..."
 #         sudo launchctl bootout gui/$(id -u) /Library/LaunchAgents/com.paloaltonetworks.gp.pangps.plist 2>/dev/null
 #         sudo launchctl bootout gui/$(id -u) /Library/LaunchAgents/com.paloaltonetworks.gp.pangpa.plist 2>/dev/null

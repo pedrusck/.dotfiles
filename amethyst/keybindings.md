@@ -81,9 +81,7 @@ xmonad-style keybindings for [Amethyst](https://github.com/ianyh/Amethyst) on ma
 
 ### Switch to Space (macOS Native)
 
-Amethyst has no "switch to space" command, so the switch half of xmonad's
-`mod-[1..9]` / `mod-shift-[1..9]` pair is provided by macOS Mission Control,
-remapped onto mod1 (see [Required macOS Settings](#required-macos-settings)):
+Amethyst has no "switch to space" command, so the switch half of xmonad's `mod-[1..9]` / `mod-shift-[1..9]` pair is provided by macOS Mission Control, remapped onto mod1 (see [Required macOS Settings](#required-macos-settings)):
 
 | Shortcut      | Action              | xmonad     |
 |---------------|---------------------|------------|

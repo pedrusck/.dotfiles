@@ -17,10 +17,7 @@ Apple Silicon is required; the script refuses to run on Intel because it expects
 Insert the pendrive holding your GPG keypair, then run the [bootstrap script](./bootstrap_macos.zsh) from any directory:
 
 ```sh
-bootstrap=$(curl -fsSL \
-  https://codeberg.org/pedrusck/.dotfiles/raw/branch/main/bootstrap_macos.zsh) &&
-  /bin/zsh -f -c "$bootstrap" bootstrap_macos.zsh \
-    --key-dir "/Volumes/MY_KEYS" --profile development
+bootstrap=$(curl -fsSL https://codeberg.org/pedrusck/.dotfiles/raw/branch/main/bootstrap_macos.zsh) && /bin/zsh -f -c "$bootstrap" bootstrap_macos.zsh --key-dir "/Volumes/MY_KEYS" --profile development
 ```
 
 Replace `/Volumes/MY_KEYS` with the directory containing your `.asc` or `.gpg` files. Downloading before execution preserves terminal input for sudo and GPG passphrase prompts and prevents execution after a failed download.
@@ -42,8 +39,7 @@ Use `--profile <name>` to choose which tools are configured; every profile still
 Rerunning reapplies configuration and can update installed packages. You can also run the cloned script directly:
 
 ```sh
-/bin/zsh -f "$HOME/Developer/personal_projects/.dotfiles/bootstrap_macos.zsh" \
-  --key-dir "/Volumes/MY_KEYS"
+/bin/zsh -f "$HOME/Developer/personal_projects/.dotfiles/bootstrap_macos.zsh" --key-dir "/Volumes/MY_KEYS"
 ```
 
 When it finishes it prints the remaining manual steps (enable the EurKEY input source, and Switch to Desktop 1–9 for Amethyst). Install the mise tools as described below, then follow the rest of the steps in the [list](./macOS_setup_steps.md).
@@ -149,8 +145,7 @@ To replace Homebrew copies of the explicitly Conda-backed tools:
 
 ```sh
 sh mise/setup.sh
-mise --cd "$HOME" install conda:parallel conda:htop conda:qpdf \
-  conda:zsh-autosuggestions conda:zsh-syntax-highlighting
+mise --cd "$HOME" install conda:parallel conda:htop conda:qpdf conda:zsh-autosuggestions conda:zsh-syntax-highlighting
 mise --cd "$HOME" exec -- misecompsync --shell zsh
 exec zsh -l
 ```
@@ -158,8 +153,7 @@ exec zsh -l
 Check command resolution with `mise which <command>` and `type -a <command>`. Verify QPDF completion, autosuggestions, highlighting, and vi-mode bindings. Check each formula's installed dependents with `brew uses --installed --recursive <formula>`, then remove the verified Homebrew copies:
 
 ```sh
-brew uninstall parallel htop qpdf \
-  zsh-autosuggestions zsh-syntax-highlighting
+brew uninstall parallel htop qpdf zsh-autosuggestions zsh-syntax-highlighting
 ```
 
 Keep Homebrew's git-crypt: it has no mise configuration entry, and bootstrap installs it before unlocking this repository.
@@ -298,11 +292,7 @@ Run `podman machine init` only if none exists. Start the chosen machine with `po
 
 ```sh
 machine=podman-machine-default
-podman_socket=$(podman machine inspect "$machine" \
-  --format '{{.ConnectionInfo.PodmanSocket.Path}}') &&
-  test -S "$podman_socket" &&
-  mkdir -p "$HOME/.local/state/podman" &&
-  ln -sfn "$podman_socket" "$HOME/.local/state/podman/mcp.sock"
+podman_socket=$(podman machine inspect "$machine" --format '{{.ConnectionInfo.PodmanSocket.Path}}') && test -S "$podman_socket" && mkdir -p "$HOME/.local/state/podman" && ln -sfn "$podman_socket" "$HOME/.local/state/podman/mcp.sock"
 ```
 
 The [Podman bridge](https://github.com/manusa/podman-mcp-server) uses `--podman-impl api` and `CONTAINER_HOST` to target this socket directly. Refresh the link if the socket changes.
@@ -370,10 +360,7 @@ Prepare the SD card on macOS with `bootstrap_raspotify_sd_card.zsh`; use `--help
 After flashing and booting the Pi, connect over SSH as the non-root user created by the flash script. Download and run the bootstrap **on the Pi**:
 
 ```bash
-curl -fsSL \
-  https://codeberg.org/pedrusck/.dotfiles/raw/branch/main/bootstrap_raspotify.bash \
-  -o bootstrap_raspotify.bash &&
-  sudo bash bootstrap_raspotify.bash --name "Living Room"
+curl -fsSL https://codeberg.org/pedrusck/.dotfiles/raw/branch/main/bootstrap_raspotify.bash -o bootstrap_raspotify.bash && sudo bash bootstrap_raspotify.bash --name "Living Room"
 ```
 
 Requires a Pi 4/5-family board, Raspberry Pi OS/Debian 13+, completed cloud-init, internet access, passwordless sudo and a USB audio interface with exactly one playback PCM. Set `USB_AUDIO_CARD_ID="CI1"` near the top of the downloaded script to the card ID shown by `aplay -l`. The script verifies that this exact card is a USB interface, probes direct 44.1 kHz stereo support, and chooses a supported 24-bit format, falling back to 16-bit. Playback uses 320 kbps.

@@ -23,9 +23,7 @@ trap 'rm -f "$TEMP_DUMP" "$TRACKED_KEYS" "$INSTALLED_KEYS"' EXIT
 #
 # Normalization rules:
 # - Skips comment lines, blank lines, and "tap" entries
-# - For brew/cask: uses the short name (last component after /)
-#   so "amar1729/homebrew-formulae/browserpass" and
-#   "amar1729/formulae/browserpass" both become "browserpass"
+# - For brew/cask: uses the short name (last component after /) so "amar1729/homebrew-formulae/browserpass" and "amar1729/formulae/browserpass" both become "browserpass"
 # - For mas: uses the App Store numeric ID (stable across name changes)
 extract_packages() {
 	local file="$1"

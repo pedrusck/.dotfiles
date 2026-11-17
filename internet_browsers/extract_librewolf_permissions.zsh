@@ -53,8 +53,7 @@ function find_profile() {
 		done
 		[[ -n "$base" ]] || die 'no LibreWolf profile root found; pass a profile directory or set LIBREWOLF_PROFILE'
 		if [[ -f "$base/profiles.ini" ]]; then
-			# Section order and key order are independent. Install defaults take
-			# precedence; their paths are relative unless explicitly absolute.
+			# Section order and key order are independent. Install defaults take precedence; their paths are relative unless explicitly absolute.
 			selected=$(awk -v base="$base" '
 				function resolve(p, relative) {
 					return relative && substr(p, 1, 1) != "/" ? base "/" p : p
@@ -98,8 +97,7 @@ function find_profile() {
 	fi
 	[[ -d "$selected" ]] || die "profile directory not found: $selected"
 	selected=${selected:A}
-	[[ -f "$selected/permissions.sqlite" && -r "$selected/permissions.sqlite" && -s "$selected/permissions.sqlite" ]] \
-		|| die "permissions.sqlite is missing, unreadable, or empty in $selected"
+	[[ -f "$selected/permissions.sqlite" && -r "$selected/permissions.sqlite" && -s "$selected/permissions.sqlite" ]] || die "permissions.sqlite is missing, unreadable, or empty in $selected"
 	print -r -- "$selected"
 }
 
@@ -117,22 +115,19 @@ function check_not_running() {
 	done
 	for lock_file in lock .parentlock parent.lock; do
 		# Gecko leaves regular .parentlock files behind after a clean shutdown.
-		# Legacy symlink locks encode ownership rather than an open file, so
-		# retain the conservative refusal for those (including dangling links).
+		# Legacy symlink locks encode ownership rather than an open file, so retain the conservative refusal for those (including dangling links).
 		if [[ -L "$profile/$lock_file" ]]; then
 			die "profile lock symlink found: $profile/$lock_file. Close LibreWolf completely and try again."
 		fi
 		[[ -e "$profile/$lock_file" ]] || continue
 		[[ -f "$profile/$lock_file" ]] || die "unexpected profile lock type: $profile/$lock_file"
 		(( $+commands[lsof] )) || die "lsof is required to check whether $profile/$lock_file is in use"
-		# Any open handle is enough to refuse. Avoid -t (which implies -w), so
-		# diagnostics are preserved and inspection failures cannot look idle.
+		# Any open handle is enough to refuse. Avoid -t (which implies -w), so diagnostics are preserved and inspection failures cannot look idle.
 		if lock_info=$(lsof -nP -F p -- "$profile/$lock_file" 2>&1); then
 			die "profile lock is in use: $profile/$lock_file. Close LibreWolf completely and try again."
 		else
 			result=$?
-			(( result == 1 )) && [[ -z "$lock_info" ]] \
-				|| die "could not inspect profile lock: $profile/$lock_file (lsof exited $result): $lock_info"
+			(( result == 1 )) && [[ -z "$lock_info" ]] || die "could not inspect profile lock: $profile/$lock_file (lsof exited $result): $lock_info"
 		fi
 	done
 }
@@ -169,15 +164,11 @@ function copy_permissions() (
 	check_not_running "$profile"
 	staged="$stage/raw/permissions.sqlite"
 	if (( use_sqlite )); then
-		# SQLite may create/update SHM files even for read-only connections. Only
-		# open the staged database, and use a fixed backup name to avoid quoting
-		# arbitrary directory names inside SQLite dot-command syntax.
+		# SQLite may create/update SHM files even for read-only connections. Only open the staged database, and use a fixed backup name to avoid quoting arbitrary directory names inside SQLite dot-command syntax.
 		chmod u+rw "$stage/raw/permissions.sqlite"* || die 'could not prepare staged database'
-		(cd -- "$stage/out" && sqlite3 ../raw/permissions.sqlite '.backup permissions.sqlite') \
-			|| die 'SQLite backup failed'
+		(cd -- "$stage/out" && sqlite3 ../raw/permissions.sqlite '.backup permissions.sqlite') || die 'SQLite backup failed'
 		staged="$stage/out/permissions.sqlite"
-		# A backup can inherit WAL journal mode. Normalize the copy so it opens
-		# as a standalone read-only database without needing writable sidecars.
+		# A backup can inherit WAL journal mode. Normalize the copy so it opens as a standalone read-only database without needing writable sidecars.
 		integrity=$(sqlite3 "$staged" 'PRAGMA journal_mode=DELETE;') || die 'could not finalize SQLite backup'
 		[[ "$integrity" == delete ]] || die "could not disable WAL on backup: $integrity"
 		integrity=$(sqlite3 -readonly "$staged" 'PRAGMA integrity_check;') || die 'SQLite integrity check failed'
@@ -187,8 +178,7 @@ function copy_permissions() (
 	[[ -s "$staged" ]] || die 'backup is missing or empty'
 	bytes=$(wc -c < "$staged") || die 'could not determine backup size'
 	bytes=${bytes//[[:space:]]/}
-	# Hard links publish without replacing existing paths. Disable following
-	# destination directory symlinks on both BSD and GNU implementations.
+	# Hard links publish without replacing existing paths. Disable following destination directory symlinks on both BSD and GNU implementations.
 	if [[ "$OSTYPE" == darwin* ]]; then link_options=(-h); else link_options=(-T); fi
 	for suffix in "${suffixes[@]}"; do
 		ln "${link_options[@]}" -- "$staged$suffix" "$dest$suffix" || die "could not publish backup (destination may already exist): $dest$suffix"

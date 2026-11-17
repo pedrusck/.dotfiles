@@ -1,15 +1,8 @@
 # Ghostty Keybindings
 
-A learning reference for managing **splits (panes)**, **tabs**, and **windows** in
-Ghostty using its built-in default keybindings. On this machine Ghostty owns all
-interactive terminal splitting (Herdr handles session-persistent, agent-aware
-panes; Amethyst handles OS windows).
+A learning reference for managing **splits (panes)**, **tabs**, and **windows** in Ghostty using its built-in default keybindings. On this machine Ghostty owns all interactive terminal splitting (Herdr handles session-persistent, agent-aware panes; Amethyst handles OS windows).
 
-This config trusts Ghostty's built-in defaults; the only custom keybinds are in
-`ghostty/config` (Cmd+Enter / Shift+Enter / Alt+Backspace escape sequences, plus
-three `ignore` overrides that cede chords to Amethyst). Split, tab, and window
-shortcuts below are Ghostty defaults, except Cmd+Enter is reserved for Zsh.
-This doc is repo documentation only; it is **not** symlinked.
+This config trusts Ghostty's built-in defaults; the only custom keybinds are in `ghostty/config` (Cmd+Enter / Shift+Enter / Alt+Backspace escape sequences, plus three `ignore` overrides that cede chords to Amethyst). Split, tab, and window shortcuts below are Ghostty defaults, except Cmd+Enter is reserved for Zsh. This doc is repo documentation only; it is **not** symlinked.
 
 > `Cmd` = `⌘` (Ghostty calls it `super`). `Opt` = `⌥` (alt). `Ctrl` = `⌃`.
 
@@ -18,9 +11,7 @@ This doc is repo documentation only; it is **not** symlinked.
 - `Enter` inserts a newline at the cursor.
 - `Cmd + Enter` submits the entire command buffer, in insert or normal mode.
 
-These actions are bound in `zsh/zshrc`; other applications handle these keys
-independently. Newlines separate shell commands unless continued with shell
-syntax such as a trailing `\`, a pipe, or open quotes.
+These actions are bound in `zsh/zshrc`; other applications handle these keys independently. Newlines separate shell commands unless continued with shell syntax such as a trailing `\`, a pipe, or open quotes.
 
 ## Splits (panes)
 
@@ -81,35 +72,17 @@ There are two ways to split the terminal, and they behave differently:
 | Survives detach/reattach? | **No**                              | **Yes** (persists in the background)                                    |
 | Best for                  | quick, throwaway side-by-side views | panes (and coding agents) you want to keep across window close / reboot |
 
-Rule of thumb: if you want the split to **persist with the session** — or you are
-running a coding agent you want to keep alive — create it as a Herdr pane
-(`prefix+v`); otherwise a Ghostty split is fine. See `herdr/keybindings.md` for
-the full Herdr pane reference.
+Rule of thumb: if you want the split to **persist with the session** — or you are running a coding agent you want to keep alive — create it as a Herdr pane (`prefix+v`); otherwise a Ghostty split is fine. See `herdr/keybindings.md` for the full Herdr pane reference.
 
 ## Notes on conflicts / this setup
 
-- **`Cmd + S` is free** — it keeps its native **Save** meaning (the old custom
-  split leader was removed).
-- **`Cmd + Opt + W`** is **intentionally disabled** in Ghostty
-  (`keybind = cmd+opt+w=ignore` in `ghostty/config`). By default Ghostty binds
-  it to `close_tab:this`, which collided with Amethyst's `focus-screen-1`
-  (`Opt + Cmd + W`). The override frees the chord so Amethyst always wins; close
-  tabs with `Cmd + W` (on the last split) or via the menu.
-- **`Cmd + Opt + Shift + W`** is **intentionally disabled** in Ghostty
-  (`keybind = cmd+opt+shift+w=ignore`). By default it was `close_all_windows` (a
-  destructive action) which collided with Amethyst's `throw-screen-1`
-  (`Opt + Cmd + Shift + W`). The override frees the chord for Amethyst.
-- **`Cmd + Opt + Shift + J`** is **intentionally disabled** in Ghostty
-  (`keybind = cmd+opt+shift+j=ignore`). By default it was `write_screen_file`
-  which collided with Amethyst's `swap-cw` (`Opt + Cmd + Shift + J`). The override
-  frees the chord for Amethyst.
-- **`Cmd + Opt + arrows`** (directional split focus) uses the same modifier family
-  as Amethyst (`Opt + Cmd`), but Amethyst binds only letters/digits/punctuation/space/enter
-  — never arrows — so there is no collision.
-- Splits live **inside a single Ghostty window**, which Amethyst treats as one
-  tiled window. Use Amethyst (`Opt + Cmd + …`) to move/manage the window itself.
-- To see every default binding for your installed version:
-  `ghostty +list-keybinds --default`
+- **`Cmd + S` is free** — it keeps its native **Save** meaning (the old custom split leader was removed).
+- **`Cmd + Opt + W`** is **intentionally disabled** in Ghostty (`keybind = cmd+opt+w=ignore` in `ghostty/config`). By default Ghostty binds it to `close_tab:this`, which collided with Amethyst's `focus-screen-1` (`Opt + Cmd + W`). The override frees the chord so Amethyst always wins; close tabs with `Cmd + W` (on the last split) or via the menu.
+- **`Cmd + Opt + Shift + W`** is **intentionally disabled** in Ghostty (`keybind = cmd+opt+shift+w=ignore`). By default it was `close_all_windows` (a destructive action) which collided with Amethyst's `throw-screen-1` (`Opt + Cmd + Shift + W`). The override frees the chord for Amethyst.
+- **`Cmd + Opt + Shift + J`** is **intentionally disabled** in Ghostty (`keybind = cmd+opt+shift+j=ignore`). By default it was `write_screen_file` which collided with Amethyst's `swap-cw` (`Opt + Cmd + Shift + J`). The override frees the chord for Amethyst.
+- **`Cmd + Opt + arrows`** (directional split focus) uses the same modifier family as Amethyst (`Opt + Cmd`), but Amethyst binds only letters/digits/punctuation/space/enter — never arrows — so there is no collision.
+- Splits live **inside a single Ghostty window**, which Amethyst treats as one tiled window. Use Amethyst (`Opt + Cmd + …`) to move/manage the window itself.
+- To see every default binding for your installed version: `ghostty +list-keybinds --default`
 
 ## Reference
 

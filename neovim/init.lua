@@ -25,8 +25,7 @@ pack.setup_hooks(require("plugins.hooks").callbacks)
 pack.setup_commands()
 
 -- [[ Plugins (explicit load order) ]]
--- Each module lists its own hard dependencies; a failing module is reported as a
--- warning and the remaining ones still load. oil (navigation) disables netrw itself.
+-- Each module lists its own hard dependencies; a failing module is reported as a warning and the remaining ones still load. oil (navigation) disables netrw itself.
 local modules = {
 	"plugins.treesitter",
 	-- completion before lsp so blink.cmp's capabilities apply to servers

@@ -1,10 +1,7 @@
 # Herdr Configuration
 # ===================
 #
-# Herdr is an agent-aware terminal multiplexer: a background server owns the
-# real terminal processes, clients attach to render them, and panes keep running
-# after detach/close. It detects coding agents (claude, opencode, pi, …) in
-# panes and rolls their state up per workspace in a sidebar.
+# Herdr is an agent-aware terminal multiplexer: a background server owns the real terminal processes, clients attach to render them, and panes keep running after detach/close. It detects coding agents (claude, opencode, pi, …) in panes and rolls their state up per workspace in a sidebar.
 #
 # Where it sits in this setup (full picture: herdr/keybindings.md):
 #   OS windows / spaces .................. Amethyst (Opt+Cmd)
@@ -12,11 +9,9 @@
 #   Session-persistent, agent-aware panes  Herdr    (this file)
 #   Editor (splits, buffers, files) ...... Neovim   (<leader> + Ctrl)
 #
-# Conventions: gruvbox theme, Vim-style h/j/k/l movement, detach/reattach
-# persistence. Prefix stays ctrl+b; [keys] is a deliberate custom remap.
+# Conventions: gruvbox theme, Vim-style h/j/k/l movement, detach/reattach persistence. Prefix stays ctrl+b; [keys] is a deliberate custom remap.
 #
-# Updates: use the installation mechanism that supplied Herdr. Herdr-managed
-# direct installs support `herdr update` and `herdr channel set <stable|preview>`.
+# Updates: use the installation mechanism that supplied Herdr. Herdr-managed direct installs support `herdr update` and `herdr channel set <stable|preview>`.
 # Background version/manifest checks stay enabled (no [update] block).
 #
 # Reference: https://herdr.dev/tui/docs/configuration/ and /tui/docs/config-reference/
@@ -26,8 +21,7 @@
 # Skip first-run onboarding; this repo already provisions the setup.
 onboarding = false
 
-# gruvbox, matching Alacritty / Lazygit. Auto-switching is off by default,
-# keeping the theme dark regardless of the host terminal's appearance.
+# gruvbox, matching Alacritty / Lazygit. Auto-switching is off by default, keeping the theme dark regardless of the host terminal's appearance.
 [theme]
 name = "gruvbox"
 
@@ -36,8 +30,7 @@ name = "gruvbox"
 accent = "#98971a"
 
 # [terminal] is left entirely at Herdr's defaults:
-#   shell_mode = "auto" -- already the default; uses login shells on macOS so
-#     login-only PATH initialization runs in new panes. No pin needed.
+#   shell_mode = "auto" -- already the default; uses login shells on macOS so login-only PATH initialization runs in new panes. No pin needed.
 #   new_cwd = "follow"  -- new panes/tabs/workspaces inherit the source cwd.
 
 [ui]
@@ -45,24 +38,18 @@ accent = "#98971a"
 show_agent_labels_on_pane_borders = true
 # Non-default: order the agent panel by state priority instead of by space.
 agent_panel_sort = "priority"
-# Non-default: distinguish agent states by static symbol shape as well as color,
-# which helps in the compact collapsed and mobile sidebars.
+# Non-default: distinguish agent states by static symbol shape as well as color, which helps in the compact collapsed and mobile sidebars.
 status_indicators = "symbols"
 
-# Background notifications: ask Ghostty (a supported terminal) to show a native
-# desktop notification when a background agent finishes or needs input. Works
-# over SSH; the active tab is suppressed. The default 1s delay filters momentary
-# state changes.
+# Background notifications: ask Ghostty (a supported terminal) to show a native desktop notification when a background agent finishes or needs input. Works over SSH; the active tab is suppressed. The default 1s delay filters momentary state changes.
 [ui.toast]
 delivery = "terminal"
 
-# Sound off; rely on the sidebar + terminal notifications. See [ui.sound.agents]
-# in `herdr --default-config` for per-agent overrides.
+# Sound off; rely on the sidebar + terminal notifications. See [ui.sound.agents] in `herdr --default-config` for per-agent overrides.
 [ui.sound]
 enabled = false
 
-# Keep machine/workspace/tab location on the first row; show agent and state
-# text on the second. Machine identity disappears for a single local machine.
+# Keep machine/workspace/tab location on the first row; show agent and state text on the second. Machine identity disappears for a single local machine.
 [ui.sidebar.agents]
 rows = [
   ["state_icon", "machine", "workspace", "tab"],
@@ -70,8 +57,7 @@ rows = [
 ]
 
 # Keybindings -- deliberate custom remap (Vim-aligned). Prefix stays ctrl+b.
-# Most actions also get a prefix-free ctrl+alt chord. Press prefix+? for the
-# live list. Herdr is mouse-first: none of these are required.
+# Most actions also get a prefix-free ctrl+alt chord. Press prefix+? for the live list. Herdr is mouse-first: none of these are required.
 [keys]
 
 # Session / workspace
@@ -80,9 +66,7 @@ rename_workspace = "prefix+shift+r"
 close_workspace = "prefix+shift+x"
 settings = "prefix+shift+s"
 # rename_workspace above takes prefix+shift+r, which is reload_config's default.
-# Moved here so both actions stay reachable (e = reload). The UI reloads local
-# client settings and the selected server; `herdr server reload-config` targets
-# the CLI's selected server/session.
+# Moved here so both actions stay reachable (e = reload). The UI reloads local client settings and the selected server; `herdr server reload-config` targets the CLI's selected server/session.
 reload_config = "prefix+shift+e"
 
 # Agents (agent-aware navigation; a = agent)
@@ -113,8 +97,7 @@ focus_pane_down = ["prefix+j", "ctrl+alt+j"]
 focus_pane_up = ["prefix+k", "ctrl+alt+k"]
 focus_pane_right = ["prefix+l", "ctrl+alt+l"]
 
-# Panes -- previous focus across tabs/workspaces (Vim: Ctrl+w p). Prefix-only
-# avoids reserving another direct chord inside TUIs.
+# Panes -- previous focus across tabs/workspaces (Vim: Ctrl+w p). Prefix-only avoids reserving another direct chord inside TUIs.
 last_pane = "prefix+p"
 
 # Panes -- swap (Vim: Ctrl+w H/J/K/L)
@@ -129,8 +112,7 @@ resize_mode = ["prefix+w", "ctrl+alt+w"]
 zoom = ["prefix+z", "ctrl+alt+z"]				# fullscreen the focused pane
 edit_scrollback = ["prefix+e", "ctrl+alt+e"]	# open pane scrollback in $EDITOR (nvim)
 
-# Navigate mode -- pane movement defaults to bare h/j/k/l; use Shift+K/J for
-# workspace movement while the navigate surface is open (no prefix).
+# Navigate mode -- pane movement defaults to bare h/j/k/l; use Shift+K/J for workspace movement while the navigate surface is open (no prefix).
 navigate_workspace_up = "shift+k"
 navigate_workspace_down = "shift+j"
 

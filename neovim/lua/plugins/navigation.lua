@@ -52,9 +52,7 @@ pack.safely(
 )
 
 -- Harpoon
--- All maps live under the <leader>h* namespace (Space is the leader). This keeps
--- the entire Ctrl layer free for Neovim/shell defaults and avoids the Ctrl+h =
--- backspace (ASCII 0x08) ambiguity that plagues terminal apps.
+-- All maps live under the <leader>h* namespace (Space is the leader). This keeps the entire Ctrl layer free for Neovim/shell defaults and avoids the Ctrl+h = backspace (ASCII 0x08) ambiguity that plagues terminal apps.
 --   <leader>ha  add file        <leader>he  toggle quick menu
 --   <leader>h1..h4  select 1..4  <leader>hp / hn  previous / next
 pack.safely(

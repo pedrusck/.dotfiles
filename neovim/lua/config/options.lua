@@ -4,9 +4,7 @@ local opt = vim.opt
 opt.number = true
 
 -- Tabs
--- Non-default: hard tabs (expandtab = false) rendered 4 wide. Chosen so the
--- indent character matches the config's own source style; filetypes that
--- require spaces are handled per-buffer via autocmds/editorconfig.
+-- Non-default: hard tabs (expandtab = false) rendered 4 wide. Chosen so the indent character matches the config's own source style; filetypes that require spaces are handled per-buffer via autocmds/editorconfig.
 opt.tabstop = 4
 opt.softtabstop = 4
 opt.shiftwidth = 4
@@ -49,19 +47,16 @@ opt.confirm = true
 opt.hidden = true
 
 -- Clipboard: schedule after UiEnter to avoid startup slowdown
-vim.schedule(
-	function()
-		opt.clipboard = "unnamedplus"
-	end
-)
+vim.schedule(function()
+	opt.clipboard = "unnamedplus"
+end)
 
 -- Spell
 opt.spell = true
 opt.spelllang = "en_us"
 
 -- Folding
--- Indent-based folds, but start fully expanded (foldlevel 99) so nothing is
--- hidden on open — folding is opt-in via zc/zM.
+-- Indent-based folds, but start fully expanded (foldlevel 99) so nothing is hidden on open — folding is opt-in via zc/zM.
 opt.foldmethod = "indent"
 opt.foldlevel = 99
 

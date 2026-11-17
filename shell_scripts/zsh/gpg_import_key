@@ -1,15 +1,11 @@
 #!/usr/bin/env zsh
 
-# Imports the key pair produced by `gpg_export_key` and marks every imported
-# primary key as ultimately trusted. Trust is applied unconditionally: importing
-# a private key means the key belongs to the user, which is what it encodes.
+# Imports the key pair produced by `gpg_export_key` and marks every imported primary key as ultimately trusted. Trust is applied unconditionally: importing a private key means the key belongs to the user, which is what it encodes.
 #
 # Usage: gpg_import_key <FILE_NAME>
 #	FILE_NAME	Base name; reads <FILE_NAME>_public.gpg and <FILE_NAME>_private.gpg.
 #
-# Both files are checked before anything is imported, so a missing or unreadable
-# one cannot leave the keyring half-populated. Importing the private key needs
-# its passphrase, so gpg may open a pinentry prompt (hence no `--batch`).
+# Both files are checked before anything is imported, so a missing or unreadable one cannot leave the keyring half-populated. Importing the private key needs its passphrase, so gpg may open a pinentry prompt (hence no `--batch`).
 #
 # Autoloaded by zsh/zshrc; options and temporary state stay local to this call.
 emulate -L zsh
@@ -26,35 +22,26 @@ local -r public_file="${file_name}_public.gpg" private_file="${file_name}_privat
 
 local key_file
 for key_file in "$public_file" "$private_file"; do
-	[[ -f $key_file && -r $key_file ]] \
-		|| { print -ru2 -- "Error: file not found or not readable: $key_file"; return 1 }
+	[[ -f $key_file && -r $key_file ]] || { print -ru2 -- "Error: file not found or not readable: $key_file"; return 1 }
 done
 
-gpg --import "$public_file" \
-	|| { print -ru2 -- "Error: failed to import public key from: $public_file"; return 1 }
+gpg --import "$public_file" || { print -ru2 -- "Error: failed to import public key from: $public_file"; return 1 }
 
-gpg --import "$private_file" \
-	|| { print -ru2 -- "Error: failed to import private key from: $private_file"; return 1 }
+gpg --import "$private_file" || { print -ru2 -- "Error: failed to import private key from: $private_file"; return 1 }
 
-# Collect the fingerprint of every *primary* key. The `pub` gate matters: an
-# unfiltered `fpr` match would also return subkey fingerprints, which cannot
-# carry an ownertrust value.
+# Collect the fingerprint of every *primary* key. The `pub` gate matters: an unfiltered `fpr` match would also return subkey fingerprints, which cannot carry an ownertrust value.
 local fingerprints
-fingerprints=$(gpg --show-keys --with-colons "$public_file" \
-	| awk -F: '$1 == "pub" { want = 1; next } $1 == "fpr" && want { print $10; want = 0 }') || {
+fingerprints=$(gpg --show-keys --with-colons "$public_file" | awk -F: '$1 == "pub" { want = 1; next } $1 == "fpr" && want { print $10; want = 0 }') || {
 	print -ru2 -- 'Error: failed to read primary key fingerprints'
 	return 1
 }
 
-[[ -n $fingerprints ]] \
-	|| { print -ru2 -- "Error: no primary key fingerprint found in: $public_file"; return 1 }
+[[ -n $fingerprints ]] || { print -ru2 -- "Error: no primary key fingerprint found in: $public_file"; return 1 }
 
-# Ownertrust `ultimate` is the unattended equivalent of `5` in the
-# `gpg --edit-key <KeyID>` trust menu, and is stored as `6` in the trustdb.
+# Ownertrust `ultimate` is the unattended equivalent of `5` in the `gpg --edit-key <KeyID>` trust menu, and is stored as `6` in the trustdb.
 local fingerprint
 for fingerprint in ${(f)fingerprints}; do
-	gpg --batch --quick-set-ownertrust "$fingerprint" ultimate \
-		|| { print -ru2 -- "Error: failed to set ultimate trust for: $fingerprint"; return 1 }
+	gpg --batch --quick-set-ownertrust "$fingerprint" ultimate || { print -ru2 -- "Error: failed to set ultimate trust for: $fingerprint"; return 1 }
 
 	print -r -- "Set ultimate trust for key: $fingerprint"
 done

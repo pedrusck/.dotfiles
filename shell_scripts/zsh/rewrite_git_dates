@@ -36,8 +36,7 @@ integer DATE_RANGE_DAYS=$(( ( $(date -j -f "%Y-%m-%d %H:%M:%S" "${END_DATE} 23:5
 (( DATE_RANGE_DAYS > 0 )) || { print -u2 "END_DATE must be after START_DATE"; exit 1 }
 
 # Build a list of eligible (weekday-only) day epochs within the range.
-# DATE_START_EPOCH is midnight, so adding whole multiples of SECS_PER_DAY
-# always lands on midnight — no need to re-parse through a date string.
+# DATE_START_EPOCH is midnight, so adding whole multiples of SECS_PER_DAY always lands on midnight — no need to re-parse through a date string.
 typeset -a weekday_epochs
 for (( d = 0; d < DATE_RANGE_DAYS; d++ )); do
 	integer day_epoch=$(( DATE_START_EPOCH + d * SECS_PER_DAY ))

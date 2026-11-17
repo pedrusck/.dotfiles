@@ -1,8 +1,7 @@
 local pack = require("config.pack")
 
 -- Mason installs executables; nvim-lspconfig supplies the server definitions.
--- setup() runs at startup because it prepends Mason's bin directory to PATH, which
--- servers started for the first buffer need.
+-- setup() runs at startup because it prepends Mason's bin directory to PATH, which servers started for the first buffer need.
 local mason_ok = pack.safely(
 	"Mason setup",
 	function()
@@ -13,10 +12,7 @@ local mason_ok = pack.safely(
 	end
 )
 
--- Installation is asynchronous: on a fresh machine, reopen the buffer or restart
--- Neovim after installation finishes. Uses Mason's registry API directly
--- (no mason-lspconfig / mason-tool-installer dependency). SourceKit ships with
--- Xcode and is invoked via `xcrun`, so it is intentionally excluded.
+-- Installation is asynchronous: on a fresh machine, reopen the buffer or restart Neovim after installation finishes. Uses Mason's registry API directly (no mason-lspconfig / mason-tool-installer dependency). SourceKit ships with Xcode and is invoked via `xcrun`, so it is intentionally excluded.
 local ensure_installed = {
 	"lua-language-server", -- lua_ls
 	"taplo", -- taplo (TOML)
@@ -27,8 +23,7 @@ local ensure_installed = {
 	"kotlin-lsp" -- kotlin_lsp
 }
 
--- Install any missing packages once mason's registry has refreshed (deferred: the
--- refresh is not needed to start already-installed servers).
+-- Install any missing packages once mason's registry has refreshed (deferred: the refresh is not needed to start already-installed servers).
 if mason_ok then
 	pack.later(
 		"Mason package installation",
@@ -69,8 +64,7 @@ vim.diagnostic.config {
 	},
 }
 
--- LspAttach: only custom keymaps not built-in in 0.11+
--- (gd, gD, gi, K, [d, ]d, grn, gra are all built-in now)
+-- LspAttach: only custom keymaps not built-in in 0.11+ (gd, gD, gi, K, [d, ]d, grn, gra are all built-in now)
 vim.api.nvim_create_autocmd(
 	"LspAttach",
 	{
@@ -102,9 +96,7 @@ vim.keymap.set("n", "<leader>xd", vim.diagnostic.open_float, { desc = "Diagnosti
 vim.keymap.set("n", "<leader>xq", vim.diagnostic.setqflist, { desc = "Diagnostics: quickfix list" })
 vim.keymap.set("n", "<leader>xl", vim.diagnostic.setloclist, { desc = "Diagnostics: location list" })
 
--- Native discovery merges nvim-lspconfig's lsp/ definitions with our after/lsp/
--- overrides before enabling servers. Without nvim-lspconfig the definitions would be
--- incomplete, so servers are only enabled once it is loaded.
+-- Native discovery merges nvim-lspconfig's lsp/ definitions with our after/lsp/ overrides before enabling servers. Without nvim-lspconfig the definitions would be incomplete, so servers are only enabled once it is loaded.
 pack.safely(
 	"LSP setup",
 	function()

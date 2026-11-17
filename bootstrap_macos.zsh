@@ -98,8 +98,7 @@ function prepare_repository() {
 	local repository_root origin_url projects_symlink="$HOME/Developer/Personal Projects"
 	mkdir -p "${DOTFILES_PATH:h}"
 	if [[ -e $DOTFILES_PATH || -L $DOTFILES_PATH ]]; then
-		repository_root=$(git -C "$DOTFILES_PATH" rev-parse --show-toplevel 2>/dev/null) \
-			|| { print_error "Destination exists but is not a Git checkout: $DOTFILES_PATH"; exit 1; }
+		repository_root=$(git -C "$DOTFILES_PATH" rev-parse --show-toplevel 2>/dev/null) || { print_error "Destination exists but is not a Git checkout: $DOTFILES_PATH"; exit 1; }
 		[[ ${repository_root:A} == ${DOTFILES_PATH:A} ]] || {
 			print_error "Destination is not a repository root: $DOTFILES_PATH"
 			exit 1
@@ -122,11 +121,9 @@ function prepare_repository() {
 }
 
 function load_profile() {
-	[[ -f $DOTFILES_PATH/profiles/$PROFILE.sh ]] \
-		|| { print_error "Profile '$PROFILE' not found in $DOTFILES_PATH/profiles."; exit 1; }
+	[[ -f $DOTFILES_PATH/profiles/$PROFILE.sh ]] || { print_error "Profile '$PROFILE' not found in $DOTFILES_PATH/profiles."; exit 1; }
 	local profile_tools_output
-	profile_tools_output=$(/bin/sh -eu -c '. "$1"; printf "%s\n" "${PROFILE_TOOLS:-}"' sh "$DOTFILES_PATH/profiles/$PROFILE.sh") \
-		|| { print_error "Could not load profile '$PROFILE'."; exit 1; }
+	profile_tools_output=$(/bin/sh -eu -c '. "$1"; printf "%s\n" "${PROFILE_TOOLS:-}"' sh "$DOTFILES_PATH/profiles/$PROFILE.sh") || { print_error "Could not load profile '$PROFILE'."; exit 1; }
 	PROFILE_TOOLS=( ${=profile_tools_output} )
 	(( $#PROFILE_TOOLS )) || { print_error "Profile '$PROFILE' defines no tools."; exit 1; }
 	local tool
@@ -143,8 +140,7 @@ function ensure_homebrew() {
 	else
 		print_information "Installing Homebrew"
 
-		installer=$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh) \
-			|| { print_error "Could not download the Homebrew installer."; exit 1; }
+		installer=$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh) || { print_error "Could not download the Homebrew installer."; exit 1; }
 		[[ -n $installer ]] || { print_error "Homebrew installer is empty."; exit 1; }
 
 		# NONINTERACTIVE also disables password prompts inside the installer.
@@ -169,8 +165,7 @@ function import_gpg_keys() {
 	if [[ -t 0 ]]; then export GPG_TTY=$(tty); fi
 	for key_file in $KEY_FILES; do
 		print_information "Importing GPG key: ${key_file:t}"
-		import_output=$("$GPG_EXECUTABLE" --batch --status-fd 1 --import "$key_file") \
-			|| { print_error "Could not import GPG key: $key_file"; exit 1; }
+		import_output=$("$GPG_EXECUTABLE" --batch --status-fd 1 --import "$key_file") || { print_error "Could not import GPG key: $key_file"; exit 1; }
 
 		# IMPORT_OK reason bit 16 marks secret keys, including unchanged imports.
 		while read -r status_marker status_event import_reason fingerprint remaining_fields; do
@@ -194,8 +189,7 @@ function import_gpg_keys() {
 
 function repository_is_locked() {
 	local git_directory
-	git_directory=$(git -C "$DOTFILES_PATH" rev-parse --absolute-git-dir) \
-		|| { print_error "Cannot determine the Git directory for $DOTFILES_PATH"; exit 1; }
+	git_directory=$(git -C "$DOTFILES_PATH" rev-parse --absolute-git-dir) || { print_error "Cannot determine the Git directory for $DOTFILES_PATH"; exit 1; }
 	[[ ! -f $git_directory/git-crypt/keys/default ]]
 }
 
@@ -208,18 +202,14 @@ function validate_git_crypt() {
 	# A key can survive a failed unlock or a checkout that bypassed the filters.
 	# Check the effective configuration, including overrides outside .git/config.
 	for setting in filter.git-crypt.clean filter.git-crypt.smudge diff.git-crypt.textconv; do
-		value=$(git -C "$DOTFILES_PATH" config --get "$setting") \
-			&& [[ -n $value ]] || { print_error "Missing git-crypt configuration: $setting"; exit 1; }
+		value=$(git -C "$DOTFILES_PATH" config --get "$setting") && [[ -n $value ]] || { print_error "Missing git-crypt configuration: $setting"; exit 1; }
 	done
-	value=$(git -C "$DOTFILES_PATH" config --bool --get filter.git-crypt.required) \
-		&& [[ $value == true ]] || { print_error "filter.git-crypt.required must be true."; exit 1; }
+	value=$(git -C "$DOTFILES_PATH" config --bool --get filter.git-crypt.required) && [[ $value == true ]] || { print_error "filter.git-crypt.required must be true."; exit 1; }
 
-	files_output=$(git -C "$DOTFILES_PATH" ls-files --cached --others --exclude-standard --deduplicate -z -- '*.secret' '*.secret.*') \
-		|| { print_error "Cannot list secret files for git-crypt validation."; exit 1; }
+	files_output=$(git -C "$DOTFILES_PATH" ls-files --cached --others --exclude-standard --deduplicate -z -- '*.secret' '*.secret.*') || { print_error "Cannot list secret files for git-crypt validation."; exit 1; }
 	for secret_file in "${(@0)files_output}"; do
 		[[ -n $secret_file ]] || continue
-		attributes_output=$(git -C "$DOTFILES_PATH" check-attr -z filter -- "$secret_file") \
-			|| { print_error "Cannot check git-crypt attributes: $secret_file"; exit 1; }
+		attributes_output=$(git -C "$DOTFILES_PATH" check-attr -z filter -- "$secret_file") || { print_error "Cannot check git-crypt attributes: $secret_file"; exit 1; }
 		attributes=( "${(@0)attributes_output}" )
 		[[ ${attributes[3]:-} == git-crypt ]] || {
 			print_error "Secret file is not protected by filter=git-crypt: $secret_file"
@@ -247,16 +237,10 @@ function validate_git_crypt() {
 	}
 	[[ -n $probe_file ]] || { print_error "No tracked secret file available to verify git-crypt filters."; exit 1; }
 
-	# Exercise Git's actual smudge and clean filters, without writing objects or
-	# touching the index/working files. Pass-through filters must not count as success.
-	decrypted_hash=$(git -C "$DOTFILES_PATH" cat-file --filters ":$probe_file" \
-		| git -C "$DOTFILES_PATH" hash-object --no-filters --stdin) \
-		|| { print_error "git-crypt decryption filter failed."; exit 1; }
-	roundtrip_hash=$(git -C "$DOTFILES_PATH" cat-file --filters ":$probe_file" \
-		| git -C "$DOTFILES_PATH" hash-object --path="$probe_file" --stdin) \
-		|| { print_error "git-crypt encryption filter failed."; exit 1; }
-	[[ $decrypted_hash != $index_hash && $roundtrip_hash == $index_hash ]] \
-		|| { print_error "git-crypt filters did not decrypt and re-encrypt the indexed secret correctly."; exit 1; }
+	# Exercise Git's actual smudge and clean filters, without writing objects or touching the index/working files. Pass-through filters must not count as success.
+	decrypted_hash=$(git -C "$DOTFILES_PATH" cat-file --filters ":$probe_file" | git -C "$DOTFILES_PATH" hash-object --no-filters --stdin) || { print_error "git-crypt decryption filter failed."; exit 1; }
+	roundtrip_hash=$(git -C "$DOTFILES_PATH" cat-file --filters ":$probe_file" | git -C "$DOTFILES_PATH" hash-object --path="$probe_file" --stdin) || { print_error "git-crypt encryption filter failed."; exit 1; }
+	[[ $decrypted_hash != $index_hash && $roundtrip_hash == $index_hash ]] || { print_error "git-crypt filters did not decrypt and re-encrypt the indexed secret correctly."; exit 1; }
 }
 
 function unlock_git_crypt() {
@@ -289,8 +273,7 @@ function run_tool_setups() {
 			continue
 		fi
 		print_information " Setting up $tool"
-		/bin/sh "$DOTFILES_PATH/$tool/setup.sh" \
-			|| { print_error "Setup failed for profile tool '$tool'."; exit 1; }
+		/bin/sh "$DOTFILES_PATH/$tool/setup.sh" || { print_error "Setup failed for profile tool '$tool'."; exit 1; }
 		CONFIGURED_TOOLS+=( "$tool" )
 	done
 }
@@ -300,8 +283,7 @@ function install_keyboard_layout() {
 
 	local source_bundle=$DOTFILES_PATH/eurkey/EurKEY.bundle
 	local destination_bundle="/Library/Keyboard Layouts/EurKEY.bundle"
-	[[ -f $source_bundle/Contents/Info.plist && -f $source_bundle/Contents/Resources/EurKEY.keylayout ]] \
-		|| { print_error "Incomplete EurKEY bundle: $source_bundle"; exit 1; }
+	[[ -f $source_bundle/Contents/Info.plist && -f $source_bundle/Contents/Resources/EurKEY.keylayout ]] || { print_error "Incomplete EurKEY bundle: $source_bundle"; exit 1; }
 
 	# Replace outright so files removed upstream do not survive; ditto alone merges.
 	sudo rm -rf -- "$destination_bundle"
@@ -331,8 +313,7 @@ function apply_keybindings() {
 		shortcut_ids+=(52 65)
 		# Menu titles use the UI language, independently of regional formatting.
 		local language
-		language=$(defaults export -g - 2>/dev/null | plutil -extract AppleLanguages.0 raw -o - - 2>/dev/null) \
-			|| language=unknown
+		language=$(defaults export -g - 2>/dev/null | plutil -extract AppleLanguages.0 raw -o - - 2>/dev/null) || language=unknown
 		case ${language:l} in
 			en*) menu_titles=("Hide Others" "Minimize All" "Close All") ;;
 			de*) menu_titles=("Andere ausblenden" "Alle minimieren" "Alle schließen") ;;
@@ -350,9 +331,7 @@ function apply_keybindings() {
 		shortcut_ids+=(60 61)
 	fi
 
-	# Disable each shortcut while keeping its key combination, so re-enabling it in
-	# System Settings restores the original binding. Missing entries fall back to
-	# the macOS defaults; 'defaults' is used throughout to stay consistent with cfprefsd.
+	# Disable each shortcut while keeping its key combination, so re-enabling it in System Settings restores the original binding. Missing entries fall back to the macOS defaults; 'defaults' is used throughout to stay consistent with cfprefsd.
 	local -A shortcut_default_parameters=(
 		52 '100,2,1572864'      # Dock hiding, Opt+Cmd+D
 		60 '32,49,262144'       # Previous input source, Ctrl+Space
@@ -361,13 +340,10 @@ function apply_keybindings() {
 	)
 	local shortcut_id shortcut_parameters
 	for shortcut_id in $shortcut_ids; do
-		shortcut_parameters=$(defaults export com.apple.symbolichotkeys - 2>/dev/null \
-			| plutil -extract "AppleSymbolicHotKeys.$shortcut_id.value.parameters" json -o - - 2>/dev/null) \
-			|| shortcut_parameters=""
+		shortcut_parameters=$(defaults export com.apple.symbolichotkeys - 2>/dev/null | plutil -extract "AppleSymbolicHotKeys.$shortcut_id.value.parameters" json -o - - 2>/dev/null) || shortcut_parameters=""
 		shortcut_parameters=${shortcut_parameters//[\[\]\" ]/}
 		[[ -n $shortcut_parameters ]] || shortcut_parameters=${shortcut_default_parameters[$shortcut_id]:-}
-		defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$shortcut_id" \
-			"{enabled=0;value={parameters=($shortcut_parameters);type=standard;};}"
+		defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$shortcut_id" "{enabled=0;value={parameters=($shortcut_parameters);type=standard;};}"
 	done
 
 	# Reload the affected agents so the changes take effect.

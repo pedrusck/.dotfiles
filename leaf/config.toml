@@ -6,8 +6,7 @@
 #
 # On Linux / macOS, $XDG_CONFIG_HOME/leaf/config.toml is used if set.
 #
-# All settings are optional. If a setting is missing or the file
-# does not exist, leaf uses its built-in defaults.
+# All settings are optional. If a setting is missing or the file does not exist, leaf uses its built-in defaults.
 # Command-line arguments always take priority over this file.
 
 # Color theme
@@ -27,8 +26,7 @@ theme = "gruvbox.toml"
 # See gruvbox.toml in the repository for a complete example.
 
 # Default editor for Ctrl+E
-# Any editor name available in PATH: nano, vim, nvim, micro,
-# helix, emacs, code, subl, gedit, kate, mousepad, zed, etc.
+# Any editor name available in PATH: nano, vim, nvim, micro, helix, emacs, code, subl, gedit, kate, mousepad, zed, etc.
 #
 # For paths with spaces, just write the path:
 # editor = 'C:\Program Files\Notepad++\notepad++.exe'

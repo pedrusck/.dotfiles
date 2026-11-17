@@ -1,10 +1,6 @@
 -- Swift file runner.
 --
--- Bound to an explicit keymap (<leader>cx, "Code: execute") rather than run on
--- every save: `swift <file>` only makes sense for standalone, runnable scripts
--- and would error or misbehave on library / SwiftPM package sources that are
--- not directly executable. The keymap is buffer-local and set on the Swift
--- filetype so it never leaks into other buffers.
+-- Bound to an explicit keymap (<leader>cx, "Code: execute") rather than run on every save: `swift <file>` only makes sense for standalone, runnable scripts and would error or misbehave on library / SwiftPM package sources that are not directly executable. The keymap is buffer-local and set on the Swift filetype so it never leaks into other buffers.
 local function run_current_swift_file()
 	local file_name = vim.api.nvim_buf_get_name(0)
 	local buf_name = "[Swift Output]"
@@ -45,11 +41,6 @@ vim.api.nvim_create_autocmd("FileType", {
 	pattern = "swift",
 	desc = "Swift: buffer-local run-current-file keymap",
 	callback = function(ev)
-		vim.keymap.set(
-			"n",
-			"<leader>cx",
-			run_current_swift_file,
-			{ buffer = ev.buf, desc = "Code: execute (swift run current file)" }
-		)
+		vim.keymap.set("n", "<leader>cx", run_current_swift_file, { buffer = ev.buf, desc = "Code: execute (swift run current file)" })
 	end,
 })

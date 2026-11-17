@@ -10,8 +10,7 @@ local project search_pattern="*${1-}*.xcodeproj" REPLY
 
 print -r -- 'Collecting .xcodeproj...'
 # Zsh retains the array built by the final pipeline component in this function.
-command find . -iname "$search_pattern" -type d -print0 | command sort -z |
-	while IFS= read -r -d '' project; do
+command find . -iname "$search_pattern" -type d -print0 | command sort -z | while IFS= read -r -d '' project; do
 		projects+=("$project")
 	done || return $?
 
