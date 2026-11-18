@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
-# Snapshot LibreWolf permissions (including cookie exceptions) on macOS/Linux.
-# Usage: extract_librewolf_permissions.zsh [--dry-run] [PROFILE_DIRECTORY]
+# Snapshot LibreWolf Browsing data exceptions on macOS/Linux.
+# Usage: extract_librewolf_browsing_data_exceptions.zsh [--dry-run] [PROFILE_DIRECTORY]
 # LIBREWOLF_PROFILE supplies a profile when no positional override is given.
 # Backups are saved beside this script, including when invoked through a symlink.
 
@@ -15,7 +15,7 @@ function die() {
 }
 
 function usage() {
-	print -r -- 'Usage: extract_librewolf_permissions.zsh [OPTIONS] [PROFILE_DIRECTORY]
+	print -r -- 'Usage: extract_librewolf_browsing_data_exceptions.zsh [OPTIONS] [PROFILE_DIRECTORY]
   --dry-run     Show the source, destination, and copy method without writing
   -h, --help    Show help
   --            End options (for profile paths starting with a dash)
@@ -25,12 +25,12 @@ default profile in the first existing native Linux, XDG, Flatpak, or macOS root.
 LibreWolf must be closed; process or profile lock detection aborts the snapshot.
 Persistent regular lock files are checked with lsof, not by existence alone.
 
-Output: librewolf_permissions-YYYYMMDD_HHMMSS.secret.sqlite beside the resolved script.
+Output: librewolf_browsing_data_exceptions-YYYYMMDD_HHMMSS.secret.sqlite
+beside the resolved script.
 An existing same-second backup is never overwritten; retry in the next second.
-SQLite, when available, merges WAL data and checks integrity on a private copy.
-Otherwise, database/WAL/SHM files are copied together and byte-verified. Keep
-these sidecars alongside the backup. The source profile is never modified.
-This copies all permissions, not just cookie exceptions or enterprise policies.'
+Requires sqlite3. A private copy is filtered to persist-data-on-shutdown
+(Browsing data exceptions), compacted, and integrity-checked. The output is
+one standalone database; the source profile is never modified.'
 }
 
 function find_profile() {
@@ -133,17 +133,12 @@ function check_not_running() {
 }
 
 function copy_permissions() (
-	# Keep cleanup active on failures, including partially published sidecar sets.
 	unsetopt ERR_EXIT
-	local profile=$1 dest=$2 use_sqlite=$3 stage="" source staged suffix integrity bytes
-	local -a suffixes=("") published=() link_options
-	local -i complete=0
+	local profile=$1 dest=$2 stage="" source staged suffix integrity bytes clear_tables exceptions
+	local -a link_options
 	function cleanup_permissions() {
 		local -i result=$?
 		trap - EXIT
-		if (( ! complete && ${#published} )); then
-			rm -f -- "${published[@]}" || result=1
-		fi
 		[[ -z "$stage" ]] || rm -rf -- "$stage" || result=1
 		exit "$result"
 	}
@@ -152,56 +147,49 @@ function copy_permissions() (
 	trap 'exit 143' TERM
 	stage=$(mktemp -d "$SCRIPT_DIR/.permissions-export.XXXXXXXX") || die 'could not create staging directory'
 	mkdir -- "$stage/raw" "$stage/out" || die 'could not create staging subdirectories'
-	for suffix in -wal -shm; do
-		[[ ! -e "$profile/permissions.sqlite$suffix" ]] || suffixes+=("$suffix")
-	done
-	for suffix in "${suffixes[@]}"; do
+	for suffix in '' -wal -shm; do
 		source="$profile/permissions.sqlite$suffix"
+		[[ -z "$suffix" || -e "$source" ]] || continue
 		cp -p -- "$source" "$stage/raw/permissions.sqlite$suffix" || die "could not copy $source"
 		cmp -s -- "$source" "$stage/raw/permissions.sqlite$suffix" || die "source changed or verification failed: $source"
 	done
 	# Recheck after capture in case the browser was opened during the copy.
 	check_not_running "$profile"
-	staged="$stage/raw/permissions.sqlite"
-	if (( use_sqlite )); then
-		# SQLite may create/update SHM files even for read-only connections. Only open the staged database, and use a fixed backup name to avoid quoting arbitrary directory names inside SQLite dot-command syntax.
-		chmod u+rw "$stage/raw/permissions.sqlite"* || die 'could not prepare staged database'
-		(cd -- "$stage/out" && sqlite3 ../raw/permissions.sqlite '.backup permissions.sqlite') || die 'SQLite backup failed'
-		staged="$stage/out/permissions.sqlite"
-		# A backup can inherit WAL journal mode. Normalize the copy so it opens as a standalone read-only database without needing writable sidecars.
-		integrity=$(sqlite3 "$staged" 'PRAGMA journal_mode=DELETE;') || die 'could not finalize SQLite backup'
-		[[ "$integrity" == delete ]] || die "could not disable WAL on backup: $integrity"
-		integrity=$(sqlite3 -readonly "$staged" 'PRAGMA integrity_check;') || die 'SQLite integrity check failed'
-		[[ "$integrity" == ok ]] || die "backup integrity check failed: $integrity"
-		suffixes=("")
-	fi
+	# Only open staged files: even read-only SQLite connections can modify SHM.
+	chmod u+rw "$stage/raw/permissions.sqlite"* || die 'could not prepare staged database'
+	(cd -- "$stage/out" && sqlite3 -bail ../raw/permissions.sqlite '.backup permissions.sqlite') || die 'SQLite backup failed'
+	staged="$stage/out/permissions.sqlite"
+	integrity=$(sqlite3 "$staged" 'PRAGMA journal_mode=DELETE;') || die 'could not finalize SQLite backup'
+	[[ "$integrity" == delete ]] || die "could not disable WAL on backup: $integrity"
+	# Preserve the schema, but empty every auxiliary table, including interaction history.
+	clear_tables=$(sqlite3 -readonly "$staged" "SELECT printf('DELETE FROM \"%w\";', name)
+		FROM sqlite_master WHERE type = 'table' AND name <> 'moz_perms'
+		AND name NOT GLOB 'sqlite_*';") || die 'could not inspect permissions schema'
+	# VACUUM removes deleted URLs from unused pages in the published file.
+	sqlite3 -bail "$staged" "BEGIN;
+		DELETE FROM moz_perms WHERE type IS NOT 'persist-data-on-shutdown';
+		$clear_tables
+		COMMIT; VACUUM;" || die 'could not filter Browsing data exceptions'
+	integrity=$(sqlite3 -readonly "$staged" 'PRAGMA integrity_check;') || die 'SQLite integrity check failed'
+	[[ "$integrity" == ok ]] || die "backup integrity check failed: $integrity"
+	exceptions=$(sqlite3 -readonly "$staged" 'SELECT count(*) FROM moz_perms;') || die 'could not count exceptions'
 	[[ -s "$staged" ]] || die 'backup is missing or empty'
 	bytes=$(wc -c < "$staged") || die 'could not determine backup size'
 	bytes=${bytes//[[:space:]]/}
 	# Hard links publish without replacing existing paths. Disable following destination directory symlinks on both BSD and GNU implementations.
 	if [[ "$OSTYPE" == darwin* ]]; then link_options=(-h); else link_options=(-T); fi
-	for suffix in "${suffixes[@]}"; do
-		ln "${link_options[@]}" -- "$staged$suffix" "$dest$suffix" || die "could not publish backup (destination may already exist): $dest$suffix"
-		published+=("$dest$suffix")
-	done
-	complete=1
+	ln "${link_options[@]}" -- "$staged" "$dest" || die "could not publish backup (destination may already exist): $dest"
 	print -r -- "Source: $profile/permissions.sqlite"
 	print -r -- "Saved: $dest"
 	print -r -- "Size: $bytes bytes"
-	if (( use_sqlite )); then
-		print -r -- 'Integrity: ok'
-	else
-		print -r -- 'Verification: byte-for-byte copy (sqlite3 unavailable)'
-		for suffix in "${suffixes[@]}"; do
-			[[ -z "$suffix" ]] || print -r -- "Sidecar: $dest$suffix"
-		done
-	fi
+	print -r -- "Browsing data exceptions: $exceptions"
+	print -r -- 'Integrity: ok'
 	return 0
 )
 
 function main() {
 	local override="${LIBREWOLF_PROFILE-}" profile stamp dest suffix
-	local -i dry_run=0 positional=0 use_sqlite=$+commands[sqlite3]
+	local -i dry_run=0 positional=0
 	while (( $# )); do
 		case "$1" in
 			-h|--help) usage; return 0 ;;
@@ -220,24 +208,21 @@ function main() {
 		[[ -n "$1" ]] || die 'profile directory cannot be empty'
 		override=$1
 	fi
+	(( $+commands[sqlite3] )) || die 'sqlite3 is required to extract Browsing data exceptions'
 	profile=$(find_profile "$override") || return 1
 	check_not_running "$profile"
 	stamp=$(date '+%Y%m%d_%H%M%S') || die 'could not generate backup timestamp'
-	dest="$SCRIPT_DIR/librewolf_permissions-$stamp.secret.sqlite"
+	dest="$SCRIPT_DIR/librewolf_browsing_data_exceptions-$stamp.secret.sqlite"
 	for suffix in '' -wal -shm; do
 		[[ ! -e "$dest$suffix" && ! -L "$dest$suffix" ]] || die "backup already exists: $dest$suffix; retry in the next second"
 	done
 	if (( dry_run )); then
 		print -r -- "Source: $profile/permissions.sqlite"
 		print -r -- "Destination: $dest"
-		if (( use_sqlite )); then
-			print -r -- 'Method: SQLite backup and integrity check on a staged copy'
-		else
-			print -r -- 'Method: cp -p with WAL/SHM sidecars and byte verification'
-		fi
+		print -r -- 'Method: SQLite backup, filter to Browsing data exceptions (persist-data-on-shutdown), VACUUM, and integrity check on a staged copy'
 		return 0
 	fi
-	copy_permissions "$profile" "$dest" "$use_sqlite"
+	copy_permissions "$profile" "$dest"
 }
 
 main "$@"
