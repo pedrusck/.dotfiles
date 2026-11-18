@@ -19,23 +19,25 @@ Snapshots match this repository's `*.secret.*` git-crypt attributes, encrypting 
 ### Restore LibreWolf permissions
 
 ```sh
-# Restore the latest snapshot beside the resolved script
-./restore_librewolf_permissions.zsh
+# Restore Browsing data exceptions from the latest snapshot beside the resolved script
+./restore_librewolf_browsing_data_exceptions.zsh
 
 # Preview the selected snapshot, destination, and installation method
-./restore_librewolf_permissions.zsh --dry-run
+./restore_librewolf_browsing_data_exceptions.zsh --dry-run
 
 # Restore a specific snapshot into an explicit profile
-./restore_librewolf_permissions.zsh --snapshot ./librewolf_browsing_data_exceptions-20261118_235853.secret.sqlite "/path/to/profile"
+./restore_librewolf_browsing_data_exceptions.zsh --snapshot ./librewolf_browsing_data_exceptions-20261118_235853.secret.sqlite "/path/to/profile"
 ```
 
 The latest snapshot is selected by its `YYYYMMDD_HHMMSS` filename timestamp, not modification time; only exact `librewolf_browsing_data_exceptions-YYYYMMDD_HHMMSS.secret.sqlite` names are selected automatically. Use `--snapshot FILE` for older `librewolf_permissions-*` snapshots; this option accepts any filename, including legacy snapshots without `.secret`. Relative paths use the current working directory. Profile selection follows the extractor: positional profile, then `LIBREWOLF_PROFILE`, then default-profile discovery. The profile directory must exist, but its database may be absent.
 
-Close LibreWolf yourself before restoring. The script checks processes and profile locks, aborts if LibreWolf is running, and leaves it closed afterward. It requires `sqlite3`, `pgrep`, standard shell utilities, and `lsof` when regular profile lock files exist. Restoration runs without a confirmation prompt and replaces **all site permissions**, including cookie exceptions. Restoring a new exceptions-only snapshot therefore clears other site permissions; the current restore script does not merge just the Browsing data exception list. It does not restore cookies or enterprise policies.
+Close LibreWolf yourself before restoring. The script checks processes and profile locks, aborts if LibreWolf is running, and leaves it closed afterward. It requires `sqlite3`, `pgrep`, standard shell utilities, and `lsof` when regular profile lock files exist. Restoration runs without a confirmation prompt. **Restoration replaces exactly the `persist-data-on-shutdown` entries**, preserving other permissions, interaction records, and the destination schema/version. It imports permission values and expiration/modification metadata with newly assigned IDs. Both exceptions-only and legacy full snapshots work; a snapshot containing zero exceptions clears the existing exception list. If the destination database is absent, an exceptions-only database is created using the snapshot schema, with auxiliary tables emptied and deleted URLs removed using `VACUUM`. An existing invalid database or orphan sidecars cause restoration to abort.
 
-The snapshot and any matching `-wal`/`-shm` files are copied and byte-verified in private staging inside the profile. SQLite merges WAL data into a standalone database, checks integrity, and verifies the permissions table and core columns. The snapshot itself is never opened by SQLite or modified. Keep the snapshot and its matching sidecars together. `--dry-run` writes nothing and runs preflight checks; SQLite validation happens only during an actual restore.
+Restoration does not restore cookies or enterprise policies.
 
-Restoration treats the selected snapshot as the complete replacement database and creates no backups or rollback. After validation, old `permissions.sqlite-wal` and `permissions.sqlite-shm` sidecars are removed and the prepared database is installed by an atomic rename as `permissions.sqlite`, with owner-only read/write permissions. Temporary staging and the restore lock are cleaned up on normal exit and handled failures.
+The snapshot and any matching `-wal`/`-shm` files are copied and byte-verified in private staging inside the profile. Selective restoration also captures the destination database and sidecars, then replaces its exception list in a staged SQL transaction. SQLite merges WAL data into standalone databases, checks integrity, and verifies the required permissions columns. The snapshot itself is never opened by SQLite or modified. Keep the snapshot and its matching sidecars together. Before selective installation, destination files are compared with the untouched capture; added, removed, or changed files cause an abort. `--dry-run` writes nothing and reports the scope and preflight checks; SQLite validation happens only during an actual restore.
+
+Restoration creates no backups or rollback. After validation, old `permissions.sqlite-wal` and `permissions.sqlite-shm` sidecars are removed and the prepared database is installed by an atomic rename as `permissions.sqlite`, with owner-only read/write permissions. Restoration reports the exception count. Temporary staging and the restore lock are cleaned up on normal exit and handled failures.
 
 Validation failures leave the target permissions untouched. If installation fails or is interrupted after replacement begins, the old file set may already have changed. Keep LibreWolf closed and rerun restoration from the snapshot. To apply a different saved state, pass that extracted snapshot with `--snapshot`. After successful restoration, open LibreWolf manually and inspect the **Browsing data** exceptions in **Settings > Privacy & Security**.
 
