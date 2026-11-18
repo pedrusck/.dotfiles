@@ -24,7 +24,10 @@ function M.is_git_crypt_file(bufnr)
 	path = vim.uv.fs_realpath(path) or path
 	local filename = vim.fs.basename(path)
 	local ok, result = pcall(function()
-		return vim.system({ "git", "check-attr", "-z", "filter", "diff", "--", filename }, { cwd = vim.fs.dirname(path), timeout = CHECK_TIMEOUT_MS }):wait(CHECK_TIMEOUT_MS)
+		return vim.system(
+			{ "git", "check-attr", "-z", "filter", "diff", "--", filename },
+			{ cwd = vim.fs.dirname(path), timeout = CHECK_TIMEOUT_MS }
+		):wait(CHECK_TIMEOUT_MS)
 	end)
 	if not ok or result.code ~= 0 then
 		return false
@@ -32,7 +35,14 @@ function M.is_git_crypt_file(bufnr)
 
 	-- Expected: path\0filter\0value\0path\0diff\0value\0
 	local fields = vim.split(result.stdout or "", "\0", { plain = true })
-	if #fields ~= 7 or fields[1] ~= filename or fields[2] ~= "filter" or fields[4] ~= filename or fields[5] ~= "diff" or fields[7] ~= "" then
+	if
+		#fields ~= 7
+		or fields[1] ~= filename
+		or fields[2] ~= "filter"
+		or fields[4] ~= filename
+		or fields[5] ~= "diff"
+		or fields[7] ~= ""
+	then
 		return false
 	end
 

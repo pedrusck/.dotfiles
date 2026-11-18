@@ -41,6 +41,11 @@ vim.api.nvim_create_autocmd("FileType", {
 	pattern = "swift",
 	desc = "Swift: buffer-local run-current-file keymap",
 	callback = function(ev)
-		vim.keymap.set("n", "<leader>cx", run_current_swift_file, { buffer = ev.buf, desc = "Code: execute (swift run current file)" })
+		vim.keymap.set(
+			"n",
+			"<leader>cx",
+			run_current_swift_file,
+			{ buffer = ev.buf, desc = "Code: execute (swift run current file)" }
+		)
 	end,
 })

@@ -1,8 +1,8 @@
-vim.pack.add {
-	{ src = "https://github.com/lewis6991/gitsigns.nvim", version = vim.version.range("2.x") }
-}
+vim.pack.add({
+	{ src = "https://github.com/lewis6991/gitsigns.nvim", version = vim.version.range("2.x") },
+})
 
-require("gitsigns").setup {
+require("gitsigns").setup({
 	-- Raw Git baselines contain ciphertext for git-crypt files, while buffers contain plaintext. Let Git attributes identify those files in any repo.
 	-- After attribute changes, :Gitsigns detach then :Gitsigns attach rechecks.
 	on_attach = function(bufnr)
@@ -38,5 +38,5 @@ require("gitsigns").setup {
 		relative = "cursor",
 		row = 0,
 		col = 1,
-	}
-}
+	},
+})

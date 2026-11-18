@@ -43,7 +43,7 @@ opt.splitright = true
 -- Files
 opt.textwidth = 0
 opt.wrapmargin = 0
-opt.formatoptions:remove { "t", "c", "a" }
+opt.formatoptions:remove({ "t", "c", "a" })
 opt.undofile = true
 opt.undodir = os.getenv("HOME") .. "/.vim/undo"
 opt.autoread = true

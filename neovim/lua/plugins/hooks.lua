@@ -35,7 +35,7 @@ M.callbacks = {
 		if data.kind == "install" or data.kind == "update" then
 			M.build_fzf_native(data.path)
 		end
-	end
+	end,
 }
 
 return M

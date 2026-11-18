@@ -5,16 +5,16 @@ return {
 		if not ok then
 			return
 		end
-		ltex_extra.setup {
+		ltex_extra.setup({
 			load_langs = { "ca-Es", "de-DE", "en-US", "es" },
-			path = ".ltex"
-		}
+			path = ".ltex",
+		})
 	end,
 	settings = {
 		ltex = {
 			checkFrequency = "save",
 			enabled = { "markdown", "plaintex", "rst", "tex", "latex" },
-			language = "en-US"
-		}
-	}
+			language = "en-US",
+		},
+	},
 }
