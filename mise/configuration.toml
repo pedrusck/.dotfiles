@@ -39,6 +39,7 @@ pandoc = "latest" # Swiss-army knife of markup format conversion
 # "github:mfontanini/presenterm" = "latest" # Terminal slideshow tool
 "conda:qpdf" = "latest" # Tools for transforming and inspecting PDF files
 rumdl = "latest" # Markdown Linter and Formatter written in Rust
+stylua = "latest" # Opinionated Lua code formatter
 typst = "latest" # Markup-based typesetting system
 
 # --- Editors ------------------------------------------------------------------
