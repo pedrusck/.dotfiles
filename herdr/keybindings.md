@@ -32,6 +32,12 @@ Inside a pane, Herdr does shadow a few low-value defaults, each easily replaced:
 
 To send a literal **`Ctrl+B`** to the focused pane, press **`ctrl+b ctrl+b`** (the prefix twice). This lets the pane application handle its own Ctrl+B action. `ctrl+b` followed by plain `b` is different: it toggles Herdr's sidebar.
 
+## Zsh command submission
+
+`Return` inserts a newline; `Cmd+Return` submits the buffer. A `cmd+enter` custom command in `herdr/config.toml` uses `pane send-text` to write `ESC [13;9u` directly to the active pane, matching Zsh's existing `accept-line` binding. This bypasses Herdr's normal dropping of Super chords in legacy shell panes. Use `send-text`, not `send-keys`, to avoid keyboard-protocol re-encoding.
+
+The shortcut launches a background shell/CLI command per press and forwards this fixed sequence to any focused pane application. Reload with `prefix+shift+e`. If a shell loaded the former Kitty integration, exit it and open a fresh shell to clear its hooks and keyboard mode.
+
 ## Direct `ctrl+alt` chords vs. full-screen TUIs
 
 During normal pane input, Herdr intercepts configured prefix-free `ctrl+alt+*` chords *before* they reach the focused pane application. Prefix and direct bindings are active simultaneously in shell panes and full-screen TUIs (Neovim, OpenCode, …); this configuration does not scope direct shortcuts to shells.
@@ -144,6 +150,7 @@ Worktrees use Herdr's default `~/.herdr/worktrees/<repo>/<branch-slug>` location
 
 | Key              | Action                                                     |
 | ---------------- | ---------------------------------------------------------- |
+| `Cmd+Return`     | Forward the submit sequence directly to the active pane    |
 | `prefix+alt+l`   | Open **lazygit** in a temporary popup (matches `lg` alias) |
 | `prefix+f`       | Open **file viewer** in a split (herdr-file-viewer plugin) |
 | `prefix+shift+f` | Open **file viewer** in a tab (herdr-file-viewer plugin)   |
@@ -204,6 +211,7 @@ Reach for **Herdr panes** (`prefix+v`) when you want pane processes to keep runn
 ## Notifications & agents
 
 - **Notifications** (`[ui.toast]`): set to `delivery = "terminal"` so Ghostty shows a native desktop notification when a background agent finishes or needs input (active-tab agents are not announced), using the default one-second delay. Sound is **off** (`[ui.sound]`) — the sidebar plus terminal notifications are enough.
+
 - **Agent integrations**: Pi and OpenCode report lifecycle state and native session identity through their integrations. Claude Code's hook reports native session identity only; its lifecycle state still comes from screen detection. All three integrations support native conversation restoration when a valid session reference has been reported.
 
   The development profile runs `herdr/setup.sh`, `opencode/setup.sh`, and `pi_coding_agent/setup.sh`; `claude_code/setup.sh` is opt-in. Each agent setup prepares its config directory, then installs its bundled integration if Herdr is available. Installation failures propagate. Early setup skips integrations when Herdr is not yet installed, so complete these steps after installing the executables and making them available on `PATH`:
@@ -233,6 +241,7 @@ Reach for **Herdr panes** (`prefix+v`) when you want pane processes to keep runn
   Herdr installs the hook script and generates the machine-local registration. The current Claude integration uses the `SessionStart` matcher `^(startup|resume|clear|compact|fork)$`, avoiding Grok's `new` / `load` events; reinstalling migrates an older wildcard registration. No generated absolute hook path belongs in the shared template. Claude and Pi setup honor `CLAUDE_CONFIG_DIR` and `PI_CODING_AGENT_DIR`; use absolute paths for overrides. Claude's initial API-key helper command also follows `CLAUDE_CONFIG_DIR`.
 
   Restart agents after installation. OpenCode also needs its shared servers restarted after an integration upgrade. If the installer defers OpenCode V2 registration for first-start migration, start `opencode2` once and rerun `herdr integration install opencode`. See the [integration documentation](https://herdr.dev/tui/docs/integrations/) for supported versions and install locations.
+
 - **Session restore** (enabled by default; no `[session]` override): after a server restart, eligible Pi / OpenCode / Claude Code panes relaunch into their native conversation sessions using valid session references reported by current official integrations. Missing, invalid, duplicated, or stale references fall back to new shells in the saved directories.
 
 ## Session control (CLI)
@@ -286,7 +295,9 @@ hk                   # stop the server and its pane processes
 ## Configuration files
 
 - `herdr/setup.sh` symlinks `herdr/config.toml` to `HERDR_CONFIG_PATH` when set, otherwise `$XDG_CONFIG_HOME/herdr/config.toml`, falling back to `~/.config/herdr/config.toml`. Use nonempty paths for overrides and run `herdr --help` to see the resolved location. The file holds `onboarding = false`, the `gruvbox` theme and green accent, the custom prefix-first `[keys]` remap, and the `[[keys.command]]` blocks (lazygit popup + file-viewer plugin actions, bound via `type = "plugin_action"`).
+
 - This `keybindings.md` is repo documentation only; it is **not** symlinked.
+
 - Validate the resolved config with `herdr config check`. To check the repository file explicitly, run from the repository root:
 
   ```sh
@@ -294,7 +305,9 @@ hk                   # stop the server and its pane processes
   ```
 
   Print defaults with `herdr --default-config`. Use `prefix+shift+e` to reload client and selected-server settings, or `herdr server reload-config` for the CLI's selected server/session.
+
 - Defaults and repository config were checked against **Herdr 0.9.5**. After an upgrade, compare `herdr --default-config` to catch newly added keys or changed defaults. Redundant overrides are omitted, so inherited settings follow upstream defaults.
+
 - **Left at Herdr defaults** (no config entry):
   - theme auto-switching is off; eligible agent sessions resume after a restart;
   - worktrees use `~/.herdr/worktrees`, and agent notifications wait one second;

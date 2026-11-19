@@ -119,6 +119,13 @@ navigate_workspace_down = "shift+j"
 # Custom commands
 # ---------------
 
+# Forward Cmd+Enter bytes directly; legacy shell panes otherwise drop Super chords.
+[[keys.command]]
+key = "cmd+enter"
+type = "shell"
+command = '''"$HERDR_BIN_PATH" pane send-text "$HERDR_ACTIVE_PANE_ID" "$(printf '\033[13;9u')"'''
+description = "forward Cmd+Enter"
+
 # lazygit in a temporary popup (matches the `lg` alias); closes when it exits.
 [[keys.command]]
 key = "prefix+alt+l"

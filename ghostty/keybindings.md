@@ -13,6 +13,8 @@ This config trusts Ghostty's built-in defaults; the only custom keybinds are in 
 
 These actions are bound in `zsh/zshrc`; other applications handle these keys independently. Newlines separate shell commands unless continued with shell syntax such as a trailing `\`, a pipe, or open quotes.
 
+Inside Herdr, a custom command forwards the `Cmd + Enter` sequence directly to the active pane, where Zsh's existing binding submits the buffer; see [Herdr's Zsh command submission notes](../herdr/keybindings.md#zsh-command-submission).
+
 ## Splits (panes)
 
 These are the ones to learn first.
