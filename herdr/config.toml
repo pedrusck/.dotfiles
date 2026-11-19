@@ -62,6 +62,7 @@ rows = [
 
 # Session / workspace
 workspace_picker = "prefix+shift+w"
+switch_workspace = "prefix+shift+1..9"		# indexed jumps: plain = tabs, Shift = workspaces, Alt = agents
 rename_workspace = "prefix+shift+r"
 close_workspace = "prefix+shift+x"
 settings = "prefix+shift+s"
@@ -75,7 +76,7 @@ previous_agent = ["prefix+shift+a", "ctrl+alt+shift+a"]
 focus_agent = "prefix+alt+1..9"							# jump to agent 1-9 (prefix-only to avoid tab-index clash)
 
 # Worktrees (grouped workspaces; g = git). Remove is prefix-only (destructive).
-new_worktree = ["prefix+shift+g", "ctrl+alt+g"]		# create worktree -> grouped workspace
+new_worktree = "prefix+shift+g"		# create worktree -> grouped workspace
 open_worktree = ["prefix+shift+o", "ctrl+alt+o"]	# open existing worktree checkout
 remove_worktree = "prefix+alt+shift+g"				# delete checkout (confirmed; branch kept)
 
@@ -84,6 +85,8 @@ new_tab = "prefix+n"
 next_tab = ["prefix+t", "ctrl+alt+t"]
 previous_tab = ["prefix+shift+t", "ctrl+alt+shift+t"]
 switch_tab = ["prefix+1..9", "ctrl+alt+1..9"]
+move_tab_previous = "prefix+alt+h"
+move_tab_next = "prefix+alt+l"
 rename_tab = "prefix+r"
 close_tab = "prefix+x"
 
@@ -111,6 +114,7 @@ close_pane = ["prefix+d", "ctrl+alt+d"]
 resize_mode = ["prefix+w", "ctrl+alt+w"]
 zoom = ["prefix+z", "ctrl+alt+z"]				# fullscreen the focused pane
 edit_scrollback = ["prefix+e", "ctrl+alt+e"]	# open pane scrollback in $EDITOR (nvim)
+clear_pane = "prefix+ctrl+k"					# clear screen + scrollback, preserving the current input line; no-op on alternate screens
 
 # Navigate mode -- pane movement defaults to bare h/j/k/l; use Shift+K/J for workspace movement while the navigate surface is open (no prefix).
 navigate_workspace_up = "shift+k"
@@ -126,14 +130,22 @@ type = "shell"
 command = '''"$HERDR_BIN_PATH" pane send-text "$HERDR_ACTIVE_PANE_ID" "$(printf '\033[13;9u')"'''
 description = "forward Cmd+Enter"
 
-# lazygit in a temporary popup (matches the `lg` alias); closes when it exits.
+# Move the focused pane into a new tab and follow it; its process keeps running.
 [[keys.command]]
-key = "prefix+alt+l"
+key = "prefix+alt+p"
+type = "shell"
+command = '''"$HERDR_BIN_PATH" pane move "$HERDR_ACTIVE_PANE_ID" --new-tab --focus'''
+description = "move pane to new tab"
+
+# lazygit in a temporary popup (matches the `lg` alias); closes when it exits.
+# Direct shortcut: ctrl+alt+g for Lazygit; worktree creation uses prefix+shift+g.
+[[keys.command]]
+key = ["prefix+alt+g", "ctrl+alt+g"]
 type = "popup"
-command = "lazygit"
+command = "exec lazygit"
 description = "run lazygit"
-width = "80%"
-height = "80%"
+width = "90%"
+height = "90%"
 
 # herdr file viewer -> https://github.com/smarzban/herdr-file-viewer
 [[keys.command]]

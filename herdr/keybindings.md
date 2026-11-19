@@ -28,7 +28,7 @@ Inside a pane, Herdr does shadow a few low-value defaults, each easily replaced:
 
 - **zsh** — `backward-char` (cursor left) → use Left Arrow or `Esc h`
 - **Neovim** — page-up (unused; this config scrolls with `<C-d>`/`<C-u>`) and blink.cmp doc-scroll-up (minor; docs `auto_show = false`)
-- **lazygit** — nothing (binds no `<c-b>`)
+- **lazygit** — files-panel status filter → press `ctrl+b ctrl+b` to forward Ctrl+B through Herdr
 
 To send a literal **`Ctrl+B`** to the focused pane, press **`ctrl+b ctrl+b`** (the prefix twice). This lets the pane application handle its own Ctrl+B action. `ctrl+b` followed by plain `b` is different: it toggles Herdr's sidebar.
 
@@ -71,45 +71,55 @@ Every pane action follows the Vim model used across this setup. Where a prefix-f
 
 ### Panes
 
-| Key                          | Direct chord             | Action                                   | Vim parallel      |
-| ---------------------------- | ------------------------ | ---------------------------------------- | ----------------- |
-| `prefix+s`                   | `ctrl+alt+s`             | Split down                               | `:split`          |
-| `prefix+v`                   | `ctrl+alt+v`             | Split right                              | `:vsplit`         |
-| `prefix+h` / `j` / `k` / `l` | `ctrl+alt+h/j/k/l`       | Focus pane left / down / up / right      | `Ctrl+w h/j/k/l`  |
-| `prefix+H` / `J` / `K` / `L` | `ctrl+alt+shift+h/j/k/l` | Swap pane left / down / up / right       | `Ctrl+w H/J/K/L`  |
-| `prefix+p`                   | —                        | Jump back to the last focused pane       | `Ctrl+w p`        |
-| `prefix+z`                   | `ctrl+alt+z`             | Zoom (fullscreen) the focused pane       | —                 |
-| `prefix+w`                   | `ctrl+alt+w`             | Resize mode                              | `Ctrl+w` + resize |
-| `prefix+d`                   | `ctrl+alt+d`             | Close focused pane                       | `:close`          |
-| `prefix+e`                   | `ctrl+alt+e`             | Open pane scrollback in `$EDITOR` (nvim) | —                 |
+| Key                          | Direct chord             | Action                                       | Vim parallel      |
+| ---------------------------- | ------------------------ | -------------------------------------------- | ----------------- |
+| `prefix+s`                   | `ctrl+alt+s`             | Split down                                   | `:split`          |
+| `prefix+v`                   | `ctrl+alt+v`             | Split right                                  | `:vsplit`         |
+| `prefix+h` / `j` / `k` / `l` | `ctrl+alt+h/j/k/l`       | Focus pane left / down / up / right          | `Ctrl+w h/j/k/l`  |
+| `prefix+H` / `J` / `K` / `L` | `ctrl+alt+shift+h/j/k/l` | Swap pane left / down / up / right           | `Ctrl+w H/J/K/L`  |
+| `prefix+p`                   | —                        | Jump back to the last focused pane           | `Ctrl+w p`        |
+| `prefix+z`                   | `ctrl+alt+z`             | Zoom (fullscreen) the focused pane           | —                 |
+| `prefix+w`                   | `ctrl+alt+w`             | Resize mode                                  | `Ctrl+w` + resize |
+| `prefix+d`                   | `ctrl+alt+d`             | Close focused pane                           | `:close`          |
+| `prefix+e`                   | `ctrl+alt+e`             | Open pane scrollback in `$EDITOR` (nvim)     | —                 |
+| `prefix+ctrl+k`              | —                        | Clear pane screen and scrollback             | —                 |
+| `prefix+alt+p`               | —                        | Move focused pane to a new tab and follow it | `Ctrl+w T`        |
 
 `prefix+p` (`last_pane`) returns to the previously focused pane even when it is in another tab or workspace — for example, after visiting an agent that needs attention. It differs from directional focus (`prefix+h/j/k/l`) and from cycling through panes in the current tab (`prefix+tab` / `prefix+shift+tab`). It is prefix-only, so no direct `ctrl+alt` chord is taken from pane applications.
 
+`prefix+ctrl+k` (`clear_pane`) clears the screen and scrollback while preserving the current cursor line and its visible soft-wrapped rows. It sends no input to the running program and does nothing on the alternate screen, such as in Neovim.
+
+`prefix+alt+p` moves the focused pane into its own new tab in the same workspace and follows it there. Its running process continues. The custom command uses `HERDR_ACTIVE_PANE_ID` to target the pane selected when the shortcut runs.
+
 ### Tabs
 
-| Key                           | Direct chord                      | Action              | Vim parallel |
-| ----------------------------- | --------------------------------- | ------------------- | ------------ |
-| `prefix+n`                    | —                                 | New tab             | `:tabnew`    |
-| `prefix+t` / `prefix+shift+t` | `ctrl+alt+t` / `ctrl+alt+shift+t` | Next / previous tab | `gt` / `gT`  |
-| `prefix+1..9`                 | `ctrl+alt+1..9`                   | Jump to tab 1–9     | `{n}gt`      |
-| `prefix+r`                    | —                                 | Rename tab          | —            |
-| `prefix+x`                    | —                                 | Close tab           | `:tabclose`  |
+| Key                             | Direct chord                      | Action                       | Vim parallel |
+| ------------------------------- | --------------------------------- | ---------------------------- | ------------ |
+| `prefix+n`                      | —                                 | New tab                      | `:tabnew`    |
+| `prefix+t` / `prefix+shift+t`   | `ctrl+alt+t` / `ctrl+alt+shift+t` | Next / previous tab          | `gt` / `gT`  |
+| `prefix+1..9`                   | `ctrl+alt+1..9`                   | Jump to tab 1–9              | `{n}gt`      |
+| `prefix+alt+h` / `prefix+alt+l` | —                                 | Move active tab left / right | `:tabmove`   |
+| `prefix+r`                      | —                                 | Rename tab                   | —            |
+| `prefix+x`                      | —                                 | Close tab                    | `:tabclose`  |
 
 ### Workspaces & session
 
-| Key              | Action                            |
-| ---------------- | --------------------------------- |
-| `prefix+shift+w` | Workspace picker                  |
-| `prefix+shift+n` | New workspace                     |
-| `prefix+shift+r` | Rename workspace                  |
-| `prefix+shift+x` | Close workspace                   |
-| `prefix+g`       | Goto picker                       |
-| `prefix+b`       | Toggle sidebar                    |
-| `prefix+shift+s` | Settings                          |
-| `prefix+shift+e` | Reload config                     |
-| `prefix+q`       | Detach (everything keeps running) |
+| Key                 | Action                            |
+| ------------------- | --------------------------------- |
+| `prefix+shift+w`    | Workspace picker                  |
+| `prefix+shift+1..9` | Jump to workspace 1–9             |
+| `prefix+shift+n`    | New workspace                     |
+| `prefix+shift+r`    | Rename workspace                  |
+| `prefix+shift+x`    | Close workspace                   |
+| `prefix+g`          | Goto picker                       |
+| `prefix+b`          | Toggle sidebar                    |
+| `prefix+shift+s`    | Settings                          |
+| `prefix+shift+e`    | Reload config                     |
+| `prefix+q`          | Detach (everything keeps running) |
 
 `rename_workspace` takes `prefix+shift+r`, which is Herdr's default for `reload_config`; the latter is remapped to `prefix+shift+e` so both stay reachable.
+
+Indexed jumps use `prefix+1..9` for tabs, `prefix+shift+1..9` for workspaces, and `prefix+alt+1..9` for agents.
 
 ### Left at Herdr's defaults
 
@@ -140,7 +150,7 @@ Each client tracks which completions it has viewed. Viewing a completion on the 
 
 | Key                  | Direct chord | Action                                            |
 | -------------------- | ------------ | ------------------------------------------------- |
-| `prefix+shift+g`     | `ctrl+alt+g` | New worktree → opens as a grouped workspace       |
+| `prefix+shift+g`     | —            | New worktree → opens as a grouped workspace       |
 | `prefix+shift+o`     | `ctrl+alt+o` | Open an existing worktree checkout                |
 | `prefix+alt+shift+g` | —            | Delete worktree checkout (confirmed; branch kept) |
 
@@ -148,12 +158,17 @@ Worktrees use Herdr's default `~/.herdr/worktrees/<repo>/<branch-slug>` location
 
 ### Custom commands / plugins
 
-| Key              | Action                                                     |
-| ---------------- | ---------------------------------------------------------- |
-| `Cmd+Return`     | Forward the submit sequence directly to the active pane    |
-| `prefix+alt+l`   | Open **lazygit** in a temporary popup (matches `lg` alias) |
-| `prefix+f`       | Open **file viewer** in a split (herdr-file-viewer plugin) |
-| `prefix+shift+f` | Open **file viewer** in a tab (herdr-file-viewer plugin)   |
+| Key                           | Action                                                     |
+| ----------------------------- | ---------------------------------------------------------- |
+| `Cmd+Return`                  | Forward the submit sequence directly to the active pane    |
+| `prefix+alt+g` / `ctrl+alt+g` | Open **lazygit** in a temporary popup (matches `lg` alias) |
+| `prefix+alt+p`                | Move focused pane to a new tab and follow it               |
+| `prefix+f`                    | Open **file viewer** in a split (herdr-file-viewer plugin) |
+| `prefix+shift+f`              | Open **file viewer** in a tab (herdr-file-viewer plugin)   |
+
+Lazygit uses `prefix+alt+g`, freeing `prefix+alt+h/l` for tab reordering. Git shortcuts share `g`: Alt opens Lazygit, Shift creates a worktree, and Alt+Shift removes a worktree checkout.
+
+The prefix-free alternative is **Ctrl+Option+G** on macOS (`ctrl+alt+g`). Both shortcuts open the same 90% × 90% popup in the focused pane's current directory. Worktree creation uses `prefix+shift+g`. VoiceOver uses Control+Option as a modifier and can intercept this chord.
 
 When the **navigate surface** is open, bare `h/j/k/l` move between panes directly (no prefix), and `shift+j` / `shift+k` move the workspace selection down / up — keeping the Vim feel for quick hops.
 
@@ -294,7 +309,7 @@ hk                   # stop the server and its pane processes
 
 ## Configuration files
 
-- `herdr/setup.sh` symlinks `herdr/config.toml` to `HERDR_CONFIG_PATH` when set, otherwise `$XDG_CONFIG_HOME/herdr/config.toml`, falling back to `~/.config/herdr/config.toml`. Use nonempty paths for overrides and run `herdr --help` to see the resolved location. The file holds `onboarding = false`, the `gruvbox` theme and green accent, the custom prefix-first `[keys]` remap, and the `[[keys.command]]` blocks (lazygit popup + file-viewer plugin actions, bound via `type = "plugin_action"`).
+- `herdr/setup.sh` symlinks `herdr/config.toml` to `HERDR_CONFIG_PATH` when set, otherwise `$XDG_CONFIG_HOME/herdr/config.toml`, falling back to `~/.config/herdr/config.toml`. Use nonempty paths for overrides and run `herdr --help` to see the resolved location. The file holds `onboarding = false`, the `gruvbox` theme and green accent, the custom prefix-first `[keys]` remap, and the `[[keys.command]]` blocks (Cmd+Enter forwarding, pane promotion to a new tab, the Lazygit popup, and file-viewer plugin actions).
 
 - This `keybindings.md` is repo documentation only; it is **not** symlinked.
 
