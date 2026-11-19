@@ -142,7 +142,14 @@ description = "move pane to new tab"
 [[keys.command]]
 key = ["prefix+alt+g", "ctrl+alt+g"]
 type = "popup"
-command = "exec lazygit"
+command = '''
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  exec lazygit
+else
+  printf '\n  Lazygit: The focused pane is not inside a Git repository.\n'
+  sleep 1
+fi
+'''
 description = "run lazygit"
 width = "90%"
 height = "90%"
