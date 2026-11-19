@@ -370,6 +370,12 @@ customCommands:
       checkForConflicts: true
 git:
   localBranchSortOrder: recency
+  # Inherit Git's default pretty format in the main Log pane.
+  branchLogCmd: >-
+    git log --graph --color=always --abbrev-commit --decorate {{branchName}} --
+  allBranchesLogCmds:
+    - >-
+      git log --graph --all --color=always --abbrev-commit --decorate
   diffContextSize: 5
   diffRenderers:
     # Delta reads the shared [delta] Git configuration automatically.

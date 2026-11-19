@@ -48,6 +48,9 @@
 	required = true
 	smudge = git-lfs smudge -- %f
 
+[format]
+	pretty = tformat:%C(auto)commit %H%d%Creset%nAuthor: %an <%ae>%nDate:   %aI (%ar)%n%n%w(0,4,4)%B
+
 [help]
 	autocorrect = prompt
 
