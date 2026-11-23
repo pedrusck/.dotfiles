@@ -19,13 +19,6 @@ cask "pgadmin4" # Administration and development platform for PostgreSQL
 # --- Editors ------------------------------------------------------------------
 # cask "zed" # Multiplayer code editor
 
-# --- File inspection ----------------------------------------------------------
-brew "tesseract" # OCR (Optical Character Recognition) engine
-brew "tesseract-lang" # Enables extra languages support for Tesseract
-
-# --- File management ----------------------------------------------------------
-brew "tree" # Display directories as trees (with optional color/HTML output)
-
 # --- Fonts --------------------------------------------------------------------
 # cask "font-hack-nerd-font"
 # cask "font-roboto-mono-nerd-font"
@@ -79,7 +72,6 @@ cask "spotify" # Music streaming service
 # --- Networking ---------------------------------------------------------------
 # cask "hoppscotch" # Open source API development ecosystem
 # cask "proxyman" # Modern and intuitive HTTP Debugging Proxy app
-brew "telnet" # User interface to the TELNET protocol
 
 # --- Note taking --------------------------------------------------------------
 # cask "notion" # App to write, plan, collaborate, and get organized
