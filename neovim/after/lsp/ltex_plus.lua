@@ -6,14 +6,16 @@ return {
 			return
 		end
 		ltex_extra.setup({
-			load_langs = { "ca-Es", "de-DE", "en-US", "es" },
+			load_langs = { "ca-ES", "de-DE", "en-US", "es-ES" },
 			path = ".ltex",
 		})
+		require("config.ltex").canonical_files()
 	end,
 	settings = {
 		ltex = {
 			checkFrequency = "save",
-			enabled = { "markdown", "plaintex", "rst", "tex", "latex" },
+			-- nvim-lspconfig maps plaintex -> tex, tex -> latex, rst -> restructuredtext.
+			enabled = { "markdown", "plaintex", "rst", "tex", "latex", "restructuredtext" },
 			language = "en-US",
 		},
 	},

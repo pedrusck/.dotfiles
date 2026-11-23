@@ -162,10 +162,68 @@ mini.ai extends textobjects with `n` / `l` for next / last (e.g. `van(`, `ci"`, 
 
 ## Spell & language
 
-| Key          | Action                        |
-| ------------ | ----------------------------- |
-| `<leader>sd` | Set spell language to German  |
-| `<leader>se` | Set spell language to English |
+| Key          | Native spelling | Document spelling & grammar (LTeX+) |
+| ------------ | --------------- | ----------------------------------- |
+| `<leader>sc` | `ca`            | Catalan (`ca-ES`)                   |
+| `<leader>sd` | `de_de`         | German (`de-DE`)                    |
+| `<leader>se` | `en_us`         | English (`en-US`)                   |
+| `<leader>ss` | `es_es`         | Spanish (Spain) (`es-ES`)           |
+
+Spanish selects Spain explicitly in both checkers (`es_es` / `es-ES`).
+Catalan's native dictionary has no regions, so it uses `ca`; LTeX+ uses `ca-ES`.
+Run `sh neovim/setup.sh` from the repository root to install the Spanish native
+dictionary (discovered from `spell/es.utf-8.add`). Generated `.spl` files stay
+untracked. **LTeX+ 18.7.x or newer is required for `es-ES`**; update the
+`ltex-ls-plus` server through Mason if necessary.
+
+LTeX+ 18.7.0 internally uses `es` for Spanish dictionary/code-action keys.
+The integration bridges that protocol key to `es-ES` persistence files and sends
+both settings keys, while document declarations remain explicitly `es-ES`.
+
+In Markdown, TeX (`tex` / `plaintex`), and reStructuredText, these mappings persist
+the initial language in the document and synchronize native `spelllang`. **Save
+normally to persist the edit and refresh LTeX+ diagnostics** (`checkFrequency =
+"save"`). Selection also works before LTeX+ attaches or when plugins are unavailable.
+Edits preserve the current view and form one undo step; repeated selection adds
+no duplicate declaration.
+
+| Filetype          | Declaration (German example)    |
+| ----------------- | ------------------------------- |
+| `markdown`        | `<!-- LTeX: language=de-DE -->` |
+| `tex`, `plaintex` | `% LTeX: language=de-DE`        |
+| `rst`             | `.. LTeX: language=de-DE`       |
+
+- Only declarations in the **opening metadata/comment area, before document
+  content**, are updated. Existing comment style, other LTeX+ settings, and TeX
+  encoding/editor headers are preserved. Markdown's alternative
+  `[comment]: <> "LTeX: language=de-DE"` style is supported.
+- Markdown YAML front matter with a simple top-level `lang` field uses that
+  field, preserving quotes and trailing comments. Without `lang`, a magic comment
+  is inserted after the front matter. If both YAML and opening comments declare
+  languages, all opening language values are updated consistently. Complex,
+  multiline, duplicate or ambiguous YAML declarations are reported for manual
+  correction rather than rewritten.
+- Opening declarations initialize native spelling on load/reload and
+  resynchronize it after saving manual declaration edits. The last opening
+  declaration wins. Only `ca-ES`, `de-DE`, `en-US`, and `es-ES` map to native
+  dictionaries; other values leave the configured native language unchanged. Switching windows does
+  not reset a manual native-language choice.
+- Later section-level magic comments are preserved. LTeX+ can check multilingual
+  sections independently, and supported LaTeX language commands (e.g.
+  `\usepackage[ngerman]{babel}`, `\selectlanguage`, `\foreignlanguage`, and
+  `otherlanguage` environments) can override the initial language. **Native
+  spelling remains buffer-wide**, using the initial document language.
+- Other filetypes switch **native spelling only**, with a notification.
+  Read-only, unmodifiable, special, or ambiguous supported buffers report why
+  synchronization was skipped.
+
+Declaration/undo/event checks: `nvim --headless -u NONE -i NONE -n -l tests/test_neovim_spell.lua`
+(run from the repository root).
+
+Live LTeX+ checks use `tests/test_neovim_spell_ltex.lua`; its header documents the
+server, nvim-lspconfig, and `ltex_extra` paths to supply. The test uses a disposable
+project for Catalan, German, English, and Spain-Spanish diagnostics, including
+accented text, dictionary persistence, and false-positive actions.
 
 - **Swift**: run the current file with `<leader>cx` (output in a split). This is an explicit keymap — intended for standalone runnable scripts, not SwiftPM package sources.
 - **LaTeX** (vimtex): PDF viewer is Skim (`vimtex_view_method = "skim"`).

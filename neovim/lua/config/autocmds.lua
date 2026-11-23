@@ -1,6 +1,23 @@
 local augroup = vim.api.nvim_create_augroup
 local autocmd = vim.api.nvim_create_autocmd
 
+local spell_group = augroup("DocumentSpellLanguage", { clear = true })
+autocmd("FileType", {
+	desc = "Initialize native spelling from the document language",
+	group = spell_group,
+	pattern = { "markdown", "tex", "plaintex", "rst" },
+	callback = function(ev)
+		require("config.spell").initialize(ev.buf)
+	end,
+})
+autocmd({ "BufReadPost", "BufWritePost" }, {
+	desc = "Synchronize document spelling after reload or save",
+	group = spell_group,
+	callback = function(ev)
+		require("config.spell").initialize(ev.buf)
+	end,
+})
+
 -- Keep filetype plugins from enabling automatic hard wrapping.
 autocmd({ "FileType", "BufWinEnter" }, {
 	desc = "Use soft wrapping instead of inserting line breaks",
